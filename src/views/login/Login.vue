@@ -41,44 +41,29 @@ export default {
         }
     },
     methods: {
-        handleLogin() {
+        async handleLogin() {
             console.log('Login attempt:', this.username, this.password)
-            LoginAPI.getDbNames(this.username, this.password)
-                .then(response => {
-                    let data = response.data
-                    // console.log(data)
-                    if (data.Status == 200) {
-                        this.dbNames = JSON.parse(data.Data)
-                        this.dialogVisible = true;
-                        this.selectedDbName = this.dbNames.length > 0 ? this.dbNames[0] : '';
-                    }
-                    else {
-                        console.log(data.Message)
-                        this.$message.error(data.Message);
-                    }
-                })
-                .catch(error => {
-                    // this.error = error
-                    console.log(error)
-                });
+            var data = await LoginAPI.getDbNames(this.username, this.password);
+
+            console.log(data)
+            if (data.Status == 200) {
+                this.dbNames = JSON.parse(data.Data)
+                this.dialogVisible = true;
+                this.selectedDbName = this.dbNames.length > 0 ? this.dbNames[0] : '';
+            }
+            else {
+                this.$message.error(data.Message);
+            }
         },
-        confirmSelection() {
-            LoginAPI.login(this.selectedDbName, this.username, this.password)
-                .then(response => {
-                    let data = response.data
-                    // console.log(data)
-                    if (data.IsSuccess == true) {
-                        this.$router.push('/home')
-                    }
-                    else {
-                        console.log(data.ErrorMessage)
-                        this.$message.error(data.ErrorMessage);
-                    }
-                })
-                .catch(error => {
-                    // this.error = error
-                    console.log(error)
-                });
+        async confirmSelection() {
+            var data = await LoginAPI.login(this.selectedDbName, this.username, this.password);
+            if (data.IsSuccess == true) {
+                this.$router.push('/home')
+            }
+            else {
+                console.log(data.ErrorMessage)
+                this.$message.error(data.ErrorMessage);
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ const instance = axios.create({
   },
 });
 
-// // 请求拦截器
+// 请求拦截器
 instance.interceptors.request.use(
   config => {
     //   var loginTime = JSON.parse(localStorage.getItem('loginTime'))
@@ -87,12 +87,10 @@ instance.interceptors.response.use(
 )
 
 const APIHelper = {
-  get: async (url, params = {}) => {
-    return await new Promise((resolve, reject) => {
+  get: (url, params = {}) => {
+    return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
-      console.log(resolve);
-      console.log(reject);
-      axios
+      instance
         .get(url, {
           params: params,
           paramsSerializer: params => {
@@ -101,33 +99,37 @@ const APIHelper = {
             })
           }
         })
-      // .then(response => {
-      //   // if (response.data && response.data.success) {
-      //   //   resolve(response.data)
-      //   // } else {
-      //   //   if (whiteUrlList.includes(response.config.url)) {
-      //   //     resolve(response.data)
-      //   //   } else {
-      //   //     reject(response)
-      //   //   }
-      //   // }
-      //   context.$pushLoading(false, false)
-      // })
-      // .catch(err => {
-      //   context.$pushLoading(false, true)
-      //   reject(err)
-      // })
-    });
-  },
-  post: async (url, data = {}) => {
-    return await new Promise((resolve, reject) => {
-      context.$pushLoading(true, false)
-      axios
-        .post(url, data)
         .then(response => {
-          if (response.status == 200 && response.data.success) {
+          if (response.data) {
             resolve(response.data)
           }
+          // if (response.data && response.data.success) {
+          //   resolve(response.data)
+          // }
+          // else {
+          //   if (whiteUrlList.includes(response.config.url)) {
+          //     resolve(response.data)
+          //   } else {
+          //     reject(response)
+          //   }
+          // }
+          context.$pushLoading(false, false)
+        })
+        .catch(err => {
+          context.$pushLoading(false, true)
+          reject(err)
+        })
+    });
+  },
+  post: (url, data = {}) => {
+    return new Promise((resolve, reject) => {
+      context.$pushLoading(true, false)
+      instance
+        .post(url, data)
+        .then(response => {
+          // if (response.status == 200 && response.data.success) {
+          //   resolve(response.data)
+          // }
           // 当状态为200，无返回data.success时也可以返回参数
           if (response.status == 200) {
             resolve(response.data)
@@ -140,17 +142,20 @@ const APIHelper = {
         })
     });
   },
-  put: async (url, params = {}) => {
-    return await new Promise((resolve, reject) => {
+  put: (url, params = {}) => {
+    return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
-      axios
+      instance
         .put(url, params)
         .then(response => {
-          if (response.data.success) {
+          if (response.data) {
             resolve(response.data)
-          } else {
-            reject(response)
           }
+          // if (response.data.success) {
+          //   resolve(response.data)
+          // } else {
+          //   reject(response)
+          // }
           context.$pushLoading(false, false)
         })
         .catch(err => {
@@ -159,19 +164,22 @@ const APIHelper = {
         })
     });
   },
-  delete: async (url, params = {}) => {
-    return await new Promise((resolve, reject) => {
+  delete: (url, params = {}) => {
+    return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
-      axios
+      instance
         .delete(url, {
           params: params
         })
         .then(response => {
-          if (response.data.success) {
+          if (response.data) {
             resolve(response.data)
-          } else {
-            reject(response)
           }
+          // if (response.data.success) {
+          //   resolve(response.data)
+          // } else {
+          //   reject(response)
+          // }
           context.$pushLoading(false, false)
         })
         .catch(err => {
