@@ -3,8 +3,8 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
-import Login from './components/login/Login.vue'
-import Home from './components/home/Home.vue'
+import Login from './views/login/Login.vue'
+import Home from './views/home/Home.vue'
 
 // 配置路由
 const routes = [

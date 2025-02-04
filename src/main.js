@@ -1,6 +1,7 @@
 import Vue from 'vue'
-// import App from './App.vue'
-import router from './router.js'
+import App from './App.vue'
+import router from './router'
+import store from './store'
 
 Vue.config.productionTip = false
 
@@ -8,29 +9,39 @@ Vue.config.productionTip = false
 //   console.log = function() {}
 // }
 
+import Vant from 'vant';
+Vue.use(Vant)
+
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
-
 Vue.use(ElementUI);
 
-import detectDeviceType from './multi-platform-util.js'
+// import detectDeviceType from './utils/multi-platform.js'
 
-async function mountApp() {
-  const deviceType = detectDeviceType();
-  let app;
+// async function mountApp() {
+//   const deviceType = detectDeviceType();
+//   let app;
 
-  if (deviceType === 'mobile') {
-    app = (await import('./MobileApp.vue')).default;
-  } else if (deviceType === 'tablet') {
-    app = (await import('./TabletApp.vue')).default;
-  } else {
-    app = (await import('./DesktopApp.vue')).default;
-  }
+//   if (deviceType === 'mobile') {
+//     app = (await import('./MobileApp.vue')).default;
+//   } else if (deviceType === 'tablet') {
+//     app = (await import('./TabletApp.vue')).default;
+//   } else {
+//     app = (await import('./DesktopApp.vue')).default;
+//   }
 
-  new Vue({
-    router,
-    render: h => h(app)
-  }).$mount('#app');
-}
+//   new Vue({
+//     store,
+//     router,
+//     render: h => h(app)
+//   }).$mount('#app');
+// }
 
-mountApp();
+// mountApp();
+
+
+new Vue({
+  store,
+  router,
+  render: h => h(App)
+}).$mount('#app');

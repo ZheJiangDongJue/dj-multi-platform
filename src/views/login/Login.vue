@@ -27,7 +27,7 @@
 
 <script>
 
-import API from './login_api'
+import LoginAPI from '@/api/login'
 
 export default {
     name: 'LoginPage',
@@ -43,7 +43,7 @@ export default {
     methods: {
         handleLogin() {
             console.log('Login attempt:', this.username, this.password)
-            API.getDbNames(this.username, this.password)
+            LoginAPI.getDbNames(this.username, this.password)
                 .then(response => {
                     let data = response.data
                     // console.log(data)
@@ -63,7 +63,7 @@ export default {
                 });
         },
         confirmSelection() {
-            API.login(this.selectedDbName, this.username, this.password)
+            LoginAPI.login(this.selectedDbName, this.username, this.password)
                 .then(response => {
                     let data = response.data
                     // console.log(data)

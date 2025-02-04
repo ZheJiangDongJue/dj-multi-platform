@@ -1,0 +1,12 @@
+$ui-width-ls: 1024 !default;
+$ui-width-ps: 768 !default;
+$ui-width-ms: 375 !default;
+@function ps($px) {
+  @return ($px / $ui-width-ps) * 100vw;
+}
+@function ls($px) {
+  @return ($px / $ui-width-ls) * 100vw;
+}
+@function ms($px){
+  @return $px
+}

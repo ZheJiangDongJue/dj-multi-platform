@@ -1,0 +1,138 @@
+@import './vw.scss';
+
+$white: #ffffff;
+
+// n行显示省略号 使用方式 @inlcude ellipsis(n);
+@mixin ellipsis($num: 1) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @if ($num==1) {
+        white-space: nowrap;
+    }
+
+    @if ($num !=1) {
+        display: -webkit-box;
+        word-wrap: break-word;
+        -webkit-line-clamp: $num;
+        -webkit-box-orient: vertical;
+    }
+}
+
+// 竖屏
+@mixin ps {
+    @content;
+}
+
+// 横屏
+@mixin ls {
+    @media (min-width: 1024px) {
+        @content;
+    }
+}
+
+@mixin ms {
+    @media (max-width: 750px) {
+        @content;
+    }
+}
+
+
+/**
+ * Flex 实用工具类，用于常见布局模式
+ *
+ * @class .flex-y - 垂直居中对齐
+ * @class .flex-x - 水平居中对齐
+ * @class .flex-x-y - 水平垂直都居中对齐
+ * @class .flex-s-w - 起始对齐并自动换行
+ * @class .flexy-y-s-w - 两端对齐，垂直居中，自动换行
+ * @class .flex-start-s - 顶部对齐并两端分布
+ * @class .flex-y-s - 垂直居中并两端分布
+ * @class .flex-y-s-w - 垂直居中，两端分布，自动换行
+ * @class .flex-b-s - 基线对齐并两端分布
+ * @class .flex-b - 基线对齐
+ * @class .flex-y-a - 垂直居中并环绕分布
+ * @class .flex-y-c - 垂直居中的列布局
+ *
+ * 所有类都以 display: flex 为基础
+ * 命名规则：
+ * - x: 水平对齐
+ * - y: 垂直对齐
+ * - s: 两端分布
+ * - w: 自动换行
+ * - b: 基线对齐
+ * - a: 环绕分布
+ * - c: 列方向
+ */
+
+.flex-y {
+    display: flex;
+    align-items: center;
+}
+
+.flex-x {
+    display: flex;
+    justify-content: center;
+}
+
+.flex-x-y {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flex-s-w {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.flexy-y-s-w {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.flex-start-s {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.flex-y-s {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.flex-y-s-w {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.flex-b-s {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.flex-b {
+    display: flex;
+    align-items: baseline;
+}
+
+.flex-y-a {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.flex-y-c {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
