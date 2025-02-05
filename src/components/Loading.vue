@@ -10,7 +10,7 @@
   <script>
   import { mapGetters } from 'vuex'
   export default {
-    name:'Loading',
+    name:'LoadingComponent',
     data() {
       return {}
     },

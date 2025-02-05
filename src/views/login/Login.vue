@@ -53,6 +53,11 @@ export default {
             }
             else {
                 this.$message.error(data.Message);
+                this.$dialog.alert({
+                    title: '提示',
+                    message: data.Message
+                })
+                this.$toast(data.Message)
             }
         },
         async confirmSelection() {

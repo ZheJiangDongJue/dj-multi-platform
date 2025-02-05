@@ -1,80 +1,124 @@
 <template>
-    <div class="home-container">
-        <!-- Left Navigation Bar -->
-        <div class="nav-sidebar">
-            <el-menu
-                default-active="1"
-                class="nav-menu"
-                background-color="#545c64"
-                text-color="#fff"
-                active-text-color="#ffd04b">
-                <el-menu-item index="1">
-                    <i class="el-icon-menu"></i>
-                    <span>功能-没想好1</span>
-                </el-menu-item>
-                <el-menu-item index="2">
-                    <i class="el-icon-document"></i>
-                    <span>功能-没想好2</span>
-                </el-menu-item>
-                <el-menu-item index="3">
-                    <i class="el-icon-setting"></i>
-                    <span>功能-没想好3</span>
-                </el-menu-item>
-            </el-menu>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="main-content">
-            <!-- Top Tabs -->
-            <el-tabs v-model="activeTab" type="card">
-                <el-tab-pane label="Tab 1" name="tab1">Tab 1 Content</el-tab-pane>
-                <!-- <el-tab-pane label="Tab 2" name="tab2">Tab 2 Content</el-tab-pane>
-                <el-tab-pane label="Tab 3" name="tab3">Tab 3 Content</el-tab-pane> -->
-            </el-tabs>
+    <div>
+        <h3 class="title">测试</h3>
+        <div class="grid-container">
+            <div class="grid-item left">
+                <van-sidebar v-model="navigatorActiveKey">
+                    <van-sidebar-item :title="item.name" v-for="item in navigatorItems" :key="item.id" />
+                </van-sidebar>
+            </div>
+            <div class="grid-item right">
+                <div class="flex-s-w">
+                    <Card :header="item.name" v-for="item in currentModule" :key="item.name">
+                        <template v-slot:icon>
+                            <!-- <img src="../../assets/logo.png" alt="User Icon"> -->
+                        </template>
+                    </Card>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import Card from '@/components/CardComponent.vue';
+
+
 export default {
     name: 'HomePage',
+    components: {
+        Card,
+    },
     data: function () {
         return {
-            activeTab: 'tab1'
+            navigatorActiveKey: 0,
+            navigatorItems: [],
+            currentModule:[],
+            moduleItems: {},
+        }
+    },
+    watch: {
+        navigatorActiveKey: function (newValue, oldValue) {
+            console.log('navigatorActiveKey changed from ' + oldValue + ' to ' + newValue);
+            this.refreshCurrentModule();
+        }
+    },
+    created() {
+        this.navigatorItems.push({
+            name: '生产系统',
+        })
+        this.navigatorItems.push({
+            name: '工艺系统',
+        })
+        for (let i = 0; i < this.navigatorItems.length; i++) {
+            const element = this.navigatorItems[i];
+            element.id = i + 1;
+        }
+        this.moduleItems = {
+            '生产系统':[
+                {
+                    name:'测试1',
+                    router: '/login',
+                },
+                {
+                    name:'测试2',
+                },
+            ],
+            '工艺系统':[
+                {
+                    name:'测试1',
+                },
+                {
+                    name:'测试2',
+                },
+                {
+                    name:'测试3',
+                },
+            ],
+        }
+        this.refreshCurrentModule();
+    },
+    mounted() { },
+    methods:{
+        refreshCurrentModule(){
+            let key = this.navigatorItems[this.navigatorActiveKey].name;
+            this.currentModule = this.moduleItems[key]
         }
     }
+
 }
 </script>
 
-<style scoped>
-.home-container {
+<style lang="scss" scoped>
+.title {
+    text-align: left;
+    margin-left: ps(15);
+}
+
+.grid-container {
     display: flex;
-    height: 100vh;
-}
-
-.nav-sidebar {
-    width: 200px;
+    /* 使用flex布局 */
+    width: 100%;
     height: 100%;
-    background-color: #545c64;
+    /* 占据父容器的全部宽高 */
 }
 
-.nav-menu {
+.grid-item {
     height: 100%;
 }
 
-.main-content {
-    flex: 1;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
+.grid-item.left {
+    flex: 0 0 auto;
+    /* 左侧宽度自适应内容 */
 }
 
-.page-content {
-    flex: 1;
-    margin-top: 20px;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+.grid-item.right {
+    flex: 1 1 auto;
+    /* 右侧填充剩余空间 */
+    /*  或者 flex-grow: 1;  flex-shrink: 1; flex-basis: auto; */
+}
+
+.card {
+    margin: ps(10) ps(10);
 }
 </style>

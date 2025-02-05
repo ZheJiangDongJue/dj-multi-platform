@@ -1,5 +1,6 @@
 import { mapActions, mapGetters } from 'vuex'
 import debounce from './utils/debounce'
+import { Toast } from 'vant'
 const methodMixin = {
   data() {
     return {
@@ -20,12 +21,15 @@ const methodMixin = {
     // 判断手机端
     $isMobile() {
       return this.clientWidth <= 750
+    },
+    $toast() {
+      return Toast;
     }
   },
 
   watch: {},
 
-  created() {},
+  created() { },
 
   mounted() {
     this.clientWidth = document.documentElement.clientWidth
