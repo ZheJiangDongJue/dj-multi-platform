@@ -5,10 +5,17 @@ Vue.use(VueRouter)
 
 import Login from './views/login/Login.vue'
 import Home from './views/home/Home.vue'
+import CsPage from './views/technology/AssemblyProcessReception.vue' 
+
 
 // 配置路由
 const routes = [
-    { path: '/', component: Login },
+    {
+        path: '/AssemblyProcessReception',
+        name: 'CsPage',
+        component: CsPage
+    },
+    { path: '/', component: CsPage },
     { path: '/login', component: Login },
     { path: '/home', component: Home }
 ]

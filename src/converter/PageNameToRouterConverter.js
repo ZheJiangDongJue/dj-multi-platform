@@ -1,6 +1,7 @@
 const ConvertMap = {
     // MaterialPage: "/material",
     LoginPage: "/login",
+    EmployeePage:"/AssemblyProcessReception",
 }
 
 import { Toast } from 'vant';
