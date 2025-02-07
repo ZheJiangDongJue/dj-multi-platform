@@ -40,6 +40,12 @@ export default {
             selectedDbName: '',
         }
     },
+    created(){
+        let username = localStorage.getItem('username');
+        if(username !== null){
+            this.username = username;
+        }
+    },
     methods: {
         async handleLogin() {
             console.log('Login attempt:', this.username, this.password)
@@ -48,8 +54,14 @@ export default {
             console.log(data)
             if (data.Status == 200) {
                 this.dbNames = JSON.parse(data.Data)
-                this.dialogVisible = true;
-                this.selectedDbName = this.dbNames.length > 0 ? this.dbNames[0] : '';
+                if (this.dbNames.length > 1) {
+                    this.dialogVisible = true;
+                    this.selectedDbName = this.dbNames.length > 0 ? this.dbNames[0] : '';
+                }
+                else {
+                    this.selectedDbName = this.dbNames[0];
+                    await this.confirmSelection();
+                }
             }
             else {
                 this.$message.error(data.Message);
@@ -63,6 +75,10 @@ export default {
         async confirmSelection() {
             var data = await LoginAPI.login(this.selectedDbName, this.username, this.password);
             if (data.IsSuccess == true) {
+                this.$commitUserInfo(data.UserInfo)
+                this.$commitDbName(this.selectedDbName);
+                //登陆成功后存用户名
+                localStorage.setItem('username', this.username)
                 this.$router.push('/home')
             }
             else {

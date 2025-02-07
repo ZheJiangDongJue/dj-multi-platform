@@ -1,5 +1,5 @@
 import { mapActions, mapGetters } from 'vuex'
-import debounce from './utils/debounce'
+import debounce from '../utils/debounce'
 import { Toast } from 'vant'
 const methodMixin = {
   data() {
@@ -10,10 +10,7 @@ const methodMixin = {
   },
 
   computed: {
-    ...mapGetters({
-      isLoading: 'isLoading',
-      $userInfo: 'userInfo'
-    }),
+    ...mapGetters(['isLoading', 'userInfo', 'dbName']),
     // 判断pad端是否是竖排
     $isPadPS() {
       return this.clientWidth < 1024
@@ -45,8 +42,12 @@ const methodMixin = {
   methods: {
     ...mapActions('loading', ['commitIsLoading']),
     ...mapActions('common', ['commitUserInfo']),
+    ...mapActions('common', ['commitDbName']),
     $commitUserInfo(userInfo) {
       this.commitUserInfo(userInfo)
+    },
+    $commitDbName(dbName) {
+      this.commitDbName(dbName)
     },
     $pushLoading(data, error) {
       // 发送网络请求时，data会传入true，由此计算有几次网络请求

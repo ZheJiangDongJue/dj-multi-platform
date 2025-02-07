@@ -1,5 +1,5 @@
 <template>
-    <div class="card" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
+    <div class="card" @touchstart="handleTouchStart" @touchend="handleTouchEnd" @click="handleClick">
         <div class="card-icon">
             <slot name="icon"></slot>
         </div>
@@ -23,12 +23,19 @@ export default {
         },
         handleTouchEnd() {
             this.isTouched = false;
+        },
+        handleClick() {
+            this.$emit('card-click', this.bind);
         }
     },
     props: {
         header: {
             type: String,
             default: 'NAME',
+        },
+        bind: {
+            type: Object,
+            default: () => { },
         }
     }
 };

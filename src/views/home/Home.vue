@@ -1,15 +1,37 @@
 <template>
     <div>
-        <h3 class="title">测试</h3>
-        <div class="grid-container">
+        <h3 class="title">功能</h3>
+        <div v-if="navigateMode == 0" class="grid-container">
+            <div class="grid-item left">
+                <van-collapse v-model="navigatorActiveKey" accordion>
+                    <van-collapse-item :title="item.Name" :name="item.Name" v-for="item in navigatorItems"
+                        :key="item.id" :is-link="item.Children.length > 0">
+                        <el-tree v-if="item.Children.length > 0" :data="item.Children" :props="defaultProps"
+                            @node-click="handleNodeClick"></el-tree>
+                    </van-collapse-item>
+                </van-collapse>
+            </div>
+            <div class="grid-item right">
+                <div class="flex-s-w">
+                    <Card :header="item.Name" v-for="item in currentModuleItems" :key="item.id" :bind="item"
+                        @card-click="onCardClick">
+                        <template v-slot:icon>
+                            <!-- <img src="../../assets/logo.png" alt="User Icon"> -->
+                        </template>
+                    </Card>
+                </div>
+            </div>
+        </div>
+        <div v-if="navigateMode == 1" class="grid-container">
             <div class="grid-item left">
                 <van-sidebar v-model="navigatorActiveKey">
-                    <van-sidebar-item :title="item.name" v-for="item in navigatorItems" :key="item.id" />
+                    <van-sidebar-item :title="item.Name" :name="item.Name" v-for="item in navigatorItems" :key="item.id" />
                 </van-sidebar>
             </div>
             <div class="grid-item right">
                 <div class="flex-s-w">
-                    <Card :header="item.name" v-for="item in currentModule" :key="item.name">
+                    <Card :header="item.Name" v-for="item in currentModuleItems" :key="item.id" :bind="item"
+                        @card-click="onCardClick">
                         <template v-slot:icon>
                             <!-- <img src="../../assets/logo.png" alt="User Icon"> -->
                         </template>
@@ -21,7 +43,11 @@
 </template>
 
 <script>
+import authApi from '@/api/auth';
 import Card from '@/components/CardComponent.vue';
+
+// 页面名称和路由的对应关系在这里配置
+import PageNameToRouterConverter from '@/converter/PageNameToRouterConverter';
 
 
 export default {
@@ -31,10 +57,15 @@ export default {
     },
     data: function () {
         return {
+            navigateMode: 1,//0: 左侧导航模式,1: 桌面图标模式
             navigatorActiveKey: 0,
             navigatorItems: [],
-            currentModule:[],
+            currentModuleItems: [],
             moduleItems: {},
+            defaultProps: {
+                children: 'Children',
+                label: 'Name'
+            },
         }
     },
     watch: {
@@ -43,46 +74,70 @@ export default {
             this.refreshCurrentModule();
         }
     },
-    created() {
-        this.navigatorItems.push({
-            name: '生产系统',
-        })
-        this.navigatorItems.push({
-            name: '工艺系统',
-        })
-        for (let i = 0; i < this.navigatorItems.length; i++) {
-            const element = this.navigatorItems[i];
-            element.id = i + 1;
-        }
-        this.moduleItems = {
-            '生产系统':[
-                {
-                    name:'测试1',
-                    router: '/login',
-                },
-                {
-                    name:'测试2',
-                },
-            ],
-            '工艺系统':[
-                {
-                    name:'测试1',
-                },
-                {
-                    name:'测试2',
-                },
-                {
-                    name:'测试3',
-                },
-            ],
-        }
-        this.refreshCurrentModule();
+    async created() {
+        // this.navigatorItems.push({
+        //     name: '生产系统',
+        // })
+        // this.navigatorItems.push({
+        //     name: '工艺系统',
+        // })
+        // for (let i = 0; i < this.navigatorItems.length; i++) {
+        //     const element = this.navigatorItems[i];
+        //     element.id = i + 1;
+        // }
+        // this.moduleItems = {
+        //     '生产系统': [
+        //         {
+        //             name: '测试1',
+        //             pageName: "LoginPage",
+        //         },
+        //         {
+        //             name: '测试2',
+        //             pageName: "MaterialPage",
+        //         },
+        //     ],
+        //     '工艺系统': [
+        //         {
+        //             name: '测试1',
+        //         },
+        //         {
+        //             name: '测试2',
+        //         },
+        //         {
+        //             name: '测试3',
+        //         },
+        //     ],
+        // }
+        // this.refreshCurrentModule();
+        var items = await authApi.getAllModuleItem(this.dbName, this.userInfo.id)
+        console.log("从Api获取到功能",items);
+        items.forEach(element => {
+            this.navigatorItems.push(element);
+        });
     },
     mounted() { },
-    methods:{
-        refreshCurrentModule(){
-            let key = this.navigatorItems[this.navigatorActiveKey].name;
-            this.currentModule = this.moduleItems[key]
+    methods: {
+        refreshCurrentModule() {
+            let key = this.navigatorActiveKey;
+            this.currentModuleItems = this.navigatorItems[key].Children
+        },
+        onCardClick(data) {
+            this.currentModuleItems.forEach(element => {
+                if (element === data) {
+                    console.log("点击了"+data.PageName);
+                    if (data.PageName != undefined) {
+                        let router = PageNameToRouterConverter.Convert(data.PageName);
+                        if (router === undefined) {
+                            return;
+                        }
+                        console.log('页面名称:"' + data.PageName + '" ->转换为-> 路由:"' + router + '"');
+                        this.$router.push(router);
+                    }
+                }
+            });
+        },
+        handleNodeClick(data) {
+            this.onCardClick(data);
         }
     }
 

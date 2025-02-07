@@ -9,6 +9,9 @@ Vue.config.productionTip = false
 //   console.log = function() {}
 // }
 
+import mixins from '@/mixins/method';
+Vue.mixin(mixins)
+
 import Vant from 'vant';
 import 'vant/lib/index.css';
 Vue.use(Vant)

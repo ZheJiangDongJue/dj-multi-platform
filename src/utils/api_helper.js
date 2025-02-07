@@ -1,6 +1,6 @@
 import axios from 'axios';
 import qs from 'qs'
-import methodMixin from '../mixins';
+import { methodMixin } from '../mixins';
 import store from '../store' //仓库
 import Vue from 'vue'
 import { Toast } from 'vant';
