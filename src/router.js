@@ -11,7 +11,7 @@ import CsPage from './views/technology/AssemblyProcessReception.vue'
 // 配置路由
 const routes = [
     {
-        path: '/AssemblyProcessReception',
+        path: '/c',
         name: 'CsPage',
         component: CsPage
     },
