@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+      "target": "es5",
+      "module": "esnext",
+      "strict": true,
+      "jsx": "preserve",
+      "importHelpers": true,
+      "moduleResolution": "node",
+      "experimentalDecorators": true,
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "noImplicitAny": false,
+      "sourceMap": true,
+      "allowJs": true,
+      "isolatedModules": true,
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["src/*"],
+      },
+      "lib": ["esnext", "dom", "dom.iterable", "ES2015"]
+    },
+    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+    "exclude": ["node_modules"]
+  }

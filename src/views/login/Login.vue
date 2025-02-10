@@ -52,7 +52,7 @@ export default {
             var data = await LoginAPI.getDbNames(this.username, this.password);
 
             console.log(data)
-            if (data.Status == 200) {
+            if (data.success) {
                 this.dbNames = JSON.parse(data.Data)
                 if (this.dbNames.length > 1) {
                     this.dialogVisible = true;
@@ -64,17 +64,17 @@ export default {
                 }
             }
             else {
-                this.$message.error(data.Message);
+                this.$message.error(data.message);
                 this.$dialog.alert({
                     title: '提示',
-                    message: data.Message
+                    message: data.message
                 })
-                this.$toast(data.Message)
+                this.$toast(data.message)
             }
         },
         async confirmSelection() {
             var data = await LoginAPI.login(this.selectedDbName, this.username, this.password);
-            if (data.IsSuccess == true) {
+            if (data.success) {
                 this.$commitUserInfo(data.UserInfo)
                 this.$commitDbName(this.selectedDbName);
                 //登陆成功后存用户名

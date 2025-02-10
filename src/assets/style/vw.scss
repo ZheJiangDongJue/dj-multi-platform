@@ -10,6 +10,6 @@ $ui-width-ms: 375 !default;
   @return ($px / $ui-width-ls) * 100vw;
 }
 
-@function ms($px) {
-  @return $px * 0.1vw;
-}
+// @function ms($px) {
+//   @return $px * 0.1vw;
+// }

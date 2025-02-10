@@ -19,23 +19,23 @@ $white: #ffffff;
     }
 }
 
-// 竖屏
+// portrait竖屏
 @mixin ps {
     @content;
 }
 
-// 横屏
+// landscape横屏
 @mixin ls {
     @media (min-width: 1024px) {
         @content;
     }
 }
 
-@mixin ms {
-    @media (max-width: 750px) {
-        @content;
-    }
-}
+// @mixin ms {
+//     @media (max-width: 750px) {
+//         @content;
+//     }
+// }
 
 
 /**

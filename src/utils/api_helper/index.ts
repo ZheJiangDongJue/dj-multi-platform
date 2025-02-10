@@ -1,7 +1,7 @@
 import axios from 'axios';
 import qs from 'qs'
-import { methodMixin } from '../mixins';
-import store from '../store' //仓库
+import { methodMixin } from '@/mixins';
+import store from '@/store' //仓库
 import Vue from 'vue'
 import { Toast } from 'vant';
 // import RequestResult from '../../api_utils/request_result';
@@ -87,7 +87,7 @@ instance.interceptors.response.use(
 )
 
 const APIHelper = {
-  get: (url, params = {}) => {
+  get: (url: string, params = {}) => {
     return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
       instance
@@ -121,7 +121,7 @@ const APIHelper = {
         })
     });
   },
-  post: (url, data = {}) => {
+  post: (url: string, data = {}) => {
     return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
       instance
@@ -142,7 +142,7 @@ const APIHelper = {
         })
     });
   },
-  put: (url, params = {}) => {
+  put: (url: string, params = {}) => {
     return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
       instance
@@ -164,7 +164,7 @@ const APIHelper = {
         })
     });
   },
-  delete: (url, params = {}) => {
+  delete: (url: string, params = {}) => {
     return new Promise((resolve, reject) => {
       context.$pushLoading(true, false)
       instance
