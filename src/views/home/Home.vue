@@ -1,7 +1,7 @@
 <template>
     <div>
         <h3 class="title">功能</h3>
-        <div v-if="isDebug == false">
+        <div>
             <div v-if="navigateMode == 0" class="grid-container">
                 <div class="grid-item left">
                     <van-collapse v-model="navigatorActiveKey" accordion>
@@ -42,36 +42,6 @@
                 </div>
             </div>
         </div>
-        <div v-if="isDebug == true">
-            <div v-if="false">
-                <canvas-container :width="800" :height="600">
-                    <!-- 正常显示的子元素 -->
-                    <canvas-item :x="50" :y="30">
-                        <h3>第一个元素</h3>
-                        <p>坐标 (50, 30)</p>
-                    </canvas-item>
-
-                    <!-- 溢出会被裁剪的元素 -->
-                    <canvas-item :x="700" :y="580">
-                        <div style="width: 150px; height: 100px; background: pink">
-                            这个元素部分溢出
-                        </div>
-                    </canvas-item>
-                </canvas-container>
-            </div>
-            <div v-if="false">
-                <DynamicControlDemo></DynamicControlDemo>
-            </div>
-            <div v-if="false">
-                <GridDemo></GridDemo>
-            </div>
-            <div v-if="false">
-                <DockDemo></DockDemo>
-            </div>
-            <div v-if="true">
-                <UniversalPage page-name="SystemPage" :bind="test.UniversalPageBind"></UniversalPage>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -81,30 +51,14 @@ import Card from '@/components/CardComponent.vue';
 // 页面名称和路由的对应关系在这里配置
 import PageNameToRouterConverter from '@/converter/PageNameToRouterConverter';
 
-import CanvasContainer from '@/components/canvas/CanvasContainer.vue';
-import CanvasItem from '@/components/canvas/CanvasItem.vue';
-import DynamicControlDemo from '@/views/demo/DynamicControlDemo.vue';
-import DockDemo from '@/views/demo/DockDemo.vue';
-import UniversalPage from '@/components/iterate/UniversalPage.vue';
-import GridDemo from '@/views/demo/GridDemo.vue';
-
 
 export default {
     name: 'HomePage',
     components: {
         Card,
-        CanvasContainer, CanvasItem,
-        DynamicControlDemo,
-        GridDemo,
-        DockDemo,
-        UniversalPage,
     },
     data: function () {
         return {
-            isDebug: true,
-            test: {
-                UniversalPageBind: {}
-            },
             navigateMode: 1,//0: 左侧导航模式,1: 桌面图标模式
             navigatorActiveKey: 0,
             navigatorItems: [],
@@ -157,14 +111,14 @@ export default {
         //     ],
         // }
         // this.refreshCurrentModule();
-        var items = await authApi.getAllModuleItem(this.dbName, this.userInfo.id)
+        var items = await authApi.getAllModuleItem(this.userInfo.id)
         console.log("从Api获取到功能", items);
         items.forEach(element => {
             this.navigatorItems.push(element);
         });
     },
     // computed() {
-        
+
     // },
     mounted() { },
     methods: {

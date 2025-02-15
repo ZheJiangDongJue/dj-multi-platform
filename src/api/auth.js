@@ -1,8 +1,10 @@
 
 import api_helper from '../utils/api_helper';
+import { getGlobalContext } from '@/utils/global';
+const context = getGlobalContext();
 
-const AuthApi = {
-    getAllModuleItem: (dbName, userId) => api_helper.get('/authapi/getallmoduleitem', { dbName, userId }),
+const Api = {
+    getAllModuleItem: (userId) => api_helper.get('/authapi/getallmoduleitem', { dbName: context.dbName, userId }),
 }
 
-export default AuthApi
+export default Api

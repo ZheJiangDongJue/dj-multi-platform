@@ -1,4 +1,4 @@
-export enum ViewType {
+enum ViewType {
     None = 0,
     Grid = 1,
     SimplePanel = 2,
@@ -8,3 +8,5 @@ export enum ViewType {
     BorderedPanel = 6,
     WrapPanel = 7,
 }
+
+export default ViewType

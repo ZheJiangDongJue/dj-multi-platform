@@ -1,13 +1,13 @@
 const ConvertMap = {
     // MaterialPage: "/material",
     LoginPage: "/login",
-    EmployeePage:"/AssemblyProcessReception",
+    EmployeePage: "/AssemblyProcessReception",
 }
 
 import { Toast } from 'vant';
 
 const PageNameToRouterConverter = {
-    HasPage(pageName){
+    HasPage(pageName) {
         let v = ConvertMap[pageName];
         return v !== undefined;
     },

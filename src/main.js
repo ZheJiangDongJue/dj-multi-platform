@@ -4,6 +4,12 @@ import router from './router'
 import store from './store'
 import '@/utils/api_helper/extension';
 
+// 浏览器调试避免(...)
+// console.log_ = console.log;
+// console.log = function (a, ...b) {
+//   console.log_(JSON.parse(JSON.stringify(a)), ...JSON.parse(JSON.stringify(b)));
+// }
+
 Vue.config.productionTip = false
 
 // if (process.env.NODE_ENV !== 'production') {
@@ -23,6 +29,9 @@ Vue.use(ElementUI);
 
 import VxeUITable from 'vxe-table'
 import 'vxe-table/lib/style.css'
+import VxeUI from 'vxe-pc-ui'
+import 'vxe-pc-ui/lib/style.css'
+Vue.use(VxeUI)
 Vue.use(VxeUITable)
 
 // import detectDeviceType from './utils/multi-platform.js'
@@ -48,6 +57,14 @@ Vue.use(VxeUITable)
 
 // mountApp();
 
+var eventBus = new Vue({})
+Vue.prototype.$EventBus = eventBus;
+
+import extension from '@/core/extensions/base-page';
+
+extension();
+
+import '@/core/enums';
 
 new Vue({
   store,

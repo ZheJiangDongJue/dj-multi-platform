@@ -49,7 +49,7 @@ export default {
   },
   async mounted() {
     this.show = true; // 组件加载时显示对话框
-    var response = await technology.getDbNames(this.dbName, 'AssemblyProcessReceiveDocument', 8)
+    var response = await technology.getDbNames('AssemblyProcessReceiveDocument', 8)
     
     if (response && response.Data) {
       this.orderNumber = response.Data; // Update orderNumber with response data

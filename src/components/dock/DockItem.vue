@@ -51,6 +51,7 @@ export default {
 .dock-item {
   /* 基础样式 */
   box-sizing: border-box;
-  overflow: auto; /* 内容溢出时显示滚动条 */
+  /* overflow: auto; */
+  /* 内容溢出时显示滚动条 */
 }
 </style>
