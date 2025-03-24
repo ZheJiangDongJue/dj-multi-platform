@@ -3,8 +3,9 @@ import { ControlType } from "../enums/system/controlType";
 import { DataFieldMode } from "../enums/system/dataFieldMode";
 import { Query } from "@/core/query";
 import UniversalPageViewModel from "../universal-page-vm";
-import { ComboBoxViewModel } from "./select-vm";
+import { ComboBoxCore } from "./select-vm";
 import { DataGetterEffectPack, DataGetterPack } from "../data-getter-pack";
+import { ControlViewModel } from "./control-view-model";
 
 const DefaultTitle: string = '未定义字段名';
 const empty: string = '';
@@ -43,19 +44,20 @@ export class DataViewMeta {
     setting: any | undefined;
 }
 
-export class DataGridModel {
+export class DataGridCore {
     meta: DataViewMeta = new DataViewMeta();
     fields: Array<DataGridField> = [];
     data: Array<any> = [];
     attachData: Map<String, any> = new Map;
     page_vm: UniversalPageViewModel | undefined;
+    dataGridAttach: any | undefined;
 
-    async Refresh():Promise<void>{
+    async Refresh(): Promise<void> {
         await this.Filter();
     }
 
     //根据Setting和.Fields构建查询
-    async Filter(): Promise<void> {
+    async Filter(attachWhere?: string): Promise<void> {
 
         // var setting = this.meta.DataView;
         // var query = new Query();
@@ -82,15 +84,16 @@ export class DataGridModel {
             var vm = this.page_vm.nameToControlViewModel.get(key);
             if (vm != null) {
                 if (vm.type == ControlType.ComboBox) {
-                    var _vm = vm as ComboBoxViewModel;
-                    var tableName = _vm.meta.comboBoxMeta.AttachTable;
-                    var shortName = _vm.meta.comboBoxMeta.AttachShortName;
-                    var joinType = _vm.meta.comboBoxMeta.AttachJoinType;
-                    var joinOn = _vm.meta.comboBoxMeta.AttachJoin;
-                    var where = _vm.meta.comboBoxMeta.AttachWhere;
+                    var _vm = vm as ControlViewModel;
+                    var _core = _vm.core as ComboBoxCore;
+                    var tableName = _core.meta.controlMeta.AttachTable;
+                    var shortName = _core.meta.controlMeta.AttachShortName;
+                    var joinType = _core.meta.controlMeta.AttachJoinType;
+                    var joinOn = _core.meta.controlMeta.AttachJoin;
+                    var where = _core.meta.controlMeta.AttachWhere;
                     var effectPack = new DataGetterEffectPack();
-                    effectPack.Key = _vm.getPlaceholder();
-                    effectPack.Value = _vm.editValue;
+                    effectPack.Key = _core.getPlaceholder();
+                    effectPack.Value = _core.editValue;
                     effectPack.AttachWhere = where;
                     effectPack.AttachJoinInfo.JoinType = joinType;
                     effectPack.AttachJoinInfo.TableName = tableName;
@@ -101,8 +104,13 @@ export class DataGridModel {
             }
         }
 
+        if (attachWhere != null) {
+            pack.AttachWhere["main"] = attachWhere;
+        }
+
         var result = (await general.getDataUseDataView(this.meta.DataView.Uid, pack)) as any;
         var data = result.Data;
+        console.log("过滤结果", data);
         this.data = data;
     }
 }

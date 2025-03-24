@@ -1,7 +1,9 @@
 const ConvertMap = {
     // MaterialPage: "/material",
     LoginPage: "/login",
-    EmployeePage: "/AssemblyProcessReception",
+    ProcessAssemblyFlowBill: "/zzlck",
+    BatchReceiveProcessAssemblyFlow: "/pljszzlck",
+    BatchCompleteProcessAssemblyFlow: "/plwgzzlck",
 }
 
 import { Toast } from 'vant';

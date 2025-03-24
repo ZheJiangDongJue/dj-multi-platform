@@ -1,0 +1,25 @@
+export enum SpecialFieldType {
+    Undefined = 0,
+    DeleteTag = 1,
+    SortValue = 2,
+    Code = 3,
+    BillDate = 4,
+    CreateTime = 5,
+    UpdateTime = 6,
+    DeleteTime = 7,
+    Parentid = 8,
+    Billid = 9,
+    CreateByid = 10,
+    UpdateByid = 11,
+    DeleteByid = 12,
+    Status = 13,
+    RelatedTable = 14,
+    Relatedid = 15,
+    BillUid = 16,
+    ParentUid = 17,
+    ApprovalTime = 18,
+    ApprovalByid = 19,
+
+
+    Materialid = 500,
+}

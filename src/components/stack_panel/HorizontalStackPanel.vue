@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div class="horizontal-stack-container">
         <slot></slot>
     </div>
 </template>
@@ -11,8 +11,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container {
+.horizontal-stack-container {
     display: flex;
+    flex-direction: row;
     justify-content: start;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 </style>

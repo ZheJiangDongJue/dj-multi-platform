@@ -1,0 +1,38 @@
+/* 卡片列表容器样式 */
+.card-list {
+    display: block;
+    width: 100%;
+    flex: 1 1 auto;
+    overflow-y: visible;
+    padding-bottom: 50px;
+    /* 增加底部空间确保能滚动到底部 */
+    min-height: 300px;
+    /* 确保即使内容少也有足够滚动空间 */
+}
+
+/* 卡片项目样式 */
+.card-item {
+    display: block;
+    width: 96%;
+    margin: 15px 2%;
+    box-sizing: border-box;
+    padding: 15px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #ffffff, #f5f5f5);
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+
+    /* 悬停状态样式 */
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.08),
+            0 2px 5px rgba(0, 0, 0, 0.12),
+            inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    }
+} 

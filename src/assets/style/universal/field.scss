@@ -1,0 +1,44 @@
+
+
+/* 优化输入框全局样式 */
+::v-deep .van-field {
+    background: transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    /* 设置输入框左右内边距为10px */
+    .van-field__control {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* 悬停状态样式 */
+    &:hover {
+        background: transparent;
+    }
+
+    /* 只读状态样式 */
+    &.van-field--readonly {
+        background: transparent;
+    }
+}
+
+/* 输入框主体部分样式 */
+::v-deep .van-field__body {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    background: transparent;
+    transition: all 0.3s ease;
+
+    /* 悬停状态样式 */
+    &:hover {
+        border-color: rgba(0, 0, 0, 0.2);
+        background: transparent;
+    }
+
+    /* 获得焦点状态样式 */
+    &:focus-within {
+        border-color: #409EFF;
+        box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+    }
+}

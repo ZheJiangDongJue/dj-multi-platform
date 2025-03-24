@@ -69,6 +69,7 @@ export default {
 
 .card-name {
     text-align: center;
+    font-size: 12px;
 }
 
 .card:active,

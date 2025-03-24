@@ -25,6 +25,8 @@ Grid网格布局容器使用说明
 <script>
 export default {
     props: {
+        width: { type: [Number, String], },
+        height: { type: [Number, String], },
         /**
          * 行高配置（支持3种格式）：
          * - 字符串："auto, 100, 2*" （自动高度, 100像素, 比例2份）
@@ -43,6 +45,12 @@ export default {
         columns: { type: [Array, String], default: () => [] }
     },
     computed: {
+        containerWidth() {
+            return typeof this.width === 'number' ? `${this.width}px` : this.width
+        },
+        containerHeight() {
+            return typeof this.height === 'number' ? `${this.height}px` : this.height
+        },
         parsedRows() {
             return this.parseGridDefinition(this.rows)
         },
@@ -55,7 +63,9 @@ export default {
                 display: 'grid',
                 // 示例输出：gridTemplateRows: "auto 100px 1fr"
                 gridTemplateRows: this.parsedRows.join(' '),
-                gridTemplateColumns: this.parsedColumns.join(' ')
+                gridTemplateColumns: this.parsedColumns.join(' '),
+                width: this.width != 0 ? this.containerWidth : '100%',
+                height: this.height != 0 ? this.containerHeight : '100%',
             }
         }
     },
@@ -75,12 +85,23 @@ export default {
                 return s
             })
         },
+        // parseArrayDefinition(arr) {
+        //     return arr.map(item => {
+        //         if (typeof item === 'number') return `${item}px`
+        //         return item
+        //     })
+        // },
         parseArrayDefinition(arr) {
             return arr.map(item => {
                 if (typeof item === 'number') return `${item}px`
+                if (item === 'auto') return 'minmax(auto, max-content)'
+                if (item.includes('*')) {
+                    const ratio = item.replace('*', '') || 1
+                    return `minmax(0, ${ratio}fr)`
+                }
                 return item
             })
-        }
+        },
     }
 }
 </script>

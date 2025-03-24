@@ -33,8 +33,8 @@ export class DataGetterEffectPack {
 
 export class DataGetterPack {
     /// <summary>
-    /// 额外附加的,前端看需求在发包的时候设置,一般情况下是空值
+    /// 额外附加的,前端看需求在发包的时候设置,一般情况下是{}
     /// </summary>
-    AttachWhere: string | undefined;
+    AttachWhere: { [key: string]: string } = {};
     EffectPack: Array<DataGetterEffectPack> = [];
 }

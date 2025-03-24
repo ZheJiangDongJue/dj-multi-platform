@@ -104,6 +104,25 @@ export class SettingLoader {
                 this.IsLoaded = true;
 
                 break;
+            case ControlType.TemplateListView:
+                {
+                    var query = new Query();
+                    query.TableName = "SystemSettingTemplateListView";
+                    query.ShortName = "sstlv";
+                    query.AddWhere(`sstlv.Uid in (${arrayToSqlInString(this.SettingUidList)}) and sstlv.IsDeleted = 0`);
+                    var pack = (await general.getDataEx(query)) as any;
+                    var settings = pack.Data;
+    
+                    for (let index = 0; index < settings.length; index++) {
+                        const setting = settings[index];
+                        this.SettingUidMap.set(setting.Uid, setting);
+                        this.Settings.push(setting);
+                    }
+                    console.log('TemplateListView-Settings', this.Settings);
+    
+                    this.IsLoaded = true;
+                    break;
+                }
             default:
                 console.log(`啊`);
                 break;

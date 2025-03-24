@@ -1,10 +1,10 @@
 <template>
     <div class="dynamic-panel">
-        <GridContainer v-if="type == 1" ref="myContext">
+        <GridContainer v-if="type == 1" ref="myContext" :width="width" :height="height">
             <GridItem v-if="false">防止报not used</GridItem>
             <slot></slot>
         </GridContainer>
-        <GridContainer v-if="type == 2" ref="myContext">
+        <GridContainer v-if="type == 2" ref="myContext" :width="width" :height="height">
             <GridItem v-if="false">防止报not used</GridItem>
             <slot></slot>
         </GridContainer>
@@ -62,12 +62,31 @@ export default {
             const wrappedElements = slotContent.map(vnode => {
                 // 检查vnode是否是一个组件或元素
                 if (vnode.tag) {
+                    var control = vnode.componentInstance.control;
+                    var inGridForControl = vnode.componentInstance.inGridForControl;
                     // 使用另一个组件包裹当前元素
                     if (this.type == ViewType.Grid) {
+                        this.width = Math.max(this.width, control.Left + control.Width);
+                        this.height = Math.max(this.height, control.Top + control.Height);
                         return this.$createElement('GridItem', {
                             props: {
-
+                                row: parseInt(inGridForControl?.Row || 0),
+                                column: parseInt(inGridForControl?.Column || 0),
+                                'row-span': parseInt(inGridForControl?.RowSpan || 1),
+                                'column-span': parseInt(inGridForControl?.ColumnSpan || 1),
+                                margin: this.getMarginStyle(control) || 0,
+                                horizontalAlignment: this.mapGridAlignment(control.HorizontalAlignment),
+                                verticalAlignment: this.mapGridAlignment(control.VerticalAlignment),
+                                width: control.Width ? `${control.Width}px` : null,
+                                height: control.Height ? `${control.Height}px` : null
                             },
+                            style: {
+                                border: this.$store.state.debug ? '1px dashed red' : '',
+                                backgroundColor: this.$store.state.debug ? 'rgba(0,0,255,0.1)' : '',
+                                position: control.Left ? 'absolute' : null,
+                                left: control.Left ? `${control.Left}px` : null,
+                                top: control.Top ? `${control.Top}px` : null
+                            }
                         }, [vnode]);
                     }
                     else if (this.type == ViewType.SimplePanel) {
@@ -77,7 +96,6 @@ export default {
                         }, [vnode]);
                     }
                     else if (this.type == ViewType.Canvas) {
-                        var control = vnode.componentInstance.control;
                         this.width = Math.max(this.width, control.Left + control.Width);
                         this.height = Math.max(this.height, control.Top + control.Height);
                         return this.$createElement('CanvasItem', {
@@ -111,6 +129,30 @@ export default {
             this.$forceUpdate(); // 强制重新渲染组件
         }
     },
+    methods: {
+        mapGridAlignment(alignment) {
+            const map = {
+                0: 'start',  // Alignment.Start
+                1: 'center', // Alignment.Center
+                2: 'end',    // Alignment.End
+                3: 'stretch' // Alignment.Stretch
+            }
+            return map[alignment] || 'stretch'
+        },
+        getMarginStyle(control) {
+            const { top, bottom, left, right } = control;
+            const marginTop = top || 0;
+            const marginBottom = bottom || 0;
+            const marginLeft = left || 0;
+            const marginRight = right || 0;
+            return `${marginTop}px ${marginRight}px ${marginBottom}px ${marginLeft}px`;
+        }
+    }
+
+
+
+
+
 }
 </script>
 

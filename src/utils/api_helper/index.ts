@@ -80,8 +80,23 @@ instance.interceptors.response.use(
     return response
   },
   error => {
-    Toast('请求失败，请稍后再试')
     context.$pushLoading(false, true)
+
+    // 检查是否为网络错误
+    if (error.code === 'ERR_NETWORK' || !navigator.onLine) {
+      Toast('网络连接失败,请检查当前网络是否正常');
+      
+      // // 如果不是在网络错误页面，重定向到网络错误页面
+      // if (router.currentRoute.path !== '/network-error') {
+      //   router.push({
+      //     path: '/network-error',
+      //     query: { from: router.currentRoute.fullPath }
+      //   });
+      // }
+    } else {
+      Toast('请求失败，请稍后再试');
+    }
+    
     return Promise.reject(error)
   }
 )

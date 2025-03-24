@@ -23,4 +23,7 @@ export enum ControlType {
     DateSelect = 21,
     DateTimeSelect = 22,
     // TimeSelect = 23,
+    TemplateListView = 26,
+
+    FlowBillState = 9999,
 }

@@ -1,2 +1,10 @@
-
 // 通用UI
+@import './buttons.scss';
+@import './cards.scss';
+@import './dialogs.scss';
+@import './field.scss';
+
+/* 单元格样式 - 背景透明 */
+.van-cell {
+    background-color: transparent;
+}

@@ -3,7 +3,7 @@
         <div class="universal-page" v-if="isLoaded">
             <DockPanel class="container">
                 <DockItem :dock="item.Dock" v-for="item in vm.metaInfo.views" :key="item.Name">
-                    <UniversalView class="view-in-page" :viewType="item.ViewType" :view="item"
+                    <UniversalView class="view-in-page" :view="item"
                         :controls="vm.metaInfo.viewControls[item.Uid]" :page_vm="vm">
                     </UniversalView>
                 </DockItem>
@@ -54,6 +54,9 @@ export default {
         var pageName = this.$route.params.pageName ?? this.pageName;
         await this.initItems(pageName);
         this.isLoaded = true;
+        setTimeout(() => {
+            this.vm.business.setup();
+        }, 1000);
     },
     // mounted() {
     //     this.resizeObserver = new ResizeObserver(entries => {
@@ -88,7 +91,10 @@ export default {
 
             var systemPage = pack.Data[0];
             this.page = systemPage;
+            this.vm.metaInfo.pageMeta = systemPage;
             log("systemPage", systemPage);
+            this.vm.init();
+            this.vm.rootDataGroup = await systemData.GetDataGroup();
 
             pack = await systemData.GetSystemViewInPage(systemPage.Uid)
             const views = pack.Data;
@@ -134,7 +140,7 @@ export default {
             for (const key in controls) {
                 if (Object.prototype.hasOwnProperty.call(controls, key)) {
                     const control = controls[key];
-                    control.Children = {};
+                    control.Children = [];
                 }
             }
 
@@ -381,6 +387,7 @@ export default {
 <style lang="scss" scoped>
 .universal-page {
     background-color: white;
+    height:100vh;
 }
 
 .view-in-page {

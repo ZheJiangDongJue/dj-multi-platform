@@ -40,12 +40,12 @@ export default {
         horizontalAlignment: {
             type: String,
             default: 'stretch',
-            validator: v => ['left', 'center', 'right', 'stretch'].includes(v)
+            validator: v => ['start', 'center', 'end', 'stretch'].includes(v)
         },
         verticalAlignment: {
             type: String,
             default: 'stretch',
-            validator: v => ['top', 'center', 'bottom', 'stretch'].includes(v)
+            validator: v => ['start', 'center', 'end', 'stretch'].includes(v)
         },
         rowSpan: {
             type: Number,
@@ -64,12 +64,26 @@ export default {
                 `${this.margin}px` : this.margin
 
             return {
-                margin,
-                justifySelf: this.mapHorizontalAlignment(),
-                alignSelf: this.mapVerticalAlignment(),
+                // 添加padding以支持内容与边界的间距
+                padding: margin,
+                // 调整对齐映射逻辑
+                justifySelf: this.shouldStretchHorizontal() ? 'stretch' : this.mapHorizontalAlignment(),
+                alignSelf: this.shouldStretchVertical() ? 'stretch' : this.mapVerticalAlignment(),
                 gridRow: this.getGridRow(),
-                gridColumn: this.getGridColumn()
+                gridColumn: this.getGridColumn(),
+                // 添加尺寸限制
+                maxWidth: '100%',
+                maxHeight: '100%',
+                // ...this.baseStyle,
+                ...this.absolutePosition
             }
+        },
+        absolutePosition() {
+            return this.$attrs.style?.position === 'absolute' ? {
+                position: 'absolute',
+                zIndex: 10,
+                transform: `translate(${this.$attrs.style.left || 0}, ${this.$attrs.style.top || 0})`
+            } : {}
         }
     },
     methods: {
@@ -85,22 +99,31 @@ export default {
         },
         mapHorizontalAlignment() {
             const map = {
-                left: 'start',
+                start: 'start',
                 center: 'center',
-                right: 'end',
+                end: 'end',
                 stretch: 'stretch'
             }
             return map[this.horizontalAlignment]
         },
         mapVerticalAlignment() {
             const map = {
-                top: 'start',
+                start: 'start',
                 center: 'center',
-                bottom: 'end',
+                end: 'end',
                 stretch: 'stretch'
             }
             return map[this.verticalAlignment]
         },
+        // 新增拉伸判断逻辑
+        shouldStretchHorizontal() {
+            return this.horizontalAlignment === 'stretch' &&
+                !(this.$parent.parsedColumns[this.column]?.includes('auto'))
+        },
+        shouldStretchVertical() {
+            return this.verticalAlignment === 'stretch' &&
+                !(this.$parent.parsedRows[this.row]?.includes('auto'))
+        }
     }
 }
 </script>
@@ -108,5 +131,12 @@ export default {
 <style scoped>
 .grid-item {
     box-sizing: border-box;
+    position: relative;
+    /* 防止内容溢出破坏布局 */
+    overflow: hidden;
+
+    /* 调试辅助线 */
+    /* background: rgba(255,0,0,0.1);
+  border: 1px dashed rgba(0,0,0,0.3); */
 }
 </style>

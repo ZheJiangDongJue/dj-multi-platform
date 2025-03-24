@@ -1,16 +1,33 @@
 <template>
     <div>
-        <h3 class="title">功能</h3>
+        <div class="navbar">
+            <div class="title">东爵ERP系统</div>
+            <div class="user-info">
+                <span v-if="userInfo">{{ userInfo.name || userInfo.username }}</span>
+            </div>
+        </div>
+        <!-- <h3 class="title">功能</h3> -->
         <div>
             <div v-if="navigateMode == 0" class="grid-container">
                 <div class="grid-item left">
-                    <van-collapse v-model="navigatorActiveKey" accordion>
-                        <van-collapse-item :title="item.Name" :name="item.Name" v-for="item in navigatorItems"
-                            :key="item.id" :is-link="item.Children.length > 0">
-                            <el-tree v-if="item.Children.length > 0" :data="item.Children" :props="defaultProps"
-                                @node-click="handleNodeClick"></el-tree>
-                        </van-collapse-item>
-                    </van-collapse>
+                    <div class="nav-container">
+                        <van-collapse v-model="navigatorActiveKey" accordion>
+                            <van-collapse-item :title="item.Name" :name="item.Name" v-for="item in navigatorItems"
+                                :key="item.id" :is-link="item.Children.length > 0">
+                                <div class="tree-container" v-if="item.Children.length > 0">
+                                    <el-tree :data="item.Children" :props="defaultProps" @node-click="handleNodeClick"
+                                        :highlight-current="true" node-key="id">
+                                    </el-tree>
+                                </div>
+                            </van-collapse-item>
+                        </van-collapse>
+                        <!-- 左下角设置按钮 -->
+                        <div class="settings-gear">
+                            <span class="el-dropdown-link" @click="$router.push('/user-settings')">
+                                <i class="el-icon-user"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="grid-item right">
                     <div class="flex-s-w">
@@ -29,6 +46,20 @@
                         <van-sidebar-item :title="item.Name" :name="item.Name" v-for="item in navigatorItems"
                             :key="item.id" />
                     </van-sidebar>
+                    <!-- 左下角设置按钮 -->
+                    <div class="settings-gear">
+                        <span class="el-dropdown-link" @click="$router.push('/user-settings')">
+                            <i class="el-icon-user"></i>
+                        </span>
+                        <!-- <el-dropdown trigger="click" @command="handleCommand">
+                            <span class="el-dropdown-link">
+                                <i class="el-icon-setting"></i>
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown> -->
+                    </div>
                 </div>
                 <div class="grid-item right">
                     <div class="flex-s-w">
@@ -46,11 +77,11 @@
 </template>
 
 <script>
-import authApi from '@/api/auth';
+// import authApi from '@/api/auth';
 import Card from '@/components/CardComponent.vue';
 // 页面名称和路由的对应关系在这里配置
 import PageNameToRouterConverter from '@/converter/PageNameToRouterConverter';
-
+import { logout } from '@/utils/session-manager';
 
 export default {
     name: 'HomePage',
@@ -63,7 +94,6 @@ export default {
             navigatorActiveKey: 0,
             navigatorItems: [],
             currentModuleItems: [],
-            moduleItems: {},
             defaultProps: {
                 children: 'Children',
                 label: 'Name'
@@ -80,42 +110,33 @@ export default {
         // this.navigatorItems.push({
         //     name: '生产系统',
         // })
-        // this.navigatorItems.push({
-        //     name: '工艺系统',
-        // })
-        // for (let i = 0; i < this.navigatorItems.length; i++) {
-        //     const element = this.navigatorItems[i];
-        //     element.id = i + 1;
-        // }
-        // this.moduleItems = {
-        //     '生产系统': [
-        //         {
-        //             name: '测试1',
-        //             pageName: "LoginPage",
-        //         },
-        //         {
-        //             name: '测试2',
-        //             pageName: "MaterialPage",
-        //         },
-        //     ],
-        //     '工艺系统': [
-        //         {
-        //             name: '测试1',
-        //         },
-        //         {
-        //             name: '测试2',
-        //         },
-        //         {
-        //             name: '测试3',
-        //         },
-        //     ],
-        // }
-        // this.refreshCurrentModule();
-        var items = await authApi.getAllModuleItem(this.userInfo.id)
-        console.log("从Api获取到功能", items);
-        items.forEach(element => {
-            this.navigatorItems.push(element);
-        });
+        this.navigatorItems.push({
+            Name: '工艺系统',
+            Children: [
+                {
+                    Name: '组装流程卡',
+                    PageName: "ProcessAssemblyFlowBill",
+                },
+                {
+                    Name: '批量接收组装流程卡',
+                    PageName: "BatchReceiveProcessAssemblyFlow",
+                },
+                {
+                    Name: '批量完工组装工序完工单',
+                    PageName: "BatchCompleteProcessAssemblyFlow",
+                },
+            ]
+        })
+        for (let i = 0; i < this.navigatorItems.length; i++) {
+            const element = this.navigatorItems[i];
+            element.id = i + 1;
+        }
+        this.refreshCurrentModule();
+        // var items = await authApi.getAllModuleItem(this.userInfo.id)
+        // console.log("从Api获取到功能", items);
+        // items.forEach(element => {
+        //     this.navigatorItems.push(element);
+        // });
     },
     // computed() {
 
@@ -143,6 +164,23 @@ export default {
         },
         handleNodeClick(data) {
             this.onCardClick(data);
+        },
+        handleCommand(command) {
+            if (command === 'logout') {
+                this.$confirm('确定要退出登录吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    logout();
+                    this.$message({
+                        type: 'success',
+                        message: '已安全退出登录'
+                    });
+                }).catch(() => { });
+            } else if (command === 'userSettings') {
+                this.$router.push('/user-settings');
+            }
         }
     }
 
@@ -159,7 +197,7 @@ export default {
     display: flex;
     /* 使用flex布局 */
     width: 100%;
-    height: 100%;
+    height: 100vh;
     /* 占据父容器的全部宽高 */
 }
 
@@ -170,6 +208,19 @@ export default {
 .grid-item.left {
     flex: 0 0 auto;
     /* 左侧宽度自适应内容 */
+    position: relative;
+    /* 为了定位settings-gear */
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.grid-item.left .van-collapse,
+.grid-item.left .van-sidebar {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 60px;
+    /* 为设置齿轮留出空间 */
 }
 
 .grid-item.right {
@@ -180,5 +231,99 @@ export default {
 
 .card {
     margin: ps(10) ps(10);
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;
+    background-color: #545c64;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-info span {
+    margin-right: 15px;
+}
+
+.el-dropdown-link {
+    cursor: pointer;
+    color: white;
+    font-size: 18px;
+}
+
+.el-dropdown-link:hover {
+    color: #d0d0d0;
+}
+
+/* 左下角设置齿轮样式 */
+.settings-gear {
+    position: absolute;
+    bottom: 60px;
+    left: 15px;
+    z-index: 10;
+    background-color: transparent;
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    gap: 15px;
+}
+
+.settings-gear .el-dropdown-link {
+    color: black;
+    font-size: 28px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.settings-gear .el-dropdown-link:hover {
+    color: #242424;
+}
+
+.grid-item.left .van-collapse {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    margin-bottom: 50px;
+    /* 为设置按钮留出空间 */
+}
+
+.tree-container {
+    padding: 10px;
+}
+
+.tree-container :deep(.el-tree) {
+    background: transparent;
+}
+
+.tree-container :deep(.el-tree-node__content) {
+    height: 32px;
+}
+
+.tree-container :deep(.el-tree-node.is-current > .el-tree-node__content) {
+    background-color: #ecf5ff;
+}
+
+.tree-container :deep(.el-tree-node__content:hover) {
+    background-color: #f5f7fa;
+}
+
+.nav-container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 </style>
