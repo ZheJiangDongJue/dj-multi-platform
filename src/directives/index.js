@@ -1,9 +1,11 @@
 import Vue from 'vue';
 import longPressTooltip from './longPressTooltip';// 长按提示
+import clickTooltip from './clickTooltip';// 点击提示
 
 // 注册所有指令
 const directives = {
-  'long-press-tooltip': longPressTooltip
+  'long-press-tooltip': longPressTooltip,
+  'click-tooltip': clickTooltip
 };
 
 // 安装所有指令

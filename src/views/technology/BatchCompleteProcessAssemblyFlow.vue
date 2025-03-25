@@ -36,15 +36,35 @@
           </div>
           <!-- 卡片内容区 -->
           <div class="card__content">
+            <!-- 添加只读信息显示 -->
+            <div class="card__info-row">
+              <label class="card__label">工序:</label>
+              <div class="card__readonly-text">{{ item.typeofWorkName }}</div>
+            </div>
+            <div class="card__info-row">
+              <label class="card__label">内容:</label>
+              <div class="card__readonly-text">{{ item.content }}</div>
+            </div>
+            <div class="card__info-row">
+              <label class="card__label">要求:</label>
+              <div class="card__readonly-text">{{ item.workRequirements }}</div>
+            </div>
             <div class="card__input-row">
-              <label class="card__label">计件人:</label>
-              <input type="text" v-model="item.employeeName" placeholder="请输入计件人"
-                class="card__input card__input--employee" @input="handleEmployeeNameInput(item, $event.target.value)" />
+              <label class="card__label">计件人员:</label>
+              <div class="employee-select-wrapper">
+                <div 
+                  class="card__employee-field"
+                  @click="handleEmployeeFieldClick(item)"
+                >
+                  <span>{{ item.employeeName || '请选择计件人员' }}</span>
+                  <van-icon name="arrow-down" class="employee-field-icon" />
+                </div>
+              </div>
             </div>
             <div class="card__input-row">
               <label class="card__label">完工数量:</label>
               <input type="number" v-model.number="item.qty" min="1" :max="item.data?.CanCompleteQty || 999"
-                class="card__input card__input--qty" />
+                class="card__input" />
             </div>
           </div>
           <!-- 卡片底部，显示额外信息 -->
@@ -75,6 +95,20 @@
         提交 ({{ selectedItems.length }})
       </el-button>
     </div>
+
+    <!-- 员工选择弹出层 -->
+    <van-popup v-model="showEmployeeSelector" position="bottom" round>
+      <div class="employee-search">
+        <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
+      </div>
+      <van-picker
+        show-toolbar
+        :columns="filteredEmployeeList"
+        @confirm="onEmployeeSelected"
+        @cancel="cancelEmployeeSelection"
+        value-key="Name"
+      />
+    </van-popup>
   </div>
 </template>
 
@@ -101,6 +135,12 @@ export default {
         { text: '让步接收', value: 2 },
         { text: '不合格', value: 4 }
       ],
+      // 员工选择相关数据
+      showEmployeeSelector: false,
+      currentSelectingItem: null, // 当前正在选择员工的项目
+      employeeList: [], // 所有员工列表
+      employeeSearchText: '', // 员工搜索文本
+      filteredEmployeeList: [], // 过滤后的员工列表
     };
   },
   computed: {
@@ -203,9 +243,27 @@ export default {
 
             let processAssemblyFlowDetail = data.ProcessAssemblyFlowDetail;
             let processAssemblyFlowDocument = data.ProcessAssemblyFlowDocument;
+
+            // 记录存在，添加到列表中
+            // 查询TypeofWork的Name
+            const typeofWorkQuery = new Query();
+            typeofWorkQuery.TableName = 'TypeofWork';
+            typeofWorkQuery.ShortName = 'tw';
+            typeofWorkQuery.Select = 'tw.Name';
+            typeofWorkQuery.AddWhere(`tw.id = '${processAssemblyFlowDetail.TypeofWorkid}'`);
+
+            const typeofWorkResponse = await generalApi.getDataEx(typeofWorkQuery);
+            let typeofWorkName = '';
+            if (typeofWorkResponse.Status === 200 && typeofWorkResponse.Data && typeofWorkResponse.Data.length > 0) {
+              typeofWorkName = typeofWorkResponse.Data[0].Name;
+            }
+
             // 记录存在，添加到列表中
             this.itemList.push({
+              content: processAssemblyFlowDetail.Content || '',
+              workRequirements: processAssemblyFlowDetail.WorkRequirements || '',
               typeofWorkid: processAssemblyFlowDetail.TypeofWorkid || '',
+              typeofWorkName: typeofWorkName || '', // 添加TypeofWork的Name
               innerKey: processAssemblyFlowDocument.InnerKey || '',
               id: id, // 保存查找到的记录ID
               selected: false, // 默认不选中
@@ -315,53 +373,6 @@ export default {
         }).then(() => {
           this.$refs.scanInput.focus();
         });
-      }
-    },
-
-    /**
-     * 处理计件人输入事件
-     * @param {Object} item - 当前项目
-     * @param {string} value - 输入的计件人名称
-     */
-    async handleEmployeeNameInput(item, value) {
-      if (value === null || value === '') return;
-
-      item.employeeName = value;
-
-      // 检查输入中是否包含单引号，如果包含则不触发请求
-      if (value.includes("'")) {
-        console.log('计件人名称包含单引号，不触发请求');
-        return;
-      }
-
-      try {
-        // 根据员工名称查询对应的ID
-        const query = new Query();
-        query.TableName = 'Employee'; // 员工表名
-        query.ShortName = 'e';
-        query.Select = 'e.id, e.Name, e.UserName';
-        query.AddWhere(`e.DeletedTag = 0`);
-        query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
-        query.AddWhere(`e.Name = '${value}'`);
-
-        const response = await generalApi.getDataEx(query);
-
-        if (response.Status === 200 && response.Data) {
-          const employees = response.Data;
-          if (employees.length > 0) {
-            // 找到匹配的员工
-            const employee = employees[0];
-            item.employeeId = employee.id;
-            this.$message.success(`计件人 ${employee.Name} 对应用户名: ${employee.UserName}`);
-          } else {
-            // 未找到匹配的员工
-            item.employeeId = null;
-            // this.$message.warning(`未找到计件人: ${value}`);
-          }
-        }
-      } catch (error) {
-        console.error('查询计件人失败:', error);
-        this.$message.error(`查询计件人失败: ${error.message || '未知错误'}`);
       }
     },
 
@@ -566,6 +577,108 @@ export default {
         }, 50);
       }
     },
+
+    /**
+     * 加载所有员工列表
+     */
+    async loadEmployeeList() {
+      try {
+        // 如果员工列表已加载，则不重复加载
+        if (this.employeeList.length > 0) {
+          return;
+        }
+
+        let query = new Query();
+        query.TableName = "Employee";
+        query.ShortName = "e";
+        query.Select = 'e.id, e.Name, e.CodeForScan';
+        query.AddWhere(`e.DeletedTag=0`);
+        query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
+        query.OrderBy = 'e.Name ASC'; // 按姓名排序
+        
+        const pack = await generalApi.getDataEx(query);
+        
+        if (pack.Status == 200) {
+          this.employeeList = pack.Data || [];
+          // 初始设置过滤后的列表为完整列表
+          this.filteredEmployeeList = [...this.employeeList];
+          console.log("加载员工列表成功，共", this.employeeList.length, "条数据");
+        } else {
+          console.error("加载员工列表失败:", pack.Message);
+          this.$message.warning(`加载员工列表失败: ${pack.Message}`);
+        }
+      } catch (error) {
+        console.error("加载员工列表出错:", error);
+        this.$message.error(`加载员工列表出错: ${error.message || '未知错误'}`);
+      }
+    },
+
+    /**
+     * 过滤员工列表
+     */
+    filterEmployees() {
+      if (!this.employeeSearchText) {
+        this.filteredEmployeeList = [...this.employeeList];
+        return;
+      }
+      
+      const searchText = this.employeeSearchText.toLowerCase();
+      this.filteredEmployeeList = this.employeeList.filter(employee => {
+        return (
+          (employee.Name && employee.Name.toLowerCase().includes(searchText)) || 
+          (employee.CodeForScan && employee.CodeForScan.toLowerCase().includes(searchText))
+        );
+      });
+    },
+
+    /**
+     * 处理员工字段点击
+     * @param {Object} item - 当前项目
+     */
+    async handleEmployeeFieldClick(item) {
+      // 先加载员工列表
+      await this.loadEmployeeList();
+      
+      // 设置当前正在选择员工的项目
+      this.currentSelectingItem = item;
+      // 显示员工选择弹窗
+      this.showEmployeeSelector = true;
+      // 清空搜索文本
+      this.employeeSearchText = '';
+      // 重置过滤的员工列表
+      this.filteredEmployeeList = [...this.employeeList];
+    },
+
+    /**
+     * 处理员工选择确认
+     * @param {Object} employee - 选中的员工对象
+     */
+    onEmployeeSelected(employee) {
+      if (this.currentSelectingItem && employee && employee.id) {
+        // 更新员工ID和名称
+        this.currentSelectingItem.employeeId = employee.id;
+        this.currentSelectingItem.employeeName = employee.Name;
+        console.log("已选择员工:", employee.Name, "ID:", employee.id);
+      }
+      // 隐藏选择器
+      this.showEmployeeSelector = false;
+      // 清空当前选择项目
+      this.currentSelectingItem = null;
+      // 清空搜索文本
+      this.employeeSearchText = '';
+      // 重置过滤的员工列表
+      this.filteredEmployeeList = [...this.employeeList];
+    },
+
+    /**
+     * 取消员工选择
+     */
+    cancelEmployeeSelection() {
+      this.showEmployeeSelector = false;
+      this.currentSelectingItem = null;
+      this.employeeSearchText = '';
+      this.filteredEmployeeList = [...this.employeeList];
+    },
   },
   /**
    * 组件挂载后执行的钩子函数
@@ -573,6 +686,8 @@ export default {
   async mounted() {
     // 页面加载后聚焦输入框，便于立即扫码
     this.$refs.scanInput.focus();
+    // 预加载员工列表
+    this.loadEmployeeList();
   },
   /**
    * 组件销毁前执行的钩子函数
@@ -711,6 +826,7 @@ export default {
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
+  --lable-width: 80px;
 
   &:hover {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -774,6 +890,18 @@ export default {
     display: flex;
     align-items: center;
     margin-bottom: 12px;
+    width: 100%;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__info-row {
+    display: flex;
+    margin-bottom: 12px;
+    align-items: flex-start;
+    width: 100%;
 
     &:last-child {
       margin-bottom: 0;
@@ -781,10 +909,28 @@ export default {
   }
 
   &__label {
-    width: 80px;
+    width: var(--lable-width);
     font-size: 14px;
     color: #606266;
     font-weight: 500;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  &__readonly-text {
+    flex: 1;
+    font-size: 14px;
+    color: #606266;
+    line-height: 1.5;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+    border: 1px solid #e4e7ed;
+    min-height: 36px;
+    word-break: break-all;
+    padding: 0 10px;
+    align-content: center;
+    text-align: start;
+    width: calc(100% - var(--lable-width)); // 减去label的宽度
   }
 
   &__input {
@@ -795,6 +941,7 @@ export default {
     border: 1px solid #dcdfe6;
     border-radius: 4px;
     background-color: #fff;
+    width: calc(100% - var(--lable-width)); // 减去label的宽度
 
     &:focus {
       outline: none;
@@ -843,7 +990,42 @@ export default {
     top: 3px;
     right: 15px;
     width: 100px;
-    z-index: 1;
+  }
+
+  /* 员工选择器样式 */
+  &__employee-field {
+    flex: 1;
+    height: 36px;
+    line-height: 36px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    background-color: #fff;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #c0c4cc;
+      background-color: #f5f7fa;
+    }
+
+    span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 10px;
+    }
+
+    .employee-field-icon {
+      color: #909399;
+      font-size: 16px;
+      transition: transform 0.3s;
+      margin-right: 10px;
+    }
   }
 }
 
@@ -904,5 +1086,33 @@ export default {
       gap: 10px;
     }
   }
+}
+
+/* 员工选择器弹出层样式 */
+::v-deep .van-popup {
+  max-height: 60%;
+  overflow-y: auto;
+}
+
+::v-deep .van-picker {
+  width: 100%;
+}
+
+::v-deep .van-picker-column {
+  font-size: 16px;
+}
+
+::v-deep .van-picker__toolbar {
+  border-bottom: 1px solid #ebedf0;
+}
+
+/* 员工搜索框样式 */
+.employee-search {
+  padding: 8px 16px;
+  border-bottom: 1px solid #ebedf0;
+}
+
+.employee-select-wrapper {
+  flex: 1;
 }
 </style>

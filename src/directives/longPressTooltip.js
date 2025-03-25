@@ -26,7 +26,7 @@ const createTooltip = () => {
     color: white;
     border-radius: 4px;
     font-size: 14px;
-    z-index: 2000;
+    z-index: 99999;
     padding: 10px;
     max-width: 80%;
     word-break: break-all;

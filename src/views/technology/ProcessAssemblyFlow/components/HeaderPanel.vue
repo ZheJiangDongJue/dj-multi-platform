@@ -6,53 +6,53 @@
             <div class="header-row">
                 <van-field :value="billData.data.MaterialCode" label="物料编码"
                     placeholder="请输入完整编码" :readonly="isReadOnly" label-width="6vw"
-                    v-long-press-tooltip="billData.data.MaterialCode" 
+                    v-click-tooltip="billData.data.MaterialCode" 
                     @input="updateField('MaterialCode', $event)" />
                 <van-field :value="billData.data.MaterialName" label="物料名称"
                     label-width="6vw" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialName" 
+                    v-click-tooltip="billData.data.MaterialName" 
                     @input="updateField('MaterialName', $event)" />
                 <van-field :value="billData.data.MaterialSpecType" label="规格型号"
                     label-width="6vw" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialSpecType" 
+                    v-click-tooltip="billData.data.MaterialSpecType" 
                     @input="updateField('MaterialSpecType', $event)" />
             </div>
             <div class="header-row">
                 <van-field :value="billData.data.InnerKey" label="制令单号" label-width="6vw"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.InnerKey" 
+                    v-click-tooltip="billData.data.InnerKey" 
                     @input="updateField('InnerKey', $event)" />
                 <van-field :value="billData.data.MaterialTuHao" label="物料图号"
                     label-width="6vw" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialTuHao" 
+                    v-click-tooltip="billData.data.MaterialTuHao" 
                     @input="updateField('MaterialTuHao', $event)" />
                 <van-field :value="billData.data.MaterialSpecTypeExplain" label="规格型号说明"
                     label-width="9vw" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialSpecTypeExplain" 
+                    v-click-tooltip="billData.data.MaterialSpecTypeExplain" 
                     @input="updateField('MaterialSpecTypeExplain', $event)" />
             </div>
             <div class="header-row">
                 <van-field :value="billData.data.BQty" label="计划数" label-width="6vw"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.BQty" 
+                    v-click-tooltip="billData.data.BQty" 
                     @input="updateField('BQty', $event)" />
                 <van-field :value="billData.data.PreCmpBQty" label="生产数" label-width="6vw"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.PreCmpBQty" 
+                    v-click-tooltip="billData.data.PreCmpBQty" 
                     @input="updateField('PreCmpBQty', $event)" />
                 <van-field :value="billData.data.CmpBQty" label="合格数" label-width="9vw"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.CmpBQty" 
+                    v-click-tooltip="billData.data.CmpBQty" 
                     @input="updateField('CmpBQty', $event)" />
             </div>
             <div class="header-row">
-                <van-field :value="billData.data.DocumentTime" label="单据日期"
+                <van-field :value="formatDate(billData.data.DocumentTime)" label="单据日期"
                     label-width="6vw" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.DocumentTime" 
+                    v-click-tooltip="formatDate(billData.data.DocumentTime)" 
                     @input="updateField('DocumentTime', $event)" />
                 <van-field :value="billData.data.Code" label="单据编号" label-width="6vw"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.Code" 
+                    v-click-tooltip="billData.data.Code" 
                     @input="updateField('Code', $event)" />
             </div>
         </div>
@@ -62,39 +62,39 @@
             <div class="mobile-header-section">
                 <van-field :value="billData.data.MaterialName" label="物料名称"
                     label-width="70px" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialName" 
+                    v-click-tooltip="billData.data.MaterialName" 
                     @input="updateField('MaterialName', $event)" />
                 <van-field :value="billData.data.MaterialSpecType" label="规格型号"
                     label-width="70px" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialSpecType" 
+                    v-click-tooltip="billData.data.MaterialSpecType" 
                     @input="updateField('MaterialSpecType', $event)" />
                 <van-field :value="billData.data.InnerKey" label="制令单号" label-width="70px"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.InnerKey" 
+                    v-click-tooltip="billData.data.InnerKey" 
                     @input="updateField('InnerKey', $event)" />
                 <van-field :value="billData.data.MaterialTuHao" label="物料图号"
                     label-width="70px" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialTuHao" 
+                    v-click-tooltip="billData.data.MaterialTuHao" 
                     @input="updateField('MaterialTuHao', $event)" />
                 <van-field :value="billData.data.MaterialSpecTypeExplain" label="规格型号说明"
                     label-width="70px" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.MaterialSpecTypeExplain" 
+                    v-click-tooltip="billData.data.MaterialSpecTypeExplain" 
                     @input="updateField('MaterialSpecTypeExplain', $event)" />
                 <van-field :value="billData.data.PreCmpBQty" label="生产数" label-width="70px"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.PreCmpBQty" 
+                    v-click-tooltip="billData.data.PreCmpBQty" 
                     @input="updateField('PreCmpBQty', $event)" />
                 <van-field :value="billData.data.CmpBQty" label="合格数" label-width="70px"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.CmpBQty" 
+                    v-click-tooltip="billData.data.CmpBQty" 
                     @input="updateField('CmpBQty', $event)" />
-                <van-field :value="billData.data.DocumentTime" label="单据日期"
+                <van-field :value="formatDate(billData.data.DocumentTime)" label="单据日期"
                     label-width="70px" :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.DocumentTime" 
+                    v-click-tooltip="formatDate(billData.data.DocumentTime)" 
                     @input="updateField('DocumentTime', $event)" />
                 <van-field :value="billData.data.Code" label="单据编号" label-width="70px"
                     :readonly="isReadOnly"
-                    v-long-press-tooltip="billData.data.Code" 
+                    v-click-tooltip="billData.data.Code" 
                     @input="updateField('Code', $event)" />
             </div>
         </div>
@@ -102,6 +102,8 @@
 </template>
 
 <script>
+import { formatDate } from '@/utils/date-utils';
+
 export default {
     name: 'HeaderPanel',
     props: {
@@ -126,7 +128,8 @@ export default {
     methods: {
         updateField(field, value) {
             this.$emit('update:field', { field, value });
-        }
+        },
+        formatDate
     }
 }
 </script>
@@ -172,11 +175,15 @@ export default {
 .header-row {
     display: flex;
     gap: 15px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 
     /* 最后一行无底部边距 */
     &:last-child {
         margin-bottom: 0;
+    }
+
+    .van-cell{
+        padding: 0;
     }
 
     /* 头部行中的输入框样式 */

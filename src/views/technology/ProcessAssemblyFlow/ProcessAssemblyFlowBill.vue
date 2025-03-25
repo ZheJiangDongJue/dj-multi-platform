@@ -20,6 +20,13 @@
                     </DockItem>
                 </DockPanel>
             </DockItem>
+            
+            <!-- 宽屏状态下，头部面板放在滚动区域外部 -->
+            <DockItem v-if="vm.isReady && isWideScreen()" dock="top" class="header-panel-container">
+                <HeaderPanel :billData="vm.billData" :isReadOnly="isBillApproved()"
+                    :screenWidth="screenWidth" @update:field="handleUpdateField" class="fixed-header-panel" />
+            </DockItem>
+            
             <DockItem dock="fill">
                 <div class="assembly-flow__page-content" ref="pageContent" @scroll="handlePageScroll">
                     <div v-if="vm.isReady" class="assembly-flow__full-content">
@@ -28,34 +35,24 @@
                             <div class="mobile-header-section">
                                 <van-field :value="vm.billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码"
                                     :readonly="isBillApproved()" label-width="70px"
-                                    v-long-press-tooltip="vm.billData.data.MaterialCode" 
+                                    v-click-tooltip="vm.billData.data.MaterialCode"
                                     @input="value => vm.billData.setValue('MaterialCode', value)" />
                                 <van-field :value="vm.billData.data.BQty" label="计划数" label-width="70px"
-                                    :readonly="isBillApproved()"
-                                    v-long-press-tooltip="vm.billData.data.BQty" 
+                                    :readonly="isBillApproved()" v-click-tooltip="vm.billData.data.BQty"
                                     @input="value => vm.billData.setValue('BQty', value)" />
                             </div>
                         </div>
 
                         <!-- 全部内容区域 -->
                         <div class="assembly-flow__content-wrapper">
-                            <!-- 头部面板区域 -->
-                            <HeaderPanel 
-                                :billData="vm.billData" 
-                                :isReadOnly="isBillApproved()" 
-                                :screenWidth="screenWidth" 
-                                @update:field="handleUpdateField"
-                            />
+                            <!-- 头部面板区域 - 仅在窄屏时显示 -->
+                            <HeaderPanel v-if="!isWideScreen()" :billData="vm.billData" :isReadOnly="isBillApproved()"
+                                :screenWidth="screenWidth" @update:field="handleUpdateField" class="scrollable-header-panel" />
 
                             <!-- 卡片列表区域 -->
-                            <CardList
-                                :details="vm.detail_vm.details"
-                                :isReadOnly="isBillApproved()"
-                                :screenWidth="screenWidth"
-                                :fontSize="fontSize"
-                                @receive="handleReceive"
-                                @complete="handleComplete"
-                            />
+                            <CardList :details="vm.detail_vm.details" :isReadOnly="isBillApproved()"
+                                :screenWidth="screenWidth" :fontSize="fontSize" @receive="handleReceive"
+                                @complete="handleComplete" />
                         </div>
                     </div>
 
@@ -66,31 +63,33 @@
                 </div>
             </DockItem>
         </DockPanel>
-        
+
         <!-- 接收对话框 -->
         <van-dialog v-model="showReceiveDialog" title="组装工序接收" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: '60%' }" :show-confirm-button="false"
-            get-container="body" @closed="handleDialogClosed">
+            class="assembly-flow-popup" :style="{ width: '60%' }" :show-confirm-button="false" get-container="body"
+            @closed="handleDialogClosed">
             <template #title>
                 <div class="dialog-title">
                     <span>组装工序接收</span>
                     <van-icon name="cross" class="close-icon" @click="showReceiveDialog = false" />
                 </div>
             </template>
-            <AssemblyProcessReceivePanel :dataContext="showReceiveDialog ? dialogDataContext : {}" @operation-complete="handleOperationComplete" />
+            <AssemblyProcessReceivePanel :dataContext="showReceiveDialog ? dialogDataContext : {}"
+                @operation-complete="handleOperationComplete" />
         </van-dialog>
-        
+
         <!-- 完工对话框 -->
         <van-dialog v-model="showCompleteDialog" title="组装工序完工" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: '60%' }" :show-confirm-button="false"
-            get-container="body" @closed="handleDialogClosed">
+            class="assembly-flow-popup" :style="{ width: '60%' }" :show-confirm-button="false" get-container="body"
+            @closed="handleDialogClosed">
             <template #title>
                 <div class="dialog-title">
                     <span>组装工序完工</span>
                     <van-icon name="cross" class="close-icon" @click="showCompleteDialog = false" />
                 </div>
             </template>
-            <AssemblyProcessCompletionPanel :dataContext="showCompleteDialog ? dialogDataContext : {}" @operation-complete="handleOperationComplete" />
+            <AssemblyProcessCompletionPanel :dataContext="showCompleteDialog ? dialogDataContext : {}"
+                @operation-complete="handleOperationComplete" />
         </van-dialog>
     </div>
 </template>
@@ -139,8 +138,8 @@ export default {
         // qualificationValue会根据dialogDataContext的CheckResult属性自动更新
         qualificationValue: {
             get() {
-                return this.dialogDataContext && this.dialogDataContext.CheckResult !== undefined 
-                    ? this.dialogDataContext.CheckResult 
+                return this.dialogDataContext && this.dialogDataContext.CheckResult !== undefined
+                    ? this.dialogDataContext.CheckResult
                     : 1; // 默认为合格
             },
             set(value) {
@@ -201,6 +200,33 @@ export default {
                 }
             },
         },
+        'vm.billData.data.InnerKey': {
+            async handler(newVal, oldVal) {
+                if (newVal == null) return;
+                if (newVal == '') return;
+                // 如果正在打开单据，则不执行查询
+                if (this.vm.isOpeningBill) return;
+                if (newVal != oldVal) {
+                    let query = new Query();
+                    query.TableName = "ProcessAssemblyFlowDocument";
+                    query.ShortName = "p";
+                    query.Select = 'p.id';
+                    query.AddWhere(`p.DeletedTag=0`);
+                    query.AddWhere(`p.InnerKey='${newVal}'`);
+                    let pack = await generalapi.getDataEx(query);
+                    if (pack.Status == 200) {
+                        let processAssemblyFlow = pack.Data[0];
+                        this.vm.openBill(processAssemblyFlow.id);
+                    }
+                    else {
+                        this.$dialog.alert({
+                            title: '提示',
+                            message: `指定制令单号的流程卡无法找到`,
+                        })
+                    }
+                }
+            },
+        },
         // 监听对话框数据变化
         dialogDataContext: {
             handler(newVal) {
@@ -240,10 +266,10 @@ export default {
 
         // // 确保Element下拉框正确显示
         // this.fixElementDropdownStyle();
-        
+
         // // 添加全局样式以修复下拉框显示问题
         // this.addGlobalDropdownFix();
-        
+
         // // 配置全局对话框的默认z-index
         // this.configureDialogZIndex();
     },
@@ -269,7 +295,7 @@ export default {
             style.type = 'text/css';
             style.innerHTML = `
                 .el-select-dropdown, .el-popper {
-                    z-index: 9999 !important;
+                    // z-index: 9999 !important;
                 }
                 .van-dialog {
                     overflow: visible !important;
@@ -279,13 +305,13 @@ export default {
                 }
                 .el-select-dropdown.el-popper {
                     position: absolute !important;
-                    z-index: 9999 !important;
+                    // z-index: 9999 !important;
                 }
             `;
-            
+
             // 将样式添加到文档头部
             document.head.appendChild(style);
-            
+
             // 添加全局事件处理，确保每次打开下拉框时都能正确设置z-index
             document.addEventListener('mousedown', (e) => {
                 if (e.target && e.target.closest('.el-select')) {
@@ -451,18 +477,18 @@ export default {
                     zIndex: 10000
                 });
             }
-            
+
             // 添加一个全局样式，确保alert和confirm对话框显示在最上层
             const dialogStyle = document.createElement('style');
             dialogStyle.type = 'text/css';
             dialogStyle.innerHTML = `
                 .van-dialog--confirm,
                 .van-dialog--alert {
-                    z-index: 10000 !important;
+                    // z-index: 10000 !important;
                     border-radius: 8px !important;
                 }
                 .van-overlay.van-dialog__overlay {
-                    z-index: 9999 !important;
+                    // z-index: 9999 !important;
                 }
                 .van-dialog__content,
                 .van-dialog__footer {
@@ -500,65 +526,94 @@ export default {
 
 /* 返回按钮样式 */
 .back-button {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  cursor: pointer;
-  height: 100%;
-  transition: all 0.2s ease;
-  user-select: none;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    cursor: pointer;
+    height: 100%;
+    transition: all 0.2s ease;
+    user-select: none;
 
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
 
-  .van-icon {
-    font-size: 16px;
-    margin-right: 5px;
-  }
+    .van-icon {
+        font-size: 16px;
+        margin-right: 5px;
+    }
 
-  span {
-    font-size: 14px;
-  }
+    span {
+        font-size: 14px;
+    }
+}
+
+/* 固定头部面板容器样式 */
+.header-panel-container {
+    background-color: #f9f9f9;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+}
+
+/* 固定头部面板样式 */
+.fixed-header-panel {
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+/* 滚动区域内头部面板样式 */
+.scrollable-header-panel {
+    /* 特定针对滚动区域内的样式，如有需要 */
+}
+
+/* 宽屏模式下内容区域调整 */
+@media screen and (min-width: 800px) {
+    .assembly-flow__page-content {
+        padding-top: 8px;
+    }
 }
 </style>
 
 <!-- 使用CSS变量管理z-index层级 -->
 <style>
 :root {
-  /* z-index层级管理 */
-  --z-index-base: 1000;
-  --z-index-overlay: 9960;
-  --z-index-dialog: 9970;
-  --z-index-dropdown: 9990;
-  --z-index-popup: 9980;
-  --z-index-confirm: 10000; /* 确认对话框层级 */
-  --z-index-toast: 10010;
+    /* z-index层级管理 */
+    --z-index-base: 1000;
+    --z-index-overlay: 9960;
+    --z-index-dialog: 9970;
+    --z-index-dropdown: 9990;
+    --z-index-popup: 9980;
+    --z-index-confirm: 10000;
+    /* 确认对话框层级 */
+    --z-index-toast: 10010;
 }
 
 /* 下拉菜单相关样式 */
 .assembly-flow-dropdown {
-  /* 使用CSS变量控制z-index，避免硬编码 */
-  z-index: var(--z-index-dropdown);
-  position: absolute;
+    /* 使用CSS变量控制z-index，避免硬编码 */
+    z-index: var(--z-index-dropdown);
+    position: absolute;
 }
 
 /* 弹出层样式 */
 .assembly-flow-popup {
-  overflow: visible;
-  z-index: var(--z-index-popup);
+    overflow: visible;
+    z-index: var(--z-index-popup);
 }
 
 /* 对话框样式 */
 .van-dialog {
-  overflow: visible;
-  z-index: var(--z-index-dialog);
-  border-radius: 8px !important; /* 确保四个角都有相同的圆角 */
+    overflow: visible;
+    z-index: var(--z-index-dialog);
+    border-radius: 8px !important;
+    /* 确保四个角都有相同的圆角 */
 }
 
 .van-overlay {
-  overflow: visible;
-  z-index: var(--z-index-overlay);
+    overflow: visible;
+    z-index: var(--z-index-overlay);
 }
 
 /* 复写第三方UI库样式时添加注释说明原因 */
@@ -567,43 +622,44 @@ export default {
  * 以下样式是为了解决Vant Dialog与Element UI下拉框的层级冲突
  * 我们通过设置统一的z-index变量来管理层级关系
  */
-.el-select-dropdown, 
-.el-popper, 
+.el-select-dropdown,
+.el-popper,
 .el-scrollbar {
-  z-index: var(--z-index-dropdown);
+    z-index: var(--z-index-dropdown);
 }
 
 /* 确保alert/confirm对话框显示在最上层，并且四个角都有统一的圆角 */
 .van-dialog--confirm,
 .van-dialog--alert {
-  z-index: var(--z-index-toast);
-  border-radius: 8px !important; /* 确保四个角都有相同的圆角 */
+    z-index: var(--z-index-toast);
+    border-radius: 8px !important;
+    /* 确保四个角都有相同的圆角 */
 }
 
 /* 修复Vant对话框底部圆角丢失问题 */
 .van-dialog__content,
 .van-dialog__footer {
-  border-bottom-left-radius: 8px !important;
-  border-bottom-right-radius: 8px !important;
-  overflow: hidden;
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    overflow: hidden;
 }
 
 /* 修复系统对话框圆角问题 */
 body .van-dialog,
 body .van-popup {
-  border-radius: 8px !important;
+    border-radius: 8px !important;
 }
 
 /* 确保对话框内内容和底部都有圆角 */
 body .van-dialog__content,
 body .van-dialog__footer {
-  border-bottom-left-radius: 8px !important;
-  border-bottom-right-radius: 8px !important;
-  overflow: hidden;
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    overflow: hidden;
 }
 
 /* 对话框遮罩层 */
 .van-overlay.van-dialog__overlay {
-  z-index: var(--z-index-overlay);
+    z-index: var(--z-index-overlay);
 }
 </style>

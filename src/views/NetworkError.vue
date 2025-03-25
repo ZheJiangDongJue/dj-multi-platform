@@ -1,7 +1,7 @@
 <template>
   <div class="network-error-container">
     <div class="network-error-box">
-      <img alt="网络错误" src="../assets/network-error.svg" class="error-image" />
+      <!-- <img alt="网络错误" src="../assets/network-error.svg" class="error-image" /> -->
       <h1>哎呀！网络开小差了</h1>
       <p>我们无法连接到服务器，请检查您的网络连接或稍后再试</p>
       <button @click="retryConnection" class="retry-button">

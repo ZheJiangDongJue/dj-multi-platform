@@ -2,26 +2,51 @@
   <div>
     <div class="container">
       <van-field type="textarea" label="规格型号" v-model="data.MaterialSpecType" rows="2" autosize autofocus maxlength="50"
-        show-word-limit class="message" readonly v-long-press-tooltip="data.MaterialSpecType" />
+        show-word-limit class="message" readonly v-click-tooltip="data.MaterialSpecType" />
       <van-field type="textarea" label="规格型号说明" v-model="data.MaterialSpecTypeExplain" rows="2" autosize autofocus
-        maxlength="50" show-word-limit class="message" readonly v-long-press-tooltip="data.MaterialSpecTypeExplain" />
+        maxlength="50" show-word-limit class="message" readonly v-click-tooltip="data.MaterialSpecTypeExplain" />
 
       <!-- 两列布局 -->
       <div class="field-container">
-        <van-field v-model="data.InnerKey" label="制令单号" readonly v-long-press-tooltip="data.InnerKey" />
-        <van-field v-model="data.ApprovalTime" label="接收日期" readonly clickable required right-icon="calendar-o"
-          @click="showCalendar = true" v-long-press-tooltip="data.ApprovalTime" />
+        <van-field v-model="data.InnerKey" label="制令单号" readonly v-click-tooltip="data.InnerKey" />
+        <van-field v-model="formattedApprovalTime" label="接收日期" readonly clickable required right-icon="calendar-o"
+          @click="showCalendar = true" v-click-tooltip="formattedApprovalTime" />
         <van-popup v-model="showCalendar" get-container="body" position="bottom" :style="{ height: 'auto' }">
           <van-calendar v-model="showCalendar" :show-confirm="false" @confirm="onSelectDate" />
         </van-popup>
-        <van-field v-model="data.Code" label="单据编号" readonly v-long-press-tooltip="data.Code" />
-        <van-field v-model="data.ClientName" label="客户名称" readonly v-long-press-tooltip="data.ClientName" />
-        <van-field v-model="data.MaterialTuHao" label="图号" readonly v-long-press-tooltip="data.MaterialTuHao" />
+        <van-field v-model="data.Code" label="单据编号" readonly v-click-tooltip="data.Code" />
+        <van-field v-model="data.ClientName" label="客户名称" readonly v-click-tooltip="data.ClientName" />
+        <van-field v-model="data.MaterialTuHao" label="图号" readonly v-click-tooltip="data.MaterialTuHao" />
 
-        <van-field v-model="data.ReceiveEmployeeName" label="计件人员" required clearable
-          v-long-press-tooltip="data.ReceiveEmployeeName" />
-        <van-field v-model="data.MaterialCode" label="物料编码" readonly v-long-press-tooltip="data.MaterialCode" />
-        <van-field v-model="data.PassBQty" label="接收数量" v-long-press-tooltip="data.PassBQty" />
+        <!-- 将计件人员改为下拉框 -->
+        <div class="employee-select-wrapper">
+          <van-field
+            v-model="data.ReceiveEmployeeName"
+            label="计件人员"
+            readonly
+            clickable
+            required
+            :disabled="data?.Status > 0"
+            right-icon="arrow-down"
+            @click="handleEmployeeFieldClick"
+            v-click-tooltip="data.ReceiveEmployeeName"
+          />
+          <van-popup v-model="showEmployeeSelector" position="bottom" round>
+            <div class="employee-search">
+              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
+            </div>
+            <van-picker
+              show-toolbar
+              :columns="filteredEmployeeList"
+              @confirm="onEmployeeSelected"
+              @cancel="showEmployeeSelector = false"
+              value-key="Name"
+            />
+          </van-popup>
+        </div>
+        
+        <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode" />
+        <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" />
       </div>
 
       <!-- 新增的对话框底部组件 -->
@@ -50,6 +75,7 @@ import generalapi from '@/api/general';
 import billapi from '@/api/bill';
 import Vue from 'vue';
 import { Query } from '@/core/query';
+import { formatDate } from '@/utils/date-utils';
 
 export default {
   name: "AssemblyProcessCompletionPanel",
@@ -63,6 +89,10 @@ export default {
     return {
       data: null,
       showCalendar: false,
+      showEmployeeSelector: false, // 控制员工选择器弹窗
+      employeeList: [], // 员工列表
+      employeeSearchText: '', // 用于员工搜索
+      filteredEmployeeList: [], // 过滤后的员工列表
       qualificationValue: 1, // 合格性状态值: 1=合格, 2=让步接收, 4=不合格
       qualificationOptions: [
         { text: '未选择', value: 0 },
@@ -71,6 +101,12 @@ export default {
         { text: '不合格', value: 4 }
       ],
     };
+  },
+  computed: {
+    // 计算属性，返回格式化的接收日期
+    formattedApprovalTime() {
+      return formatDate(this.data?.ApprovalTime || '');
+    }
   },
   watch: {
     dataContext: {
@@ -81,6 +117,9 @@ export default {
           this.data = JSON.parse(JSON.stringify(newVal));
           // 初始化后立即加载数据，但不再触发更多循环
           await this.refreshData();
+          
+          // 加载员工列表
+          await this.loadEmployeeList();
 
           // 设置合格性值
           if (this.data && typeof this.data.CheckResult !== 'undefined') {
@@ -92,50 +131,88 @@ export default {
         }
       }
     },
-    'data.ReceiveEmployeeName': {
-      async handler(newVal,) {
-        if (newVal == null) return;
-        if (newVal == '') return;
+    // 移除原来的 watch，因为现在通过选择器处理
+    // 'data.ReceiveEmployeeName': { ... }
+  },
+  methods: {
+    // 过滤员工列表
+    filterEmployees() {
+      if (!this.employeeSearchText) {
+        this.filteredEmployeeList = [...this.employeeList];
+        return;
+      }
+      
+      const searchText = this.employeeSearchText.toLowerCase();
+      this.filteredEmployeeList = this.employeeList.filter(employee => {
+        return (
+          (employee.Name && employee.Name.toLowerCase().includes(searchText)) || 
+          (employee.CodeForScan && employee.CodeForScan.toLowerCase().includes(searchText))
+        );
+      });
+    },
+    
+    // 加载所有员工列表
+    async loadEmployeeList() {
+      try {
         let query = new Query();
         query.TableName = "Employee";
         query.ShortName = "e";
-        query.Select = 'e.id';
+        query.Select = 'e.id, e.Name, e.CodeForScan';
         query.AddWhere(`e.DeletedTag=0`);
-        query.AddWhere(`e.Name='${newVal}' OR e.CodeForScan='${newVal}'`);
-        let pack = await generalapi.getDataEx(query);
-        console.log(pack);
+        query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
+        query.OrderBy = 'e.Name ASC'; // 按姓名排序
+        
+        const pack = await generalapi.getDataEx(query);
+        
         if (pack.Status == 200) {
-          /**@type {any[]} */
-          var employees = pack.Data;
-          if (employees.length > 0) {
-            let employee = employees[0];
-            this.data.Employeeid = employee.id;
-          }
-          else {
-            // this.$dialog.alert({
-            //     title: '提示',
-            //     message: `该单据的物料无法找到`,
-            // })
-            this.data.Employeeid = 0;
-          }
-        }
-        else {
+          this.employeeList = pack.Data || [];
+          // 初始设置过滤后的列表为完整列表
+          this.filteredEmployeeList = [...this.employeeList];
+          console.log("加载员工列表成功，共", this.employeeList.length, "条数据");
+        } else {
+          console.error("加载员工列表失败:", pack.Message);
           this.$dialog.alert({
             title: '提示',
-            message: `该计件人员无法找到`,
-          })
+            message: `加载员工列表失败: ${pack.Message}`,
+          });
         }
-      },
+      } catch (error) {
+        console.error("加载员工列表出错:", error);
+        this.$dialog.alert({
+          title: '提示',
+          message: `加载员工列表出错: ${error.message || '未知错误'}`,
+        });
+      }
     },
-  },
-  methods: {
+    
+    // 处理员工字段点击
+    handleEmployeeFieldClick() {
+      // 如果已审批，不允许修改
+      if (this.data?.Status > 0) {
+        return;
+      }
+      this.showEmployeeSelector = true;
+    },
+    
+    // 处理员工选择
+    onEmployeeSelected(employee) {
+      if (employee && employee.id) {
+        // 更新员工ID和名称
+        this.$set(this.data, 'Employeeid', employee.id);
+        this.$set(this.data, 'ReceiveEmployeeName', employee.Name);
+        console.log("已选择员工:", employee.Name, "ID:", employee.id);
+      }
+      this.showEmployeeSelector = false;
+      // 清空搜索文本
+      this.employeeSearchText = '';
+      // 重置过滤的员工列表
+      this.filteredEmployeeList = [...this.employeeList];
+    },
+    
     onSelectDate(date) {
       this.showCalendar = false;
       if (date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        this.$set(this.data, 'ApprovalTime', `${year}-${month}-${day}`);
+        this.$set(this.data, 'ApprovalTime', formatDate(date));
       }
     },
     async refreshData() {
@@ -218,10 +295,10 @@ export default {
       }
 
       // 检查计件人员
-      if (!this.data.ReceiveEmployeeName || this.data.ReceiveEmployeeName.trim() === '') {
+      if (!this.data.Employeeid || this.data.Employeeid <= 0) {
         this.$dialog.alert({
           title: '提示',
-          message: '请填写计件人员',
+          message: '请选择计件人员',
         });
         return false;
       }
@@ -465,12 +542,12 @@ export default {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 
-    /* 悬停状态样式 */
-    &:hover {
-      background: linear-gradient(135deg, #e33333, #cc0000);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
+    // /* 悬停状态样式 */
+    // &:hover {
+    //   background: linear-gradient(135deg, #e33333, #cc0000);
+    //   transform: translateY(-1px);
+    //   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    // }
 
     /* 图标样式 */
     .van-icon {
@@ -525,5 +602,39 @@ export default {
   border-color: #e4e7ed;
   color: #999;
   cursor: not-allowed;
+}
+
+/* 员工选择器样式 */
+.employee-select-wrapper {
+  flex: 1 1 calc(50% - 6px); /* 与其他字段保持一致的宽度 */
+  
+  ::v-deep .van-field__body {
+    border: 1px solid #000;
+    border-radius: 4px;
+  }
+}
+
+/* 员工选择器弹出层样式 */
+::v-deep .van-popup {
+  max-height: 60%;
+  overflow-y: auto;
+}
+
+::v-deep .van-picker {
+  width: 100%;
+}
+
+::v-deep .van-picker-column {
+  font-size: 16px;
+}
+
+::v-deep .van-picker__toolbar {
+  border-bottom: 1px solid #ebedf0;
+}
+
+/* 员工搜索框样式 */
+.employee-search {
+  padding: 8px 16px;
+  border-bottom: 1px solid #ebedf0;
 }
 </style>

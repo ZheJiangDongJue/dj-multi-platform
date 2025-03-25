@@ -35,6 +35,7 @@
                             @card-click="onCardClick">
                             <template v-slot:icon>
                                 <!-- <img src="../../assets/logo.png" alt="User Icon"> -->
+                                <div class="text-icon">{{ item.Name ? item.Name.charAt(0) : '' }}</div>
                             </template>
                         </Card>
                     </div>
@@ -67,6 +68,7 @@
                             @card-click="onCardClick">
                             <template v-slot:icon>
                                 <!-- <img src="../../assets/logo.png" alt="User Icon"> -->
+                                <div class="text-icon">{{ item.Name ? item.Name.charAt(0) : '' }}</div>
                             </template>
                         </Card>
                     </div>
@@ -118,11 +120,11 @@ export default {
                     PageName: "ProcessAssemblyFlowBill",
                 },
                 {
-                    Name: '批量接收组装流程卡',
+                    Name: '组装批量接收',
                     PageName: "BatchReceiveProcessAssemblyFlow",
                 },
                 {
-                    Name: '批量完工组装工序完工单',
+                    Name: '组装批量完工',
                     PageName: "BatchCompleteProcessAssemblyFlow",
                 },
             ]
@@ -273,7 +275,6 @@ export default {
     position: absolute;
     bottom: 60px;
     left: 15px;
-    z-index: 10;
     background-color: transparent;
     padding: 8px;
     border-radius: 4px;
@@ -325,5 +326,20 @@ export default {
     height: 100%;
     display: flex;
     flex-direction: column;
+}
+
+/* 文本图标样式 */
+.text-icon {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #409EFF;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 5px;
+    user-select: none;
 }
 </style>

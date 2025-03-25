@@ -8,55 +8,65 @@
             <div v-if="isWideScreen">
                 <GridContainer class="card-item" v-for="(item, index) in details"
                     :key="index" :class="getClassForRowStatus(item)"
-                    :rows="['auto', 'auto', 'auto']" :columns="['*', '*', '*', '*', '*', '*']">
-                    <GridItem :row="0" :column="0" :column-span="2">
+                    :rows="['auto', 'auto', 'auto', 'auto', 'auto', 'auto']" :columns="['40px', '1*', '1*', '1*', '1*', '1*']">
+                    <!-- 新增行号显示 -->
+                    <GridItem :row="0" :column="0" :row-span="6" class="row-number-container">
+                        <div class="row-number">{{ getIndex(index) }}</div>
+                    </GridItem>
+                    
+                    <!-- 添加位置索引显示 -->
+                    <GridItem :row="0" :column="5" :column-span="1" class="location-index-container">
+                        <div class="location-index" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}</div>
+                    </GridItem>
+                    
+                    <GridItem :row="0" :column="1" :column-span="2">
                         <van-field v-model="item.TypeofWorkName" label="工种"
                             :label-width="fontSize * 2" :readonly="isReadOnly"
-                            v-long-press-tooltip="item.TypeofWorkName" />
+                            v-click-tooltip="item.TypeofWorkName" />
                     </GridItem>
-                    <GridItem :row="0" :column="2" :column-span="2">
+                    <GridItem :row="0" :column="3" :column-span="2">
                         <van-field v-model="item.VestInName" label="操作工"
                             :label-width="fontSize * 3" :readonly="isReadOnly"
-                            v-long-press-tooltip="item.VestInName" />
+                            v-click-tooltip="item.VestInName" />
                     </GridItem>
-                    <GridItem :row="1" :column="0" :column-span="6">
+                    <GridItem :row="1" :column="1" :column-span="5">
                         <van-field v-model="item.Content" label="工艺内容"
                             :label-width="fontSize * 4" :readonly="isReadOnly"
-                            v-long-press-tooltip="item.Content" />
+                            v-click-tooltip="item.Content" />
                     </GridItem>
-                    <GridItem :row="2" :column="0" :column-span="6">
+                    <GridItem :row="2" :column="1" :column-span="5">
                         <van-field v-model="item.WorkRequirements" label="工艺要求"
                             :label-width="fontSize * 4" :readonly="isReadOnly"
-                            v-long-press-tooltip="item.WorkRequirements" />
+                            v-click-tooltip="item.WorkRequirements" />
                     </GridItem>
-                    <GridItem :row="3" :column="0" :column-span="2">
+                    <GridItem :row="3" :column="1" :column-span="1">
                         <van-field v-model="item.BQty" label="计划数" :label-width="fontSize * 3"
                             :readonly="isReadOnly"
-                            v-long-press-tooltip="item.BQty" />
+                            v-click-tooltip="item.BQty" />
                     </GridItem>
                     <GridItem :row="3" :column="2" :column-span="2">
                         <van-field v-model="item.PreCmpBQty" label="生产数"
                             :label-width="fontSize * 3" :readonly="isReadOnly"
-                            v-long-press-tooltip="item.PreCmpBQty" />
+                            v-click-tooltip="item.PreCmpBQty" />
                     </GridItem>
                     <GridItem :row="3" :column="4" :column-span="2">
                         <van-field v-model="item.CmpBQty" label="合格数"
                             :label-width="fontSize * 3" :readonly="isReadOnly"
-                            v-long-press-tooltip="item.CmpBQty" />
+                            v-click-tooltip="item.CmpBQty" />
                     </GridItem>
-                    <GridItem :row="4" :column="0" :column-span="3" :style="{ padding: '5px' }">
-                        <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
-                            style="width: 100%" @click="handleReceive(item)"
-                            :disabled="isReceiveButtonDisabled(item)">
-                            {{ getReceiveStatusText(item.ReceiveStatus) }}
-                        </van-button>
-                    </GridItem>
-                    <GridItem :row="4" :column="3" :column-span="3" :style="{ padding: '5px' }">
-                        <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
-                            style="width: 100%" @click="handleComplete(item)"
-                            :disabled="isCompleteButtonDisabled(item)">
-                            {{ getCompleteStatusText(item.CompleteStatus) }}
-                        </van-button>
+                    <GridItem :row="4" :column="1" :column-span="5" :vertical-alignment="'center'" style="text-align: center; padding: 0 5px;">
+                        <div class="button-container">
+                            <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
+                                style="flex: 1; margin: 0 5px;" @click="handleReceive(item)"
+                                :disabled="isReceiveButtonDisabled(item)">
+                                {{ getReceiveStatusText(item.ReceiveStatus) }}
+                            </van-button>
+                            <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
+                                style="flex: 1; margin: 0 5px;" @click="handleComplete(item)"
+                                :disabled="isCompleteButtonDisabled(item)">
+                                {{ getCompleteStatusText(item.CompleteStatus) }}
+                            </van-button>
+                        </div>
                     </GridItem>
                 </GridContainer>
             </div>
@@ -66,27 +76,30 @@
                     <van-form>
                         <van-cell-group :title="'序号:' + getIndex(index)" :border="false"
                             :class="getClassForRowStatus(item)">
+                            <!-- 添加位置索引显示 - 窄屏模式 -->
+                            <div class="location-index-mobile" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}</div>
+                            
                             <van-field v-model="item.TypeofWorkName" label="工种"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.TypeofWorkName" />
+                                v-click-tooltip="item.TypeofWorkName" />
                             <van-field v-model="item.VestInName" label="操作工"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.VestInName" />
+                                v-click-tooltip="item.VestInName" />
                             <van-field v-model="item.Content" label="工艺内容"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.Content" />
+                                v-click-tooltip="item.Content" />
                             <van-field v-model="item.WorkRequirements" label="工艺要求"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.WorkRequirements" />
+                                v-click-tooltip="item.WorkRequirements" />
                             <van-field v-model="item.BQty" label="计划数"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.BQty" />
+                                v-click-tooltip="item.BQty" />
                             <van-field v-model="item.PreCmpBQty" label="生产数"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.PreCmpBQty" />
+                                v-click-tooltip="item.PreCmpBQty" />
                             <van-field v-model="item.CmpBQty" label="合格数"
                                 :readonly="isReadOnly"
-                                v-long-press-tooltip="item.CmpBQty" />
+                                v-click-tooltip="item.CmpBQty" />
                             <div style="display: flex; margin-top: 10px;">
                                 <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
                                     style="flex: 1; margin: 5px;" @click="handleReceive(item)"
@@ -145,7 +158,7 @@ export default {
     },
     methods: {
         getIndex(index) {
-            if (index) {
+            if (index !== undefined) {
                 return index + 1;
             }
             return '1';
@@ -352,5 +365,80 @@ export default {
         padding: 0 5px 50px;
         /* 增加底部padding，确保内容完全可滚动 */
     }
+}
+
+/* 行号容器样式 */
+.row-number-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px dashed rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 行号样式 */
+.row-number {
+    font-size: 16px;
+    font-weight: bold;
+    color: #909399;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+/* 完成卡片内的行号样式调整 */
+.card-item-finished .row-number {
+    color: #19be6b;
+}
+
+/* 位置索引容器样式 */
+.location-index-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 5px 10px 0 0;
+}
+
+/* 位置索引样式 */
+.location-index {
+    font-size: 14px;
+    color: #606266;
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* 移动端位置索引样式 */
+.location-index-mobile {
+    font-size: 14px;
+    color: #606266;
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: inline-block;
+    margin: 5px 0 5px auto;
+    float: right;
+}
+
+/* 完成卡片内的位置索引样式调整 */
+.card-item-finished .location-index,
+.card-item-finished .location-index-mobile {
+    color: #19be6b;
+    background-color: rgba(25, 190, 107, 0.05);
+    border: 1px solid rgba(25, 190, 107, 0.1);
+}
+
+/* 按钮容器样式 */
+.button-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding: 5px 0;
+    gap: 15px; /* 增加按钮之间的间距 */
 }
 </style> 

@@ -89,7 +89,7 @@ export default {
             }
             catch (error) {
                 if (error.code == 'ERR_NETWORK') {
-                    this.$message.error('无法连接服务器，请检查网络是否正常');
+                    // this.$message.error('无法连接服务器，请检查网络是否正常');
                 }
                 else {
                     this.$message.error(error.message);

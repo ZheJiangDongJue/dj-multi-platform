@@ -123,6 +123,7 @@ export class BillPageViewModel extends PageBaseViewModel {
     isReady: boolean = false;
     billRequiredFields: { [key: string]: string } = {}; // 单据头必填字段键值对
     detailRequiredFields: { [key: string]: string } = {}; // 明细必填字段键值对
+    isOpeningBill: boolean = false;
 
     async init() {
         await super.init();
@@ -187,20 +188,40 @@ export class BillPageViewModel extends PageBaseViewModel {
                 await this.openBill(result.id);
             }
         });
-        this.registerCommand("DeleteBill", (...args: any[]) => {
+        this.registerCommand("DeleteBill", async (...args: any[]) => {
             console.log("DeleteBill", args);
+            if (this.billData) {
+                const result = await billapi.generalBillDelete(this.billData.tableName, this.billData.data.id);
+                if (result.IsSuccess) {
+                    context.$dialog.alert({
+                        title: '提示',
+                        message: "删除成功",
+                    })
+                    await this.newBill();
+                }
+                else {
+                    context.$dialog.alert({
+                        title: '提示',
+                        message: result.ErrorMessage,
+                    })
+                }
+            }
         });
         this.registerCommand("ApprovalBill", async (...args: any[]) => {
             console.log("ApprovalBill", args);
             if (this.billData) {
                 console.log(this.billData.data.id, this.billData.tableName);
-                
+
                 // 先保存单据，再审批
                 const saveResult = await this.saveBill(false); // 不显示成功提示
                 if (!saveResult.success) {
+                    context.$dialog.alert({
+                        title: '提示',
+                        message: saveResult.message,
+                    })
                     return; // 如果保存失败，直接返回，不执行审批
                 }
-                
+
                 // 执行审批
                 let pack = await billapi.generalBillApproval(this.billData.tableName, this.billData.data.id, true);
                 if (pack.Status == 200) {
@@ -213,7 +234,7 @@ export class BillPageViewModel extends PageBaseViewModel {
                 else {
                     context.$dialog.alert({
                         title: '提示',
-                        message: pack.Message,
+                        message: "保存成功,但审批失败:" + pack.Message,
                     })
                 }
             }
@@ -221,12 +242,6 @@ export class BillPageViewModel extends PageBaseViewModel {
         this.registerCommand("ReverseApprovalBill", async (...args: any[]) => {
             console.log("ReverseApprovalBill", args);
             if (this.billData) {
-                // 对于反审批，我们仍然需要先保存单据的当前状态
-                const saveResult = await this.saveBill(false); // 不显示成功提示
-                if (!saveResult.success) {
-                    return; // 如果保存失败，直接返回，不执行反审批
-                }
-                
                 // 执行反审批
                 let pack = await billapi.generalBillApproval(this.billData.tableName, this.billData.data.id, false);
                 if (pack.Status == 200) {
@@ -304,6 +319,8 @@ export class BillPageViewModel extends PageBaseViewModel {
      * @param id 单据id
      */
     async openBill(id: number) {
+        // 设置一个标志，表示正在打开单据
+        this.isOpeningBill = true;
         // 触发单据打开前事件
         this.triggerEvent('BeforeOpenBill', this);
 
@@ -326,6 +343,7 @@ export class BillPageViewModel extends PageBaseViewModel {
             // 触发单据打开后事件
             this.triggerEvent('AfterOpenBill', this);
         }
+        this.isOpeningBill = false;
     }
 
     /**
@@ -370,6 +388,8 @@ export class BillPageViewModel extends PageBaseViewModel {
                     return { success: false, message: detailValidation.errorMessage };
                 }
             }
+            let uid = await generalapi.getNewUid();
+            Vue.set(this.billData!.data, "Uid", uid);
 
             // 调用保存API
             let pack = await billapi.generalBillSave(this.billData.tableName, this.billData.data, this.detail_vm?.details ?? []);
@@ -380,7 +400,7 @@ export class BillPageViewModel extends PageBaseViewModel {
                         message: "保存成功",
                     });
                 }
-                
+
                 // 获取id（如果是新建的单据）
                 let id = this.billData.data.id;
                 if (!id) {
@@ -388,7 +408,7 @@ export class BillPageViewModel extends PageBaseViewModel {
                     Vue.set(this.billData.data, "id", id);
                     console.log("保存成功，id为：" + id);
                 }
-                
+
                 return { success: true, id };
             } else {
                 context.$dialog.alert({
