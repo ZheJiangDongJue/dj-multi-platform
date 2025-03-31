@@ -64,16 +64,16 @@ export default {
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 5px 0;
+    padding: 0.65vh 0; /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
     align-items: center;
     
     &__btn {
-        margin-right: 5px;
+        margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
         white-space: nowrap;
     }
     
     &__menu-item {
-        padding: 12px 15px;
+        padding: 1.56vh 1.46vw; /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
         transition: all 0.3s ease;
         
         &:hover {
@@ -86,11 +86,11 @@ export default {
 /* 媒体查询 - 小屏幕样式调整 */
 @include ps {
     .toolbar {
-        padding: 3px 0;
+        padding: 0.39vh 0; /* 3px 0 -> 0.39vh 0 (3/768*100, 0) */
         
         &__btn {
-            font-size: 12px;
-            padding: 0 8px;
+            font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+            padding: 0 0.78vw; /* 0 8px -> 0 0.78vw (0, 8/1024*100) */
         }
     }
 }

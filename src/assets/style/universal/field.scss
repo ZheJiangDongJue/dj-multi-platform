@@ -1,15 +1,13 @@
-
-
 /* 优化输入框全局样式 */
 ::v-deep .van-field {
     background: transparent;
-    border-radius: 8px;
+    border-radius: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
     transition: all 0.3s ease;
 
     /* 设置输入框左右内边距为10px */
     .van-field__control {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+        padding-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
     }
 
     /* 悬停状态样式 */
@@ -25,8 +23,8 @@
 
 /* 输入框主体部分样式 */
 ::v-deep .van-field__body {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
+    border: 0.13vh solid rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.78vh; /* 6px -> 0.78vh (6/768*100) */
     background: transparent;
     transition: all 0.3s ease;
 
@@ -39,6 +37,6 @@
     /* 获得焦点状态样式 */
     &:focus-within {
         border-color: #409EFF;
-        box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+        box-shadow: 0 0 0 0.26vh rgba(64, 158, 255, 0.1); /* 2px -> 0.26vh (2/768*100) */
     }
 }

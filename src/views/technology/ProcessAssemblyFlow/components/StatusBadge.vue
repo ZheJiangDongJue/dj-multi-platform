@@ -40,10 +40,10 @@ export default {
 .bill-status-unapproved {
     color: #FF0000;
     /* 添加边框 */
-    border: 3px solid #FF0000;
-    border-radius: 5px;
-    padding: 5px 10px;
-    margin: 5px;
+    border: 0.39vh solid #FF0000; /* 3px -> 0.39vh (3/768*100) */
+    border-radius: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    padding: 0.65vh 0.98vw; /* 5px 10px -> 0.65vh 0.98vw (5/768*100, 10/1024*100) */
+    margin: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
     font-weight: bold;
 }
 
@@ -51,10 +51,10 @@ export default {
 .bill-status-approval {
     color: #90EE90;
     /* 添加边框 */
-    border: 3px solid #90EE90;
-    border-radius: 5px;
-    padding: 5px 10px;
-    margin: 5px;
+    border: 0.39vh solid #90EE90; /* 3px -> 0.39vh (3/768*100) */
+    border-radius: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    padding: 0.65vh 0.98vw; /* 5px 10px -> 0.65vh 0.98vw (5/768*100, 10/1024*100) */
+    margin: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
     font-weight: bold;
 }
 </style> 

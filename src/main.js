@@ -86,26 +86,31 @@ import DynamicControl from './components/iterate/DynamicControl.vue';
 Vue.component('UniversalView', UniversalView)
 Vue.component('DynamicControl', DynamicControl)
 
+// 导入网络帮助工具
+import networkHelper from '@/utils/network-helper';
+// 将网络帮助工具挂载到Vue原型，以便在所有组件中使用
+Vue.prototype.$networkHelper = networkHelper;
+
 new Vue({
   store,
   router,
   render: h => h(App)
 }).$mount('#app');
 
-// 全局网络状态监听
-window.addEventListener('online', () => {
-  // 如果恢复在线状态并且当前在网络错误页面，尝试返回之前的页面
-  if (router.currentRoute.path === '/network-error' && router.currentRoute.query.from) {
-    router.push(router.currentRoute.query.from);
-  }
-});
+// 移除旧的网络监听器代码，现在由network-helper.js统一管理
+// window.addEventListener('online', () => {
+//   // 如果恢复在线状态并且当前在网络错误页面，尝试返回之前的页面
+//   if (router.currentRoute.path === '/network-error' && router.currentRoute.query.from) {
+//     router.push(router.currentRoute.query.from);
+//   }
+// });
 
-window.addEventListener('offline', () => {
-  // 如果断网且不在网络错误页面，跳转到网络错误页面
-  if (router.currentRoute.path !== '/network-error' && router.currentRoute.path !== '/login') {
-    router.push({
-      path: '/network-error', 
-      query: { from: router.currentRoute.fullPath }
-    });
-  }
-});
+// window.addEventListener('offline', () => {
+//   // 如果断网且不在网络错误页面，跳转到网络错误页面
+//   if (router.currentRoute.path !== '/network-error' && router.currentRoute.path !== '/login') {
+//     router.push({
+//       path: '/network-error', 
+//       query: { from: router.currentRoute.fullPath }
+//     });
+//   }
+// });

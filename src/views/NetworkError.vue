@@ -15,20 +15,86 @@
 <script>
 export default {
   name: 'NetworkError',
+  data() {
+    return {
+      /**
+       * 自动重定向定时器ID
+       * @type {number|null}
+       */
+      autoRedirectTimer: null,
+      /**
+       * 网络状态监听器
+       * @type {Function|null}
+       */
+      onlineListener: null
+    }
+  },
+  created() {
+    // 添加在线状态变化监听
+    this.onlineListener = this.handleOnlineStatusChange.bind(this);
+    window.addEventListener('online', this.onlineListener);
+  },
+  beforeDestroy() {
+    // 移除监听器和清除定时器，防止内存泄漏
+    if (this.onlineListener) {
+      window.removeEventListener('online', this.onlineListener);
+    }
+    
+    if (this.autoRedirectTimer) {
+      clearTimeout(this.autoRedirectTimer);
+    }
+  },
   methods: {
-    retryConnection() {
-      // 检查网络连接
+    /**
+     * 处理网络状态变化事件
+     * 当网络恢复时自动重定向回之前的页面
+     */
+    handleOnlineStatusChange() {
       if (navigator.onLine) {
-        // 如果已经恢复连接，返回上一页或首页
-        if (this.$route.query.from) {
-          this.$router.push(this.$route.query.from);
-        } else {
-          this.$router.push('/home');
-        }
+        // 网络恢复后，延迟一点时间再跳转，确保连接稳定
+        this.$message.success('网络已恢复，即将自动返回...');
+        this.autoRedirectTimer = setTimeout(() => {
+          this.navigateBack();
+        }, 1500);
+      }
+    },
+    
+    /**
+     * 尝试重新连接
+     * 点击按钮手动触发重连
+     */
+    retryConnection() {
+      if (navigator.onLine) {
+        this.navigateBack();
       } else {
         // 仍然离线，显示提示
         this.$message.error('网络仍然未连接，请检查您的网络设置');
       }
+    },
+    
+    /**
+     * 导航回之前的页面
+     * 优先使用query参数中的from路径
+     * 如果没有则返回首页
+     */
+    navigateBack() {
+      const targetPath = this.$route.query.from || '/home';
+      
+      // 检查当前的导航历史和目标路径
+      if (window.navigationHistory && window.navigationHistory.length > 0) {
+        console.log('导航历史:', window.navigationHistory);
+      }
+
+      // 标记这是从网络错误页面的恢复导航
+      sessionStorage.setItem('isRecoveringFromNetworkError', 'true');
+      
+      // 使用replace而不是push，确保网络错误页面不会留在历史记录中
+      this.$router.replace(targetPath).catch(err => {
+        // 忽略冗余导航错误
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('导航错误:', err);
+        }
+      });
     }
   }
 }

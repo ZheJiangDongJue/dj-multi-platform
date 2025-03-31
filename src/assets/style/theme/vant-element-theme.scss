@@ -2,12 +2,12 @@
 .vant-theme {
   &__field {
     background: transparent;
-    border-radius: 8px;
+    border-radius: 1.04vh;
     transition: all 0.3s ease;
 
     .van-field__control {
-      padding-left: 10px;
-      padding-right: 10px;
+      padding-left: 0.98vw;
+      padding-right: 0.98vw;
     }
 
     &:hover {
@@ -20,8 +20,8 @@
   }
 
   &__field-body {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
+    border: 0.13vh solid rgba(0, 0, 0, 0.1);
+    border-radius: 0.78vh;
     background: transparent;
     transition: all 0.3s ease;
 
@@ -32,7 +32,7 @@
 
     &:focus-within {
       border-color: #409EFF;
-      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+      box-shadow: 0 0 0 0.26vh rgba(64, 158, 255, 0.1);
     }
   }
 
@@ -44,10 +44,10 @@
 /* Element UI 组件主题 */
 .element-theme {
   &__select-dropdown-item {
-    padding: 0 15px;
-    height: 34px;
-    line-height: 34px;
-    font-size: 14px;
+    padding: 0 1.46vw;
+    height: 4.43vh;
+    line-height: 4.43vh;
+    font-size: 1.82vh;
     
     &--selected {
       color: #409EFF;
@@ -60,9 +60,9 @@
   }
   
   &__input--small {
-    height: 36px;
-    line-height: 36px;
-    border-radius: 18px;
+    height: 4.69vh;
+    line-height: 4.69vh;
+    border-radius: 2.34vh;
   }
   
   &__button--disabled {

@@ -152,19 +152,19 @@ export default {
     justify-content: center;
     align-items: center;
     width: 100%;
-    max-width: 1200px;
-    padding: 0 20px;
+    max-width: 117.19vw; /* 1200px -> 117.19vw (1200/1024*100) */
+    padding: 0 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
     z-index: 1;
 }
 
 .login-box {
     position: relative;
-    width: 420px;
-    padding: 40px;
+    width: 41.02vw; /* 420px -> 41.02vw (420/1024*100) */
+    padding: 5.21vh; /* 40px -> 5.21vh (40/768*100) */
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
+    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    box-shadow: 0 1.3vh 3.26vh rgba(0, 0, 0, 0.2); /* 10px 25px -> 1.3vh 3.26vh (10/768*100, 25/768*100) */
+    backdrop-filter: blur(1.3vh); /* 10px -> 1.3vh (10/768*100) */
     animation: fadeIn 0.8s ease-out;
     transition: all 0.3s ease;
 }
@@ -172,24 +172,24 @@ export default {
 .logo-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
 }
 
 .logo {
-    width: 200px;
+    width: 19.53vw; /* 200px -> 19.53vw (200/1024*100) */
     animation: floatLogo 6s ease-in-out infinite;
 }
 
 .welcome-text {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
     color: #1c3d5a;
-    font-size: 24px;
+    font-size: 3.13vh; /* 24px -> 3.13vh (24/768*100) */
     font-weight: 500;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
 }
 
 .input-icon-wrapper {
@@ -200,19 +200,19 @@ export default {
 
 .input-icon-wrapper i {
     position: absolute;
-    left: 15px;
+    left: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
     color: #8c9db5;
-    font-size: 18px;
+    font-size: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
 }
 
 input {
     width: 100%;
-    padding: 14px 15px 14px 45px;
-    font-size: 16px;
+    padding: 1.82vh 1.46vw 1.82vh 4.39vw; /* 14px 15px 14px 45px -> 1.82vh 1.46vw 1.82vh 4.39vw (14/768*100, 15/1024*100, 14/768*100, 45/1024*100) */
+    font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     color: #333;
     background: rgba(255, 255, 255, 0.8);
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 0.13vh solid #ddd; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
     box-sizing: border-box;
     transition: all 0.3s ease;
 }
@@ -220,63 +220,63 @@ input {
 input:focus {
     outline: none;
     border-color: #1c3d5a;
-    box-shadow: 0 0 0 2px rgba(28, 61, 90, 0.2);
+    box-shadow: 0 0 0 0.26vh rgba(28, 61, 90, 0.2); /* 2px -> 0.26vh (2/768*100) */
 }
 
 .login-btn {
     width: 100%;
-    padding: 14px;
+    padding: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     background: linear-gradient(135deg, #e60012, #ff3b4e);
     color: white;
-    font-size: 16px;
+    font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     font-weight: 500;
     border: none;
-    border-radius: 8px;
+    border-radius: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 10px;
+    margin-top: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
 }
 
 .login-btn:hover {
     background: linear-gradient(135deg, #d10010, #e82e3f);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(230, 0, 18, 0.3);
+    transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
+    box-shadow: 0 0.65vh 1.95vh rgba(230, 0, 18, 0.3); /* 5px 15px -> 0.65vh 1.95vh (5/768*100, 15/768*100) */
 }
 
 .login-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(230, 0, 18, 0.3);
+    box-shadow: 0 0.26vh 0.65vh rgba(230, 0, 18, 0.3); /* 2px 5px -> 0.26vh 0.65vh (2/768*100, 5/768*100) */
 }
 
 .login-footer {
-    margin-top: 30px;
+    margin-top: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
     text-align: center;
     color: #8c9db5;
-    font-size: 14px;
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
 }
 
 /* 弹窗样式优化 */
 .select-db-dialog {
-    border-radius: 12px;
+    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
     overflow: hidden;
 }
 
 .dialog-subtitle {
     text-align: center;
     color: #666;
-    margin-bottom: 20px;
+    margin-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
 }
 
 .db-radio-group {
     display: flex;
     flex-direction: column;
-    padding: 10px;
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
 }
 
 .db-radio-item {
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 6px;
+    margin-bottom: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    border-radius: 0.78vh; /* 6px -> 0.78vh (6/768*100) */
     transition: all 0.3s ease;
 }
 
@@ -287,33 +287,33 @@ input:focus {
 .dialog-footer {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
 }
 
 .confirm-btn {
     background: linear-gradient(135deg, #e60012, #ff3b4e);
     border-color: #e60012;
-    padding: 10px 25px;
-    border-radius: 6px;
+    padding: 1.3vh 2.44vw; /* 10px 25px -> 1.3vh 2.44vw (10/768*100, 25/1024*100) */
+    border-radius: 0.78vh; /* 6px -> 0.78vh (6/768*100) */
     transition: all 0.3s ease;
 }
 
 .confirm-btn:hover {
     background: linear-gradient(135deg, #d10010, #e82e3f);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(230, 0, 18, 0.3);
+    transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
+    box-shadow: 0 0.65vh 1.95vh rgba(230, 0, 18, 0.3); /* 5px 15px -> 0.65vh 1.95vh (5/768*100, 15/768*100) */
 }
 
 .cancel-btn {
-    padding: 10px 25px;
-    border-radius: 6px;
+    padding: 1.3vh 2.44vw; /* 10px 25px -> 1.3vh 2.44vw (10/768*100, 25/1024*100) */
+    border-radius: 0.78vh; /* 6px -> 0.78vh (6/768*100) */
 }
 
 /* 添加动画效果 */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(2.6vh); /* 20px -> 2.6vh (20/768*100) */
     }
     to {
         opacity: 1;
@@ -326,7 +326,7 @@ input:focus {
         transform: translateY(0);
     }
     50% {
-        transform: translateY(-6px);
+        transform: translateY(-0.78vh); /* -6px -> -0.78vh (6/768*100) */
     }
 }
 
@@ -334,8 +334,8 @@ input:focus {
 @media (max-width: 768px) {
     .login-box {
         width: 100%;
-        max-width: 380px;
-        padding: 30px 20px;
+        max-width: 37.11vw; /* 380px -> 37.11vw (380/1024*100) */
+        padding: 3.91vh 1.95vw; /* 30px 20px -> 3.91vh 1.95vw (30/768*100, 20/1024*100) */
     }
 }
 </style>

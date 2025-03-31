@@ -116,10 +116,10 @@ export default {
                             this.passwordDialogVisible = false;
                         }
                         else {
-                            this.$message.error('密码修改失败');
+                            this.$message.error('密码修改失败: ' + pack.ErrorMessage);
                         }
                     } catch (error) {
-                        this.$message.error('密码修改失败');
+                        this.$message.error('密码修改失败: ' + error.message);
                     }
                 }
             });

@@ -234,7 +234,7 @@ export class BillPageViewModel extends PageBaseViewModel {
                 else {
                     context.$dialog.alert({
                         title: '提示',
-                        message: "保存成功,但审批失败:" + pack.Message,
+                        message: "审批失败:" + pack.Message,
                     })
                 }
             }

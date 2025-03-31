@@ -15,7 +15,7 @@ const WARNING_BEFORE_TIMEOUT = 5 * 60 * 1000 // 超时前5分钟警告
 
 let inactivityTimer = null
 let warningTimer = null
-let isLoggingOut = false;
+// let isLoggingOut = false;
 
 /**
  * 初始化会话管理
@@ -125,10 +125,10 @@ export function setSessionTimeout(timeout) {
  */
 export function logout() {
     // 防止重复登出
-    if (isLoggingOut) {
-        return;
-    }
-    isLoggingOut = true;
+    // if (isLoggingOut) {
+    //     return;
+    // }
+    // isLoggingOut = true;
 
     // 清除用户状态
     store.dispatch('common/commitUserInfo', {})
@@ -159,8 +159,8 @@ export function logout() {
     
     // 重定向到登录页
     router.push('/login').catch(() => {
-        // 忽略重复导航错误
-        isLoggingOut = false;
+        // // 忽略重复导航错误
+        // isLoggingOut = false;
     });
 }
 

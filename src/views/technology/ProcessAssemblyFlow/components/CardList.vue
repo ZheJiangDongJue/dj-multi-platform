@@ -264,10 +264,10 @@ export default {
 
 /* 卡片列表区域 */
 .card-list {
-    padding: 0 15px 30px;
+    padding: 0 1.46vw 3.91vh; /* 15px 30px -> 1.46vw 3.91vh (15/1024*100, 30/768*100) */
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
     overflow-y: auto;
     flex: 1;
 }
@@ -275,35 +275,35 @@ export default {
 /* 卡片项目默认样式 */
 .card-item {
     background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 15px;
-    margin-bottom: 15px;
+    border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
+    padding: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
+    margin-bottom: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
     transition: all 0.3s ease;
 
     /* 悬停状态样式 */
     &:hover {
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
+        box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1); /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+        transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
     }
 }
 
 /* 已完成卡片项目样式 */
 .card-item-finished {
     background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
-    border: 1px solid rgba(76, 175, 80, 0.2);
+    border: 0.13vh solid rgba(76, 175, 80, 0.2); /* 1px -> 0.13vh (1/768*100) */
     box-shadow:
-        0 4px 15px rgba(76, 175, 80, 0.1),
-        0 1px 3px rgba(76, 175, 80, 0.2),
-        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+        0 0.52vh 1.95vh rgba(76, 175, 80, 0.1), /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+        0 0.13vh 0.39vh rgba(76, 175, 80, 0.2), /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
+        inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
         box-shadow:
-            0 8px 25px rgba(76, 175, 80, 0.15),
-            0 2px 5px rgba(76, 175, 80, 0.25),
-            inset 0 1px 1px rgba(255, 255, 255, 0.9);
+            0 1.04vh 3.26vh rgba(76, 175, 80, 0.15), /* 8px 25px -> 1.04vh 3.26vh (8/768*100, 25/768*100) */
+            0 0.26vh 0.65vh rgba(76, 175, 80, 0.25), /* 2px 5px -> 0.26vh 0.65vh (2/768*100, 5/768*100) */
+            inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
     }
 }
 
@@ -311,7 +311,7 @@ export default {
 .status-not-started {
     background: linear-gradient(145deg, #ffffff, #f5f5f5);
     color: #909399;
-    border: 1px solid rgba(144, 147, 153, 0.2);
+    border: 0.13vh solid rgba(144, 147, 153, 0.2); /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -324,7 +324,7 @@ export default {
 .status-in-progress {
     background: linear-gradient(145deg, #e1f3ff, #d0ecff);
     color: #1989fa;
-    border: 1px solid rgba(25, 137, 250, 0.2);
+    border: 0.13vh solid rgba(25, 137, 250, 0.2); /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -337,7 +337,7 @@ export default {
 .status-completed {
     background: linear-gradient(145deg, #e1f3ea, #d0f0e0);
     color: #19be6b;
-    border: 1px solid rgba(25, 190, 107, 0.2);
+    border: 0.13vh solid rgba(25, 190, 107, 0.2); /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -350,7 +350,7 @@ export default {
 .status-disabled {
     background: linear-gradient(145deg, #fde2e2, #fad1d1);
     color: #fa5555;
-    border: 1px solid rgba(250, 85, 85, 0.2);
+    border: 0.13vh solid rgba(250, 85, 85, 0.2); /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -362,7 +362,7 @@ export default {
 /* 媒体查询 - 小屏幕样式 */
 @include ps {
     .card-list {
-        padding: 0 5px 50px;
+        padding: 0 0.49vw 6.51vh; /* 5px 50px -> 0.49vw 6.51vh (5/1024*100, 50/768*100) */
         /* 增加底部padding，确保内容完全可滚动 */
     }
 }
@@ -372,13 +372,13 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-right: 1px dashed rgba(0, 0, 0, 0.1);
+    border-right: 0.13vh dashed rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
     background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* 行号样式 */
 .row-number {
-    font-size: 16px;
+    font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     font-weight: bold;
     color: #909399;
     width: 100%;
@@ -399,29 +399,29 @@ export default {
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 5px 10px 0 0;
+    padding: 0.65vh 0.98vw 0 0; /* 5px 10px 0 0 -> 0.65vh 0.98vw 0 0 (5/768*100, 10/1024*100, 0, 0) */
 }
 
 /* 位置索引样式 */
 .location-index {
-    font-size: 14px;
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0.26vh 0.78vw; /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
+    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 移动端位置索引样式 */
 .location-index-mobile {
-    font-size: 14px;
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0.26vh 0.78vw; /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
+    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
     display: inline-block;
-    margin: 5px 0 5px auto;
+    margin: 0.65vh 0 0.65vh auto; /* 5px 0 5px auto -> 0.65vh 0 0.65vh auto (5/768*100, 0, 5/768*100, auto) */
     float: right;
 }
 
@@ -430,7 +430,7 @@ export default {
 .card-item-finished .location-index-mobile {
     color: #19be6b;
     background-color: rgba(25, 190, 107, 0.05);
-    border: 1px solid rgba(25, 190, 107, 0.1);
+    border: 0.13vh solid rgba(25, 190, 107, 0.1); /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 按钮容器样式 */
@@ -438,7 +438,8 @@ export default {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    padding: 5px 0;
-    gap: 15px; /* 增加按钮之间的间距 */
+    padding: 0.65vh 0; /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
+    gap: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
+    /* 增加按钮之间的间距 */
 }
 </style> 

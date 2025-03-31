@@ -453,7 +453,7 @@ export default {
 <style lang="scss" scoped>
 .container {
   background-color: rgb(245, 247, 250);
-  padding-bottom: 20px;
+  padding-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
   /* 添加底部边距 */
 }
 
@@ -461,26 +461,26 @@ export default {
 .field-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  // gap: 12px;
   background-color: transparent;
 }
 
 /* 让每个输入框占 50% 宽度 */
 .van-field {
-  flex: 1 1 calc(50% - 6px);
+  flex: 1 1 calc(50% - 0.6vw); /* 6px -> 0.6vw (6/1024*100) */
   /* 减去 gap 的一半，保证对齐 */
   // border: 1px solid #e2e2e2;
   // background: #f6f6f6;
 }
 
 .van-cell {
-  // padding: 0;
+  padding: 0.4vh 1.56vw; /* 3px 16px -> 0.4vh 1.56vw (3/768*100, 16/1024*100) */
   background-color: transparent;
 }
 
 ::v-deep .van-field__body {
-  border: 1px solid #000;
-  border-radius: 4px;
+  border: 0.13vh solid #000; /* 1px -> 0.13vh (1/768*100) */
+  border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
 }
 
 /* 对话框底部样式 */
@@ -488,20 +488,20 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px 0;
-  border-top: 1px solid #ebedf0;
-  margin-top: 20px;
+  padding: 1.04vh 0; /* 8px 0 -> 1.04vh 0 (8/768*100) */
+  border-top: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  margin-top: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
   position: relative;
 
   /* 审批按钮样式 */
   .approve-button {
-    min-width: 120px;
-    border-radius: 20px;
-    font-size: 14px;
+    min-width: 11.7vw; /* 120px -> 11.7vw (120/1024*100) */
+    border-radius: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     font-weight: 500;
     transition: all 0.3s ease;
     border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
 
     /* 非反审批状态样式 */
     &:not(.reverse-approve) {
@@ -511,8 +511,8 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #45a049, #3d8b40);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
       }
     }
 
@@ -524,8 +524,8 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #F57C00, #EF6C00);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
       }
     }
   }
@@ -533,9 +533,9 @@ export default {
   /* 删除按钮样式 */
   .delete-button {
     position: absolute;
-    right: 20px;
-    width: 40px;
-    height: 40px;
+    right: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
+    width: 5.2vh; /* 40px -> 5.2vh (40/768*100) */
+    height: 5.2vh; /* 40px -> 5.2vh (40/768*100) */
     border-radius: 50%;
     padding: 0;
     display: flex;
@@ -544,7 +544,7 @@ export default {
     background: linear-gradient(135deg, #ff4d4d, #e33333);
     color: white;
     border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
     transition: all 0.3s ease;
 
     // /* 悬停状态样式 */
@@ -556,22 +556,22 @@ export default {
 
     /* 图标样式 */
     .van-icon {
-      font-size: 20px;
+      font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
     }
   }
 
   /* 合格性下拉框样式 */
   .qualification-wrapper {
     position: absolute;
-    left: 20px;
-    width: 100px;
+    left: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
+    width: 9.77vw; /* 100px -> 9.77vw (100/1024*100) */
   }
 
   .qualification-dropdown {
     ::v-deep .el-input__inner {
-      border-radius: 18px;
-      height: 36px;
-      border: 1px solid #ebedf0;
+      border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
+      height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+      border: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
       background: #f7f8fa;
       color: #323233;
       transition: all 0.3s ease;
@@ -583,7 +583,7 @@ export default {
     }
 
     ::v-deep .el-input__suffix {
-      right: 8px;
+      right: 0.78vw; /* 8px -> 0.78vw (8/1024*100) */
     }
 
     ::v-deep .el-select__caret {
@@ -611,11 +611,11 @@ export default {
 
 /* 员工选择器样式 */
 .employee-select-wrapper {
-  flex: 1 1 calc(50% - 6px); /* 与其他字段保持一致的宽度 */
+  flex: 1 1 calc(50% - 0.6vw); /* 6px -> 0.6vw (6/1024*100) */
   
   ::v-deep .van-field__body {
-    border: 1px solid #000;
-    border-radius: 4px;
+    border: 0.13vh solid #000; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
   }
 }
 
@@ -630,16 +630,16 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 16px;
+  font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 1px solid #ebedf0;
+  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 8px 16px;
-  border-bottom: 1px solid #ebedf0;
+  padding: 1.04vh 1.56vw; /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
+  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
 }
 </style>

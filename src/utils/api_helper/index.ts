@@ -20,7 +20,7 @@ Vue.use(Toast);
 
 // 配置 baseURL
 const baseURL = process.env.VUE_APP_API_BASE_URL || '/api'; // 根据你的实际情况修改
-
+console.log(baseURL);
 const instance = axios.create({
   baseURL,
   timeout: 10000, // 设置超时时间
@@ -94,7 +94,7 @@ instance.interceptors.response.use(
       //   });
       // }
     } else {
-      Toast('请求失败，请稍后再试');
+      Toast('请求失败，请稍后再试:' + error.message);
     }
     
     return Promise.reject(error)

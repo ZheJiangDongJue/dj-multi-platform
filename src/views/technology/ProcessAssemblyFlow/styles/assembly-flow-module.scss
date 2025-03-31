@@ -43,9 +43,9 @@
     top: 0;
     z-index: 20;
     background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    padding: 10px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
+    box-shadow: 0 0.52vh 1.3vh rgba(0, 0, 0, 0.1); /* 4px 10px -> 0.52vh 1.3vh (4/768*100, 10/768*100) */
     flex-shrink: 0;
     width: 100%;
     box-sizing: border-box;
@@ -54,8 +54,8 @@
   &__field-tooltip {
     background-color: rgba(0, 0, 0, 0.75);
     color: white;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     z-index: 2000;
     word-break: break-all;
   }
@@ -64,11 +64,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 10px;
+    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
     
     .close-icon {
       cursor: pointer;
-      font-size: 18px;
+      font-size: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
       color: #999;
       
       &:hover {
@@ -95,7 +95,7 @@
     }
     
     &__content-wrapper {
-      height: calc(100% - 50px);
+      height: calc(100% - 6.51vh); /* 50px -> 6.51vh (50/768*100) */
     }
   }
 }
@@ -109,10 +109,10 @@
 /* 这里仅保留示例，后续应当移至专门的主题文件 */
 .element-ui-theme {
   &__select-dropdown-item {
-    padding: 0 15px;
-    height: 34px;
-    line-height: 34px;
-    font-size: 14px;
+    padding: 0 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
+    height: 4.43vh; /* 34px -> 4.43vh (34/768*100) */
+    line-height: 4.43vh; /* 34px -> 4.43vh (34/768*100) */
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     
     &--selected {
       color: #409EFF;
@@ -125,9 +125,9 @@
   }
   
   &__input--small {
-    height: 36px;
-    line-height: 36px;
-    border-radius: 18px;
+    height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    line-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
   }
   
   &__button--disabled {

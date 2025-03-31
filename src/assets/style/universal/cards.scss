@@ -4,9 +4,9 @@
     width: 100%;
     flex: 1 1 auto;
     overflow-y: visible;
-    padding-bottom: 50px;
+    padding-bottom: 6.51vh; /* 50px -> 6.51vh (50/768*100) */
     /* 增加底部空间确保能滚动到底部 */
-    min-height: 300px;
+    min-height: 39.06vh; /* 300px -> 39.06vh (300/768*100) */
     /* 确保即使内容少也有足够滚动空间 */
 }
 
@@ -14,25 +14,25 @@
 .card-item {
     display: block;
     width: 96%;
-    margin: 15px 2%;
+    margin: 1.95vh 2%; /* 15px 2% -> 1.95vh 2% (15/768*100, 2%) */
     box-sizing: border-box;
-    padding: 15px;
-    border-radius: 12px;
+    padding: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
+    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
     background: linear-gradient(145deg, #ffffff, #f5f5f5);
     box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.05),
-        0 1px 3px rgba(0, 0, 0, 0.1),
-        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+        0 0.52vh 1.95vh rgba(0, 0, 0, 0.05), /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+        0 0.13vh 0.39vh rgba(0, 0, 0, 0.1), /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
+        inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
+    border: 0.13vh solid rgba(255, 255, 255, 0.8); /* 1px -> 0.13vh (1/768*100) */
+    backdrop-filter: blur(1.3vh); /* 10px -> 1.3vh (10/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
-        transform: translateY(-2px);
+        transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
         box-shadow:
-            0 8px 25px rgba(0, 0, 0, 0.08),
-            0 2px 5px rgba(0, 0, 0, 0.12),
-            inset 0 1px 1px rgba(255, 255, 255, 0.9);
+            0 1.04vh 3.26vh rgba(0, 0, 0, 0.08), /* 8px 25px -> 1.04vh 3.26vh (8/768*100, 25/768*100) */
+            0 0.26vh 0.65vh rgba(0, 0, 0, 0.12), /* 2px 5px -> 0.26vh 0.65vh (2/768*100, 5/768*100) */
+            inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
     }
 } 

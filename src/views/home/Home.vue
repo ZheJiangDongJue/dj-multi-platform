@@ -192,7 +192,7 @@ export default {
 <style lang="scss" scoped>
 .title {
     text-align: left;
-    margin-left: ps(15);
+    margin-left: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
 }
 
 .grid-container {
@@ -221,7 +221,7 @@ export default {
 .grid-item.left .van-sidebar {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 60px;
+    padding-bottom: 7.81vh; /* 60px -> 7.81vh (60/768*100) */
     /* 为设置齿轮留出空间 */
 }
 
@@ -232,22 +232,22 @@ export default {
 }
 
 .card {
-    margin: ps(10) ps(10);
+    margin: 1.3vh 0.98vw; /* 10px 10px -> 1.3vh 0.98vw (10/768*100, 10/1024*100) */
 }
 
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
-    height: 60px;
+    padding: 0 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
+    height: 7.81vh; /* 60px -> 7.81vh (60/768*100) */
     background-color: #545c64;
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.12); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
 }
 
 .title {
-    font-size: 20px;
+    font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
     font-weight: bold;
 }
 
@@ -257,13 +257,13 @@ export default {
 }
 
 .user-info span {
-    margin-right: 15px;
+    margin-right: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
 }
 
 .el-dropdown-link {
     cursor: pointer;
     color: white;
-    font-size: 18px;
+    font-size: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
 }
 
 .el-dropdown-link:hover {
@@ -273,19 +273,19 @@ export default {
 /* 左下角设置齿轮样式 */
 .settings-gear {
     position: absolute;
-    bottom: 60px;
-    left: 15px;
+    bottom: 7.81vh; /* 60px -> 7.81vh (60/768*100) */
+    left: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
     background-color: transparent;
-    padding: 8px;
-    border-radius: 4px;
+    padding: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
     display: flex;
-    gap: 15px;
+    gap: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
 }
 
 .settings-gear .el-dropdown-link {
     color: black;
-    font-size: 28px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    font-size: 3.65vh; /* 28px -> 3.65vh (28/768*100) */
+    text-shadow: 0 0.13vh 0.39vh rgba(0, 0, 0, 0.3); /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
 }
 
 .settings-gear .el-dropdown-link:hover {
@@ -295,14 +295,14 @@ export default {
 .grid-item.left .van-collapse {
     flex: 1;
     overflow-y: auto;
-    border-radius: 4px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-    margin-bottom: 50px;
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    box-shadow: 0 0.26vh 1.56vh 0 rgba(0, 0, 0, 0.1); /* 2px 12px -> 0.26vh 1.56vh (2/768*100, 12/768*100) */
+    margin-bottom: 6.51vh; /* 50px -> 6.51vh (50/768*100) */
     /* 为设置按钮留出空间 */
 }
 
 .tree-container {
-    padding: 10px;
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
 }
 
 .tree-container :deep(.el-tree) {
@@ -310,7 +310,7 @@ export default {
 }
 
 .tree-container :deep(.el-tree-node__content) {
-    height: 32px;
+    height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
 }
 
 .tree-container :deep(.el-tree-node.is-current > .el-tree-node__content) {
@@ -337,9 +337,9 @@ export default {
     align-items: center;
     background-color: #409EFF;
     color: white;
-    font-size: 20px;
+    font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
     font-weight: bold;
-    border-radius: 5px;
+    border-radius: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
     user-select: none;
 }
 </style>

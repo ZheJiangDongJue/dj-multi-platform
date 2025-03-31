@@ -9,10 +9,22 @@
       <h2>批量完工组装流程卡</h2>
     </div>
 
-    <!-- 头部扫码输入区域 -->
-    <div class="batch-complete__scan-area">
-      <input ref="scanInput" v-model="scanCode" class="batch-complete__scan-input" placeholder="请使用扫码枪输入"
-        @keyup.enter="handleScanCodeConfirm" autofocus />
+    <!-- 头部扫码输入区域 - 修改为左右两部分 -->
+    <div class="batch-complete__scan-container">
+      <div class="batch-complete__scan-section">
+        <div class="batch-complete__scan-title">流程卡扫码区</div>
+        <div class="batch-complete__scan-area">
+          <input ref="flowScanInput" v-model="flowScanCode" class="batch-complete__scan-input" 
+            placeholder="请在这里扫描流程卡编码" @keyup.enter="handleFlowScanCodeConfirm" autofocus />
+        </div>
+      </div>
+      <div class="batch-complete__scan-section">
+        <div class="batch-complete__scan-title">员工扫码区</div>
+        <div class="batch-complete__scan-area">
+          <input ref="employeeScanInput" v-model="employeeScanCode" class="batch-complete__scan-input" 
+            placeholder="请在这里扫描员工编码" @keyup.enter="handleEmployeeScanCodeConfirm" />
+        </div>
+      </div>
     </div>
 
     <!-- 操作按钮区域 -->
@@ -31,7 +43,8 @@
           <div class="card__header" @click.stop="toggleSelection(index)" title="点击此处切换选择状态">
             <div class="card__title">{{ item.innerKey }}</div>
             <div class="card__checkbox">
-              <el-checkbox v-model="item.selected" @change="onCheckboxChange(index)"></el-checkbox>
+              <van-icon :name="item.selected ? 'success' : 'circle'" 
+                :class="['card__selection-icon', {'card__selection-icon--selected': item.selected}]" />
             </div>
           </div>
           <!-- 卡片内容区 -->
@@ -63,7 +76,7 @@
             </div>
             <div class="card__input-row">
               <label class="card__label">完工数量:</label>
-              <input type="number" v-model.number="item.qty" min="1" :max="item.data?.CanCompleteQty || 999"
+              <input type="number" v-model.number="item.qty" min="1" :max="item.data?.CanCompleteQty || 999999"
                 class="card__input" />
             </div>
           </div>
@@ -123,11 +136,15 @@ export default {
   },
   data() {
     return {
-      scanCode: '', // 扫码输入框的值
+      flowScanCode: '', // 流程卡扫码输入框的值
+      employeeScanCode: '', // 员工扫码输入框的值
       itemList: [], // 存储所有扫码添加的项目
-      scanQueue: [], // 扫码队列，存储待处理的扫码数据
-      isProcessing: false, // 是否正在处理队列的标志
-      processingTimer: null, // 处理队列的定时器引用
+      flowScanQueue: [], // 流程卡扫码队列
+      employeeScanQueue: [], // 员工扫码队列
+      isProcessingFlow: false, // 是否正在处理流程卡队列
+      isProcessingEmployee: false, // 是否正在处理员工队列
+      flowProcessingTimer: null, // 处理流程卡队列的定时器引用
+      employeeProcessingTimer: null, // 处理员工队列的定时器引用
       // 新增合格性选项
       qualificationOptions: [
         { text: '未选择', value: 0 },
@@ -151,63 +168,112 @@ export default {
   },
   methods: {
     /**
-     * 处理扫码确认事件
-     * 当用户在输入框中按下回车键时触发
+     * 处理流程卡扫码确认事件
+     * 当用户在流程卡输入框中按下回车键时触发
      */
-    handleScanCodeConfirm() {
+    handleFlowScanCodeConfirm() {
       // 验证输入是否为空
-      if (!this.scanCode.trim()) return;
+      if (!this.flowScanCode.trim()) return;
 
       // 将扫码数据加入队列等待处理
-      this.scanQueue.push(this.scanCode);
+      this.flowScanQueue.push(this.flowScanCode);
       // 立即清空输入框并聚焦，使用户可以继续扫码
-      this.scanCode = '';
-      this.$refs.scanInput.focus();
+      this.flowScanCode = '';
+      this.$refs.flowScanInput.focus();
 
       // 开始处理队列
-      this.startProcessingQueue();
+      this.startProcessingFlowQueue();
     },
 
     /**
-     * 开始处理扫码队列
+     * 处理员工扫码确认事件
+     * 当用户在员工输入框中按下回车键时触发
+     */
+    handleEmployeeScanCodeConfirm() {
+      // 验证输入是否为空
+      if (!this.employeeScanCode.trim()) return;
+
+      // 将扫码数据加入队列等待处理
+      this.employeeScanQueue.push(this.employeeScanCode);
+      // 立即清空输入框并聚焦，使用户可以继续扫码
+      this.employeeScanCode = '';
+      this.$refs.employeeScanInput.focus();
+
+      // 开始处理队列
+      this.startProcessingEmployeeQueue();
+    },
+
+    /**
+     * 开始处理流程卡扫码队列
      * 如果队列已在处理中，则不重复启动处理过程
      */
-    startProcessingQueue() {
-      if (this.isProcessing) return; // 防止重复处理
-      this.isProcessing = true;
-      this.processQueue();
+    startProcessingFlowQueue() {
+      if (this.isProcessingFlow) return; // 防止重复处理
+      this.isProcessingFlow = true;
+      this.processFlowQueue();
     },
 
     /**
-     * 处理扫码队列中的所有数据
+     * 开始处理员工扫码队列
+     * 如果队列已在处理中，则不重复启动处理过程
+     */
+    startProcessingEmployeeQueue() {
+      if (this.isProcessingEmployee) return; // 防止重复处理
+      this.isProcessingEmployee = true;
+      this.processEmployeeQueue();
+    },
+
+    /**
+     * 处理流程卡扫码队列中的所有数据
      * 异步处理以避免阻塞UI
      */
-    async processQueue() {
+    async processFlowQueue() {
       // 循环处理队列中的每个扫码数据
-      while (this.scanQueue.length > 0) {
-        const code = this.scanQueue.shift(); // 取出队列中的第一个项目
-        await this.checkAndAddRecord(code); // 异步检查并添加记录
+      while (this.flowScanQueue.length > 0) {
+        const code = this.flowScanQueue.shift(); // 取出队列中的第一个项目
+        await this.checkAndAddFlowRecord(code); // 异步检查并添加流程记录
       }
 
       // 队列处理完成后，延迟一段时间再重置状态
-      // 这样可以避免频繁的扫码导致重复处理
-      if (this.processingTimer) {
-        clearTimeout(this.processingTimer); // 清除之前的定时器
+      if (this.flowProcessingTimer) {
+        clearTimeout(this.flowProcessingTimer); // 清除之前的定时器
       }
 
       // 设置新的定时器
-      this.processingTimer = setTimeout(() => {
-        this.isProcessing = false; // 重置处理状态
+      this.flowProcessingTimer = setTimeout(() => {
+        this.isProcessingFlow = false; // 重置处理状态
       }, 500); // 500ms的延迟，可以根据实际需求调整
     },
 
     /**
-     * 检查记录是否存在并添加到列表
-     * @param {string} code - 需要检查的扫码值
+     * 处理员工扫码队列中的所有数据
+     * 异步处理以避免阻塞UI
      */
-    async checkAndAddRecord(code) {
+    async processEmployeeQueue() {
+      // 循环处理队列中的每个扫码数据
+      while (this.employeeScanQueue.length > 0) {
+        const code = this.employeeScanQueue.shift(); // 取出队列中的第一个项目
+        await this.checkAndAddEmployeeRecord(code); // 异步检查并添加员工记录
+      }
+
+      // 队列处理完成后，延迟一段时间再重置状态
+      if (this.employeeProcessingTimer) {
+        clearTimeout(this.employeeProcessingTimer); // 清除之前的定时器
+      }
+
+      // 设置新的定时器
+      this.employeeProcessingTimer = setTimeout(() => {
+        this.isProcessingEmployee = false; // 重置处理状态
+      }, 500); // 500ms的延迟，可以根据实际需求调整
+    },
+
+    /**
+     * 检查流程记录是否存在并添加到列表
+     * @param {string} code - 需要检查的流程卡扫码值
+     */
+    async checkAndAddFlowRecord(code) {
       try {
-        // 检查是否已经存在该编码，避免重复添加流程项目(职员不会受此限制)
+        // 检查是否已经存在该编码，避免重复添加流程项目
         const existingIndex = this.itemList.findIndex(item => item.code === code);
         if (existingIndex >= 0) {
           this.$message.warning('该流程编码已添加');
@@ -280,21 +346,26 @@ export default {
               title: '错误',
               message: `${pack.Message}`
             }).then(() => {
-              this.$refs.scanInput.focus();
+              this.$refs.flowScanInput.focus();
             });
           }
         } else {
-          // 尝试查找职员记录
-          await this.checkAndAddEmployeeRecord(code);
+          // 未找到匹配的记录，显示警告信息
+          this.$dialog.alert({
+            title: '提示',
+            message: `未找到流程编码 ${code} 的匹配记录，请确认是否为有效的流程编码`
+          }).then(() => {
+            this.$refs.flowScanInput.focus();
+          });
         }
       } catch (error) {
         // 处理请求错误
-        console.error('检查记录失败:', error);
+        console.error('检查流程记录失败:', error);
         this.$dialog.alert({
           title: '错误',
-          message: `检查扫码内容 ${code} 失败，请重试\n错误内容: ${error.message}`
+          message: `检查流程编码 ${code} 失败，请重试\n错误内容: ${error.message}`
         }).then(() => {
-          this.$refs.scanInput.focus();
+          this.$refs.flowScanInput.focus();
         });
       }
     },
@@ -322,21 +393,28 @@ export default {
 
           // 判断是否有项目需要设置计件人
           if (this.itemList.length > 0) {
-            // 找到所有未设置计件人的项目
-            const itemsToUpdate = this.itemList.filter(item => !item.employeeId || !item.employeeName);
-
-            if (itemsToUpdate.length > 0) {
-              // 更新这些项目的计件人信息
-              itemsToUpdate.forEach(item => {
-                item.employeeId = employee.id;
-                item.employeeName = employee.Name;
-                item.selected = true; // 自动选中已设置计件人的项目
+            // 检查是否有选中的项目
+            const hasSelectedItems = this.selectedItems.length > 0;
+            
+            if (hasSelectedItems) {
+              // 有选中项目，询问是否只替换选中的项目
+              this.$confirm(`是否将选中的 ${this.selectedItems.length} 个项目的计件人更改为 ${employee.Name}？`, '确认操作', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+              }).then(() => {
+                // 用户确认，更新选中项目的计件人
+                this.selectedItems.forEach(item => {
+                  item.employeeId = employee.id;
+                  item.employeeName = employee.Name;
+                });
+                this.$message.success(`已将选中的 ${this.selectedItems.length} 个项目的计件人设置为: ${employee.Name}`);
+              }).catch(() => {
+                this.$message.info('已取消操作');
               });
-
-              this.$message.success(`已将${itemsToUpdate.length}项的计件人设置为: ${employee.Name}，并自动选中`);
             } else {
-              // 如果所有项目都已设置计件人，则询问是否要覆盖
-              this.$confirm(`所有项目已有计件人，是否将所有项目的计件人更改为${employee.Name}？`, '确认操作', {
+              // 没有选中项目，询问是否替换所有项目
+              this.$confirm(`是否将所有 ${this.itemList.length} 个项目的计件人更改为 ${employee.Name}？`, '确认操作', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning'
@@ -345,9 +423,8 @@ export default {
                 this.itemList.forEach(item => {
                   item.employeeId = employee.id;
                   item.employeeName = employee.Name;
-                  item.selected = true; // 自动选中所有项目
                 });
-                this.$message.success(`已将所有项目的计件人更改为: ${employee.Name}，并全部选中`);
+                this.$message.success(`已将所有 ${this.itemList.length} 个项目的计件人更改为: ${employee.Name}`);
               }).catch(() => {
                 this.$message.info('已取消操作');
               });
@@ -357,12 +434,12 @@ export default {
             this.$message.info(`找到职员: ${employee.Name}，请先扫描流程项目`);
           }
         } else {
-          // 未找到匹配的记录，显示警告信息
+          // 未找到匹配的员工记录，显示警告信息
           this.$dialog.alert({
             title: '提示',
-            message: `未找到扫码内容 ${code} 的匹配记录，请确认是否为有效的流程编码或职员编码`
+            message: `未找到员工编码 ${code} 的匹配记录，请确认是否为有效的员工编码`
           }).then(() => {
-            this.$refs.scanInput.focus();
+            this.$refs.employeeScanInput.focus();
           });
         }
       } catch (error) {
@@ -371,7 +448,7 @@ export default {
           title: '错误',
           message: `查询职员记录失败: ${error.message || '未知错误'}`
         }).then(() => {
-          this.$refs.scanInput.focus();
+          this.$refs.employeeScanInput.focus();
         });
       }
     },
@@ -480,7 +557,7 @@ export default {
               title: '错误',
               message: `批量完工失败: ${result.Message || '未知错误'}`
             }).then(() => {
-              this.$refs.scanInput.focus();
+              this.$refs.flowScanInput.focus();
             });
           }
         } catch (error) {
@@ -489,7 +566,7 @@ export default {
             title: '错误',
             message: `批量完工失败，请重试\n错误内容: ${error.message}`
           }).then(() => {
-            this.$refs.scanInput.focus();
+            this.$refs.flowScanInput.focus();
           });
         }
       }).catch(() => {
@@ -647,6 +724,15 @@ export default {
       this.employeeSearchText = '';
       // 重置过滤的员工列表
       this.filteredEmployeeList = [...this.employeeList];
+      
+      // 在下一个事件循环中让搜索框获取焦点
+      this.$nextTick(() => {
+        // 查找搜索框元素并设置焦点
+        const searchInput = document.querySelector('.employee-search .van-field__control');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      });
     },
 
     /**
@@ -684,8 +770,8 @@ export default {
    * 组件挂载后执行的钩子函数
    */
   async mounted() {
-    // 页面加载后聚焦输入框，便于立即扫码
-    this.$refs.scanInput.focus();
+    // 页面加载后聚焦流程卡输入框，便于立即扫码
+    this.$refs.flowScanInput.focus();
     // 预加载员工列表
     this.loadEmployeeList();
   },
@@ -695,8 +781,11 @@ export default {
    */
   beforeDestroy() {
     // 组件销毁前清理定时器
-    if (this.processingTimer) {
-      clearTimeout(this.processingTimer);
+    if (this.flowProcessingTimer) {
+      clearTimeout(this.flowProcessingTimer);
+    }
+    if (this.employeeProcessingTimer) {
+      clearTimeout(this.employeeProcessingTimer);
     }
   }
 }
@@ -706,18 +795,22 @@ export default {
 @import "@/assets/style/universal/cards.scss";
 
 .batch-complete {
-  padding: 16px;
-  height: 100%;
+  padding: 2.08vh 1.56vw; /* 16px -> 2.08vh 1.56vw (16/768*100, 16/1024*100) */
+  height: 100vh; /* 确保占满整个视口高度 */
+  max-height: 100vh; /* 最大高度限制为视口高度 */
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 防止整体溢出 */
+  box-sizing: border-box; /* 确保padding不会增加元素总大小 */
+  padding-bottom: calc(2.08vh + env(safe-area-inset-bottom, 0)); /* 支持安全区域 (16px -> 2.08vh) */
 
   &__title {
-    margin-bottom: 16px;
+    margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     display: flex;
     align-items: center;
 
     h2 {
-      font-size: 18px;
+      font-size: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
       color: #303133;
       margin: 0;
       padding: 0;
@@ -726,42 +819,65 @@ export default {
     .back-button {
       display: flex;
       align-items: center;
-      padding: 0 10px;
-      margin-right: 10px;
+      padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+      margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
       cursor: pointer;
-      height: 32px;
+      height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
       transition: all 0.2s ease;
       user-select: none;
-      border-radius: 4px;
+      border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
 
       &:hover {
         background-color: rgba(0, 0, 0, 0.05);
       }
 
       .van-icon {
-        font-size: 16px;
-        margin-right: 5px;
+        font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+        margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
       }
 
       span {
-        font-size: 14px;
+        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
       }
     }
   }
 
+  /* 新增扫码容器样式 */
+  &__scan-container {
+    display: flex;
+    gap: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+  }
+
+  &__scan-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 0.13vh solid #ebeef5; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    background-color: #f5f7fa;
+  }
+
+  &__scan-title {
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    text-align: center;
+  }
+
   &__scan-area {
-    margin-bottom: 16px;
     display: flex;
     align-items: center;
   }
 
   &__scan-input {
     flex: 1;
-    height: 32px;
-    padding: 0 10px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    margin-right: 10px;
+    height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
+    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+    border: 0.13vh solid #dcdfe6; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
 
     &:focus {
       outline: none;
@@ -770,25 +886,30 @@ export default {
   }
 
   &__operation {
-    margin-bottom: 16px;
+    margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     display: flex;
-    gap: 10px;
+    gap: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
   }
 
   &__card-list {
     flex: 1;
+    min-height: 0; /* 重要：确保flex子元素在flex容器中可以正确滚动 */
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* 增加iOS设备的滚动惯性 */
+    position: relative; /* 添加相对定位作为子元素的定位上下文 */
+    margin-bottom: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
   }
 
   &__card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    padding: 0 16px;
+    grid-template-columns: repeat(auto-fill, minmax(27.34vw, 1fr)); /* 280px -> 27.34vw (280/1024*100) */
+    gap: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
+    /* 移除可能存在的overflow-y设置，避免嵌套滚动区域 */
   }
 
   &__empty-tip {
-    height: 100px;
+    height: 13.02vh; /* 100px -> 13.02vh (100/768*100) */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -798,17 +919,23 @@ export default {
   &__submit {
     display: flex;
     justify-content: flex-end;
-    margin-top: 16px;
-    padding: 0 16px;
+    margin-top: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
+    position: sticky; /* 使底部按钮区域保持可见 */
+    bottom: 0;
+    background-color: #fff; /* 确保背景色与页面一致 */
+    z-index: 5; /* 保持在一定层级上，避免被卡片遮挡 */
+    padding-bottom: max(1.3vh, env(safe-area-inset-bottom, 1.3vh)); /* 支持安全区域 (10px -> 1.3vh) */
+    box-shadow: 0 -0.26vh 1.3vh rgba(0, 0, 0, 0.05); /* 轻微阴影区分内容区 (2px 10px -> 0.26vh 1.3vh) */
 
     .el-button {
-      padding: 10px 20px;
-      font-size: 14px;
-      border-radius: 4px;
+      padding: 1.3vh 1.95vw; /* 10px 20px -> 1.3vh 1.95vw (10/768*100, 20/1024*100) */
+      font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+      border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
 
       &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.15); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
       }
     }
   }
@@ -819,32 +946,32 @@ export default {
   display: flex;
   flex-direction: column;
   background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+  box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+  border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
   padding: 0;
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
-  --lable-width: 80px;
+  --lable-width: 7.81vw; /* 80px -> 7.81vw (80/1024*100) */
 
   &:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1); /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+    transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
   }
 
   /* 选中状态样式 */
   &--selected {
     background: linear-gradient(145deg, #ecf5ff, #e1f0ff);
-    border: 1px solid rgba(64, 158, 255, 0.2);
+    border: 0.13vh solid rgba(64, 158, 255, 0.2); /* 1px -> 0.13vh (1/768*100) */
     box-shadow:
-      0 4px 15px rgba(64, 158, 255, 0.1),
-      0 1px 3px rgba(64, 158, 255, 0.2),
-      inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      0 0.52vh 1.95vh rgba(64, 158, 255, 0.1), /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+      0 0.13vh 0.39vh rgba(64, 158, 255, 0.2), /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
+      inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
 
     .card__header {
       background: linear-gradient(145deg, #e1f0ff, #d0e8ff);
-      border-bottom: 1px solid rgba(64, 158, 255, 0.2);
+      border-bottom: 0.13vh solid rgba(64, 158, 255, 0.2); /* 1px -> 0.13vh (1/768*100) */
     }
   }
 
@@ -852,9 +979,9 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
+    padding: 1.56vh 1.46vw; /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
     background: linear-gradient(145deg, #f8f9fa, #f2f3f5);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
     cursor: pointer;
     transition: all 0.2s ease;
 
@@ -869,7 +996,7 @@ export default {
 
   &__title {
     font-weight: 600;
-    font-size: 16px;
+    font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     color: #303133;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -882,14 +1009,14 @@ export default {
   }
 
   &__content {
-    padding: 15px;
+    padding: 1.95vh 1.46vw; /* 15px -> 1.95vh 1.46vw (15/768*100, 15/1024*100) */
     flex: 1;
   }
 
   &__input-row {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
     width: 100%;
 
     &:last-child {
@@ -899,7 +1026,7 @@ export default {
 
   &__info-row {
     display: flex;
-    margin-bottom: 12px;
+    margin-bottom: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
     align-items: flex-start;
     width: 100%;
 
@@ -910,7 +1037,7 @@ export default {
 
   &__label {
     width: var(--lable-width);
-    font-size: 14px;
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     color: #606266;
     font-weight: 500;
     flex-shrink: 0;
@@ -919,15 +1046,15 @@ export default {
 
   &__readonly-text {
     flex: 1;
-    font-size: 14px;
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     color: #606266;
     line-height: 1.5;
     background-color: #f5f7fa;
-    border-radius: 4px;
-    border: 1px solid #e4e7ed;
-    min-height: 36px;
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    border: 0.13vh solid #e4e7ed; /* 1px -> 0.13vh (1/768*100) */
+    min-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
     word-break: break-all;
-    padding: 0 10px;
+    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
     align-content: center;
     text-align: start;
     width: calc(100% - var(--lable-width)); // 减去label的宽度
@@ -935,32 +1062,33 @@ export default {
 
   &__input {
     flex: 1;
-    height: 36px;
-    line-height: 36px;
-    padding: 0 10px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
+    height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    line-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+    border: 0.13vh solid #dcdfe6; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
     background-color: #fff;
     width: calc(100% - var(--lable-width)); // 减去label的宽度
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
 
     &:focus {
       outline: none;
       border-color: #409eff;
-      box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+      box-shadow: 0 0 0 0.26vh rgba(64, 158, 255, 0.2); /* 2px -> 0.26vh (2/768*100) */
     }
   }
 
   &__radio-group {
     flex: 1;
     display: flex;
-    gap: 15px;
+    gap: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
   }
 
   &__footer {
-    height: 20px;
-    padding: 10px 15px;
+    height: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+    padding: 1.3vh 1.46vw; /* 10px 15px -> 1.3vh 1.46vw (10/768*100, 15/1024*100) */
     background-color: rgba(0, 0, 0, 0.02);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-top: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
     display: flex;
     justify-content: space-between;
     position: relative;
@@ -972,13 +1100,13 @@ export default {
   }
 
   &__info-label {
-    font-size: 12px;
+    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
     color: #909399;
-    margin-right: 5px;
+    margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
   }
 
   &__info-value {
-    font-size: 12px;
+    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
     color: #303133;
     font-weight: 500;
   }
@@ -987,18 +1115,18 @@ export default {
     display: flex;
     align-items: center;
     position: absolute;
-    top: 3px;
-    right: 15px;
-    width: 100px;
+    top: 0.39vh; /* 3px -> 0.39vh (3/768*100) */
+    right: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
+    width: 9.77vw; /* 100px -> 9.77vw (100/1024*100) */
   }
 
   /* 员工选择器样式 */
   &__employee-field {
     flex: 1;
-    height: 36px;
-    line-height: 36px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
+    height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    line-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    border: 0.13vh solid #dcdfe6; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
     background-color: #fff;
     width: 100%;
     display: flex;
@@ -1017,14 +1145,29 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      padding: 0 10px;
+      padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+      text-align: left; /* 确保文本居左显示 */
+      font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
     }
 
     .employee-field-icon {
       color: #909399;
-      font-size: 16px;
+      font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
       transition: transform 0.3s;
-      margin-right: 10px;
+      margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+    }
+  }
+
+  &__selection-icon {
+    font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+    color: #909399; /* 修改为更深的颜色 */
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    padding: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    
+    &--selected {
+      color: #409eff;
+      transform: scale(1.1);
     }
   }
 }
@@ -1032,15 +1175,15 @@ export default {
 /* 添加合格性下拉框样式 */
 .qualification-dropdown {
   ::v-deep .el-input__inner {
-    border-radius: 18px;
-    height: 30px;
-    line-height: 30px;
-    border: 1px solid #ebedf0;
+    border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
+    height: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
+    line-height: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
+    border: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
     background: #f7f8fa;
     color: #323233;
     transition: all 0.3s ease;
-    padding: 0 15px;
-    font-size: 12px;
+    padding: 0 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
+    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
   }
 
   ::v-deep .el-input__inner:hover {
@@ -1049,12 +1192,12 @@ export default {
   }
 
   ::v-deep .el-input__suffix {
-    right: 8px;
+    right: 0.78vw; /* 8px -> 0.78vw (8/1024*100) */
   }
 
   ::v-deep .el-select__caret {
     color: #969799;
-    line-height: 30px;
+    line-height: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
   }
 }
 
@@ -1069,11 +1212,11 @@ export default {
 /* 媒体查询 - 小屏幕适配 */
 @media screen and (max-width: 768px) {
   .batch-complete {
-    padding: 10px;
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
 
     &__card-grid {
       grid-template-columns: 1fr;
-      padding: 0 8px;
+      padding: 0 1.04vh; /* 8px -> 1.04vh (8/768*100) */
     }
 
     &__operation {
@@ -1081,9 +1224,10 @@ export default {
     }
 
     &__submit {
-      padding: 0 8px;
+      padding: 0 1.04vh 1.04vh; /* 8px 8px -> 1.04vh 1.04vh (8/768*100, 8/768*100) */
       display: flex;
-      gap: 10px;
+      gap: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+      padding-bottom: max(1.04vh, env(safe-area-inset-bottom, 1.04vh)); /* 支持安全区域 (8px -> 1.04vh) */
     }
   }
 }
@@ -1099,17 +1243,17 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 16px;
+  font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 1px solid #ebedf0;
+  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 8px 16px;
-  border-bottom: 1px solid #ebedf0;
+  padding: 1.04vh 1.56vw; /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
+  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
 }
 
 .employee-select-wrapper {

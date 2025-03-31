@@ -16,6 +16,10 @@ export default {
   components: {
     // HelloWorld,
     loading,
+  },
+  mounted() {
+    console.log('App mounted');
+    this.commitIsLoading(false);
   }
 }
 </script>
@@ -27,7 +31,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  /* margin-top: 60px; */
+  /* margin-top: 7.81vh; (60px -> 7.81vh) */
 }
 
 body {

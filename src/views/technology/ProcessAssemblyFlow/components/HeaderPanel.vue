@@ -140,10 +140,10 @@ export default {
 /* 头部面板样式 */
 .header-panel {
     background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    padding: 15px 20px;
-    margin-bottom: 15px;
+    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    padding: 1.95vh 1.95vw; /* 15px 20px -> 1.95vh 1.95vw (15/768*100, 20/1024*100) */
+    margin-bottom: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
     position: relative;
     width: 100%;
     box-sizing: border-box;
@@ -153,10 +153,10 @@ export default {
     &::after {
         content: '';
         position: absolute;
-        bottom: -1px;
+        bottom: -0.13vh; /* -1px -> -0.13vh (1/768*100) */
         left: 0;
         right: 0;
-        height: 1px;
+        height: 0.13vh; /* 1px -> 0.13vh (1/768*100) */
         background: linear-gradient(90deg,
                 rgba(0, 0, 0, 0) 0%,
                 rgba(0, 0, 0, 0.1) 50%,
@@ -166,16 +166,16 @@ export default {
 
 /* 头部内容样式 */
 .header-content {
-    max-width: 1200px;
+    max-width: 117.19vw; /* 1200px -> 117.19vw (1200/1024*100) */
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
 }
 
 /* 头部行样式 */
 .header-row {
     display: flex;
-    gap: 15px;
-    margin-bottom: 10px;
+    gap: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
+    margin-bottom: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
 
     /* 最后一行无底部边距 */
     &:last-child {
@@ -191,7 +191,7 @@ export default {
         flex: 1;
         min-width: 0;
         background: transparent;
-        border-radius: 8px;
+        border-radius: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
         transition: all 0.3s ease;
 
         /* 悬停状态样式 */
@@ -210,7 +210,7 @@ export default {
 .mobile-header-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
 
     /* 移动端输入框样式 */
     .van-field {
@@ -219,8 +219,8 @@ export default {
 
         /* 确保标签宽度固定，不会导致输入框变高 */
         ::v-deep .van-field__label {
-            width: 70px !important;
-            flex: 0 0 70px !important;
+            width: 6.84vw !important; /* 70px -> 6.84vw (70/1024*100) */
+            flex: 0 0 6.84vw !important; /* 70px -> 6.84vw (70/1024*100) */
         }
     }
 }
@@ -228,8 +228,8 @@ export default {
 /* 媒体查询 - 小屏幕样式 */
 @include ps {
     .header-panel {
-        padding: 10px;
-        margin-bottom: 10px;
+        padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+        margin-bottom: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
     }
 }
 </style> 
