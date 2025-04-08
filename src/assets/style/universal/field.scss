@@ -3,11 +3,28 @@
     background: transparent;
     border-radius: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
     transition: all 0.3s ease;
+    display: flex; /* 添加flex布局 */
+    align-items: center; /* 垂直居中对齐 */
 
     /* 设置输入框左右内边距为10px */
     .van-field__control {
         padding-left: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
         padding-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+        line-height: 2.60vh; /* 20px -> 2.60vh (20/768*100) */
+    }
+
+    /* 标签样式 */
+    .van-field__label {
+        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+        line-height: 2.60vh; /* 20px -> 2.60vh (20/768*100) */
+        padding-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+        color: #333;
+        width: 7.81vw; /* 80px -> 7.81vw (80/1024*100) */
+        margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+        display: flex; /* 添加flex布局 */
+        align-items: center; /* 垂直居中对齐 */
+        height: 100%; /* 确保高度占满父容器 */
     }
 
     /* 悬停状态样式 */

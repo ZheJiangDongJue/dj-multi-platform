@@ -10,7 +10,7 @@
       <div class="field-container">
         <van-field v-model="data.InnerKey" label="制令单号" readonly v-click-tooltip="data.InnerKey" />
         <van-field v-model="formattedApprovalTime" label="接收日期" readonly clickable required right-icon="calendar-o"
-          @click="showCalendar = true" v-click-tooltip="formattedApprovalTime" />
+          @click="handleDateFieldClick" v-click-tooltip="formattedApprovalTime" :disabled="data?.Status > 0" />
         <van-popup v-model="showCalendar" get-container="body" position="bottom" :style="{ height: 'auto' }">
           <van-calendar v-model="showCalendar" :show-confirm="false" @confirm="onSelectDate" />
         </van-popup>
@@ -31,7 +31,7 @@
             @click="handleEmployeeFieldClick"
             v-click-tooltip="data.ReceiveEmployeeName"
           />
-          <van-popup v-model="showEmployeeSelector" position="bottom" round>
+          <van-popup v-model="showEmployeeSelector" position="bottom" round get-container="body">
             <div class="employee-search">
               <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
             </div>
@@ -46,7 +46,7 @@
         </div>
         
         <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode" />
-        <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" />
+        <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" :disabled="data?.Status > 0" />
       </div>
 
       <!-- 新增的对话框底部组件 -->
@@ -131,8 +131,17 @@ export default {
         }
       }
     },
-    // 移除原来的 watch，因为现在通过选择器处理
-    // 'data.ReceiveEmployeeName': { ... }
+    // 监听员工选择器显示状态
+    showEmployeeSelector(newVal) {
+      if (newVal) {
+        setTimeout(() => {
+          const searchInput = document.querySelector('.van-popup--bottom .employee-search .van-field__control');
+          if (searchInput) {
+            searchInput.focus();
+          }
+        }, 300);
+      }
+    },
   },
   methods: {
     // 过滤员工列表
@@ -160,7 +169,7 @@ export default {
         query.Select = 'e.id, e.Name, e.CodeForScan';
         query.AddWhere(`e.DeletedTag=0`);
         query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
-        query.OrderBy = 'e.Name ASC'; // 按姓名排序
+        query.Order = 'e.Name ASC'; // 按姓名排序
         
         const pack = await generalapi.getDataEx(query);
         
@@ -209,8 +218,21 @@ export default {
       this.filteredEmployeeList = [...this.employeeList];
     },
     
+    // 处理日期字段点击
+    handleDateFieldClick() {
+      // 如果已审批，不允许修改
+      if (this.data?.Status > 0) {
+        return;
+      }
+      this.showCalendar = true;
+    },
+    
     onSelectDate(date) {
       this.showCalendar = false;
+      // 已审批状态下不允许修改日期
+      if (this.data?.Status > 0) {
+        return;
+      }
       if (date) {
         this.$set(this.data, 'ApprovalTime', formatDate(date));
       }
@@ -395,8 +417,8 @@ export default {
             message: `${action}成功`,
           });
 
-          // 触发父组件的刷新
-          this.$emit('operation-complete');
+          // 触发父组件的刷新，并设置需要保持滚动位置
+          this.$emit('operation-complete', { preserveScroll: true });
         } else {
           this.$dialog.alert({
             title: '提示',
@@ -419,7 +441,7 @@ export default {
       }
 
       if (this.data.id == null) {
-        this.$emit('operation-complete');
+        this.$emit('operation-complete', { preserveScroll: true });
         return;
       }
 
@@ -437,8 +459,8 @@ export default {
         var pack = await billapi.generalBillDelete(tableName, this.data.id);
         if (pack.IsSuccess) {
           this.$toast('删除成功');
-          // 通知父组件操作完成
-          this.$emit('operation-complete');
+          // 通知父组件操作完成，并保持滚动位置
+          this.$emit('operation-complete', { preserveScroll: true });
         }
         else {
           this.$toast(pack.ErrorMessage || '删除失败');

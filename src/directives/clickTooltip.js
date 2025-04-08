@@ -3,6 +3,9 @@
  * 用法：v-click-tooltip="'显示的内容'"
  * 或者：v-click-tooltip="{ content: '显示的内容', duration: 3000, placement: 'bottom' }"
  * placement可选值: top, bottom, left, right
+ * 
+ * 当应用于 van-field 元素时，只有在元素为只读状态 (readonly) 时才会显示 tooltip
+ * 日期选择器和职员选择器不会显示 tooltip
  */
 
 // 全局变量，用于存储tooltip状态
@@ -133,6 +136,45 @@ const handleOutsideClick = (e, el) => {
     }
 };
 
+/**
+ * 检查元素是否为只读状态的 van-field
+ * @param {HTMLElement} el - 要检查的元素
+ * @returns {boolean} - 如果是非 van-field 或是只读状态的 van-field 则返回 true
+ */
+const shouldShowTooltip = (el) => {
+    // 检查是否是 van-field 元素
+    const isVanField = el.classList.contains('van-field') || 
+                        el.closest('.van-field') !== null;
+    
+    if (!isVanField) {
+        // 不是 van-field 元素，允许显示 tooltip
+        return true;
+    }
+    
+    // 获取 van-field 元素（可能是当前元素或父元素）
+    const fieldElement = el.classList.contains('van-field') ? el : el.closest('.van-field');
+    
+    // 检查是否是日期选择器（带有日历图标的字段）
+    const hasCalendarIcon = fieldElement.querySelector('.van-icon-calendar-o') !== null;
+    if (hasCalendarIcon) {
+        return false; // 日期选择器不显示 tooltip
+    }
+    
+    // 检查是否是选择器（带有下拉箭头图标的字段）
+    const hasArrowDownIcon = fieldElement.querySelector('.van-icon-arrow-down') !== null;
+    if (hasArrowDownIcon) {
+        return false; // 选择器不显示 tooltip
+    }
+    
+    // 检查是否有 readonly 属性或具有 van-field--readonly 类
+    const hasReadonlyAttr = fieldElement.querySelector('input[readonly], textarea[readonly]') !== null ||
+                            fieldElement.hasAttribute('readonly');
+    const hasReadonlyClass = fieldElement.classList.contains('van-field--readonly');
+    
+    // 只有在只读状态下才显示 tooltip
+    return hasReadonlyAttr || hasReadonlyClass;
+};
+
 export default {
     bind(el, binding) {
         // 从binding中获取值
@@ -162,6 +204,11 @@ export default {
             if (el._clickTooltip.visible) {
                 hideTooltip();
                 el._clickTooltip.visible = false;
+                return;
+            }
+
+            // 检查是否应该显示 tooltip（只读状态检查）
+            if (!shouldShowTooltip(el)) {
                 return;
             }
 

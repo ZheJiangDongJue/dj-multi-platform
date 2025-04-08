@@ -29,9 +29,9 @@
 
     <!-- 操作按钮区域 -->
     <div class="batch-complete__operation">
-      <el-button type="primary" size="small" @click="selectAll">全选</el-button>
-      <el-button type="primary" size="small" @click="invertSelection">反选</el-button>
-      <el-button type="danger" size="small" @click="clearAll">全清</el-button>
+      <el-button type="primary" class="operation-button" @click="selectAll">全选</el-button>
+      <el-button type="primary" class="operation-button" @click="invertSelection">反选</el-button>
+      <el-button type="danger" class="operation-button" @click="clearAll">全清</el-button>
     </div>
 
     <!-- 卡片列表区域 -->
@@ -69,7 +69,7 @@
                   class="card__employee-field"
                   @click="handleEmployeeFieldClick(item)"
                 >
-                  <span>{{ item.employeeName || '请选择计件人员' }}</span>
+                  <span>{{ item.employeeName }}</span>
                   <van-icon name="arrow-down" class="employee-field-icon" />
                 </div>
               </div>
@@ -101,12 +101,14 @@
 
     <!-- 底部操作按钮区域 -->
     <div class="batch-complete__submit">
-      <el-button type="danger" @click="handleDelete" :disabled="selectedItems.length === 0">
-        删除 ({{ selectedItems.length }})
-      </el-button>
-      <el-button type="primary" @click="handleSubmit" :disabled="selectedItems.length === 0">
-        提交 ({{ selectedItems.length }})
-      </el-button>
+      <div class="batch-complete__button-wrapper">
+        <el-button type="danger" @click="handleDelete" :disabled="selectedItems.length === 0">
+          删除 ({{ selectedItems.length }})
+        </el-button>
+        <el-button type="primary" @click="handleSubmit" :disabled="selectedItems.length === 0">
+          提交 ({{ selectedItems.length }})
+        </el-button>
+      </div>
     </div>
 
     <!-- 员工选择弹出层 -->
@@ -886,9 +888,24 @@ export default {
   }
 
   &__operation {
+    flex-wrap: wrap;
+    justify-content: center;
     margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     display: flex;
     gap: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+    padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
+
+    .operation-button {
+      min-width: 15.63vw; /* 120px -> 15.63vw (120/768*100) */
+      flex: 0 0 auto;
+      margin-bottom: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
+      height: 3.65vh; /* 28px -> 3.65vh (28/768*100) */
+      padding: 0 1.46vw; /* 0 15px -> 0 1.46vw (15/1024*100) */
+      font-size: 1.69vh; /* 13px -> 1.69vh (13/768*100) */
+      border-radius: 0.39vh; /* 3px -> 0.39vh (3/768*100) */
+      line-height: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+      font-weight: 500;
+    }
   }
 
   &__card-list {
@@ -902,10 +919,9 @@ export default {
 
   &__card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(27.34vw, 1fr)); /* 280px -> 27.34vw (280/1024*100) */
-    gap: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
-    padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
-    /* 移除可能存在的overflow-y设置，避免嵌套滚动区域 */
+    grid-template-columns: repeat(auto-fill, minmax(22vw, 1fr)); /* 减小最小宽度从27.34vw到22vw */
+    gap: 1.3vh 1.04vw; /* 减小间距 */
+    padding: 0 1.56vw;
   }
 
   &__empty-tip {
@@ -918,7 +934,7 @@ export default {
 
   &__submit {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center; /* 将右对齐改为居中对齐 */
     margin-top: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
     padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
     position: sticky; /* 使底部按钮区域保持可见 */
@@ -928,10 +944,18 @@ export default {
     padding-bottom: max(1.3vh, env(safe-area-inset-bottom, 1.3vh)); /* 支持安全区域 (10px -> 1.3vh) */
     box-shadow: 0 -0.26vh 1.3vh rgba(0, 0, 0, 0.05); /* 轻微阴影区分内容区 (2px 10px -> 0.26vh 1.3vh) */
 
+    .batch-complete__button-wrapper {
+      display: flex;
+      justify-content: center; /* 确保按钮在容器中居中 */
+      gap: 2.93vw; /* 增加按钮间距为30px -> 2.93vw (30/1024*100) */
+      padding: 0.65vh 0; /* 增加上下内边距，5px -> 0.65vh (5/768*100) */
+    }
+
     .el-button {
       padding: 1.3vh 1.95vw; /* 10px 20px -> 1.3vh 1.95vw (10/768*100, 20/1024*100) */
       font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
       border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+      min-width: 9.77vw; /* 设置最小宽度 100px -> 9.77vw (100/1024*100) */
 
       &:hover {
         transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
@@ -946,32 +970,32 @@ export default {
   display: flex;
   flex-direction: column;
   background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
-  box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
-  border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
+  border-radius: 0.78vh; /* 减小圆角 */
+  box-shadow: 0 0.26vh 0.65vh rgba(0, 0, 0, 0.05); /* 减小阴影 */
+  border: 0.13vh solid rgba(0, 0, 0, 0.05);
   padding: 0;
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
-  --lable-width: 7.81vw; /* 80px -> 7.81vw (80/1024*100) */
+  --lable-width: 6.25vw; /* 减小标签宽度 */
 
   &:hover {
-    box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1); /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
-    transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
+    box-shadow: 0 0.26vh 1.3vh rgba(0, 0, 0, 0.1); /* 减小悬停阴影 */
+    transform: translateY(-0.13vh); /* 减小悬停上移效果 */
   }
 
   /* 选中状态样式 */
   &--selected {
     background: linear-gradient(145deg, #ecf5ff, #e1f0ff);
-    border: 0.13vh solid rgba(64, 158, 255, 0.2); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(64, 158, 255, 0.2);
     box-shadow:
-      0 0.52vh 1.95vh rgba(64, 158, 255, 0.1), /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
-      0 0.13vh 0.39vh rgba(64, 158, 255, 0.2), /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
-      inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
+      0 0.26vh 1.3vh rgba(64, 158, 255, 0.1),
+      0 0.13vh 0.26vh rgba(64, 158, 255, 0.2),
+      inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9);
 
     .card__header {
       background: linear-gradient(145deg, #e1f0ff, #d0e8ff);
-      border-bottom: 0.13vh solid rgba(64, 158, 255, 0.2); /* 1px -> 0.13vh (1/768*100) */
+      border-bottom: 0.13vh solid rgba(64, 158, 255, 0.2);
     }
   }
 
@@ -979,9 +1003,9 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.56vh 1.46vw; /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
+    padding: 0.78vh 0.98vw; /* 减小内边距 */
     background: linear-gradient(145deg, #f8f9fa, #f2f3f5);
-    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
+    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: all 0.2s ease;
 
@@ -996,7 +1020,7 @@ export default {
 
   &__title {
     font-weight: 600;
-    font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    font-size: 1.69vh; /* 减小字体大小 */
     color: #303133;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1009,14 +1033,14 @@ export default {
   }
 
   &__content {
-    padding: 1.95vh 1.46vw; /* 15px -> 1.95vh 1.46vw (15/768*100, 15/1024*100) */
+    padding: 1.04vh 0.98vw; /* 减小内边距 */
     flex: 1;
   }
 
   &__input-row {
     display: flex;
     align-items: center;
-    margin-bottom: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    margin-bottom: 0.78vh; /* 减小间距 */
     width: 100%;
 
     &:last-child {
@@ -1026,7 +1050,7 @@ export default {
 
   &__info-row {
     display: flex;
-    margin-bottom: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    margin-bottom: 0.78vh; /* 减小间距 */
     align-items: flex-start;
     width: 100%;
 
@@ -1037,7 +1061,7 @@ export default {
 
   &__label {
     width: var(--lable-width);
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    font-size: 1.56vh; /* 减小字体大小 */
     color: #606266;
     font-weight: 500;
     flex-shrink: 0;
@@ -1046,49 +1070,49 @@ export default {
 
   &__readonly-text {
     flex: 1;
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    font-size: 1.56vh; /* 减小字体大小 */
     color: #606266;
-    line-height: 1.5;
+    line-height: 1.3; /* 减小行高 */
     background-color: #f5f7fa;
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
-    border: 0.13vh solid #e4e7ed; /* 1px -> 0.13vh (1/768*100) */
-    min-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
+    border-radius: 0.26vh; /* 减小圆角 */
+    border: 0.13vh solid #e4e7ed;
+    min-height: 3.52vh; /* 减小高度 */
     word-break: break-all;
-    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+    padding: 0 0.65vw; /* 减小内边距 */
     align-content: center;
     text-align: start;
-    width: calc(100% - var(--lable-width)); // 减去label的宽度
+    width: calc(100% - var(--lable-width));
   }
 
   &__input {
     flex: 1;
-    height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
-    line-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
-    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-    border: 0.13vh solid #dcdfe6; /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    height: 3.52vh; /* 减小高度 */
+    line-height: 3.52vh; /* 减小行高 */
+    padding: 0 0.65vw; /* 减小内边距 */
+    border: 0.13vh solid #dcdfe6;
+    border-radius: 0.26vh; /* 减小圆角 */
     background-color: #fff;
-    width: calc(100% - var(--lable-width)); // 减去label的宽度
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    width: calc(100% - var(--lable-width));
+    font-size: 1.56vh; /* 减小字体大小 */
 
     &:focus {
       outline: none;
       border-color: #409eff;
-      box-shadow: 0 0 0 0.26vh rgba(64, 158, 255, 0.2); /* 2px -> 0.26vh (2/768*100) */
+      box-shadow: 0 0 0 0.13vh rgba(64, 158, 255, 0.2); /* 减小阴影 */
     }
   }
 
   &__radio-group {
     flex: 1;
     display: flex;
-    gap: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
+    gap: 1.17vw; /* 减小间距 */
   }
 
   &__footer {
-    height: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
-    padding: 1.3vh 1.46vw; /* 10px 15px -> 1.3vh 1.46vw (10/768*100, 15/1024*100) */
+    height: 1.82vh; /* 减小高度 */
+    padding: 0.78vh 0.98vw; /* 减小内边距 */
     background-color: rgba(0, 0, 0, 0.02);
-    border-top: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
+    border-top: 0.13vh solid rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
     position: relative;
@@ -1100,13 +1124,13 @@ export default {
   }
 
   &__info-label {
-    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    font-size: 1.43vh; /* 减小字体大小 */
     color: #909399;
-    margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
+    margin-right: 0.39vw; /* 减小间距 */
   }
 
   &__info-value {
-    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    font-size: 1.43vh; /* 减小字体大小 */
     color: #303133;
     font-weight: 500;
   }
@@ -1115,18 +1139,18 @@ export default {
     display: flex;
     align-items: center;
     position: absolute;
-    top: 0.39vh; /* 3px -> 0.39vh (3/768*100) */
-    right: 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
-    width: 9.77vw; /* 100px -> 9.77vw (100/1024*100) */
+    top: 0.26vh; /* 减小位置 */
+    right: 0.98vw; /* 减小右侧距离 */
+    width: 8.79vw; /* 减小宽度 */
   }
 
   /* 员工选择器样式 */
   &__employee-field {
     flex: 1;
-    height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
-    line-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
-    border: 0.13vh solid #dcdfe6; /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    height: 3.52vh; /* 减小高度 */
+    line-height: 3.52vh; /* 减小行高 */
+    border: 0.13vh solid #dcdfe6;
+    border-radius: 0.26vh; /* 减小圆角 */
     background-color: #fff;
     width: 100%;
     display: flex;
@@ -1145,25 +1169,25 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-      text-align: left; /* 确保文本居左显示 */
-      font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+      padding: 0 0.65vw; /* 减小内边距 */
+      text-align: left;
+      font-size: 1.56vh; /* 减小字体大小 */
     }
 
     .employee-field-icon {
       color: #909399;
-      font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+      font-size: 1.69vh; /* 减小图标大小 */
       transition: transform 0.3s;
-      margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+      margin-right: 0.65vw; /* 减小右侧距离 */
     }
   }
 
   &__selection-icon {
-    font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
-    color: #909399; /* 修改为更深的颜色 */
+    font-size: 2.08vh; /* 减小图标大小 */
+    color: #909399;
     transition: all 0.3s ease;
     border-radius: 50%;
-    padding: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    padding: 0.26vh; /* 减小内边距 */
     
     &--selected {
       color: #409eff;
@@ -1175,15 +1199,15 @@ export default {
 /* 添加合格性下拉框样式 */
 .qualification-dropdown {
   ::v-deep .el-input__inner {
-    border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
-    height: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
-    line-height: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
-    border: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 1.69vh; /* 减小圆角 */
+    height: 3.13vh; /* 减小高度 */
+    line-height: 3.13vh; /* 减小行高 */
+    border: 0.13vh solid #ebedf0;
     background: #f7f8fa;
     color: #323233;
     transition: all 0.3s ease;
-    padding: 0 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
-    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    padding: 0 0.98vw; /* 减小内边距 */
+    font-size: 1.3vh; /* 减小字体大小 */
   }
 
   ::v-deep .el-input__inner:hover {
@@ -1192,12 +1216,12 @@ export default {
   }
 
   ::v-deep .el-input__suffix {
-    right: 0.78vw; /* 8px -> 0.78vw (8/1024*100) */
+    right: 0.49vw; /* 减小右侧距离 */
   }
 
   ::v-deep .el-select__caret {
     color: #969799;
-    line-height: 3.91vh; /* 30px -> 3.91vh (30/768*100) */
+    line-height: 3.13vh; /* 减小行高 */
   }
 }
 
@@ -1221,13 +1245,30 @@ export default {
 
     &__operation {
       flex-wrap: wrap;
+      justify-content: center;
+      padding: 0 1.04vh; /* 8px -> 1.04vh (8/768*100) */
+      
+      .operation-button {
+        min-width: 20vw; /* 小屏幕下设置更合适的宽度 */
+        margin: 0 0.65vh 1.04vh; /* 增加水平间距，0 5px 8px -> 0 0.65vh 1.04vh (5/768*100, 8/768*100) */
+      }
     }
 
     &__submit {
       padding: 0 1.04vh 1.04vh; /* 8px 8px -> 1.04vh 1.04vh (8/768*100, 8/768*100) */
-      display: flex;
-      gap: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
       padding-bottom: max(1.04vh, env(safe-area-inset-bottom, 1.04vh)); /* 支持安全区域 (8px -> 1.04vh) */
+      
+      .batch-complete__button-wrapper {
+        width: 100%; /* 在小屏幕上占满宽度 */
+        gap: 1.95vw; /* 减小间距以适应小屏幕，20px -> 1.95vw (20/1024*100) */
+      }
+      
+      .el-button {
+        flex: 1; /* 在小屏幕上让按钮平均分配空间 */
+        min-width: unset; /* 取消最小宽度限制 */
+        white-space: nowrap; /* 防止文本换行 */
+        padding: 1.3vh 1.17vw; /* 调整内边距 10px 12px -> 1.3vh 1.17vw (10/768*100, 12/1024*100) */
+      }
     }
   }
 }

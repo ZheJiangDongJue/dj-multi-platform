@@ -8,106 +8,111 @@
             <div v-if="isWideScreen">
                 <GridContainer class="card-item" v-for="(item, index) in details"
                     :key="index" :class="getClassForRowStatus(item)"
-                    :rows="['auto', 'auto', 'auto', 'auto', 'auto', 'auto']" :columns="['40px', '1*', '1*', '1*', '1*', '1*']">
+                    :rows="['auto', 'auto', 'auto']" :columns="['40px', '1*', '1*', '1*', 'auto']">
                     <!-- 新增行号显示 -->
-                    <GridItem :row="0" :column="0" :row-span="6" class="row-number-container">
+                    <GridItem :row="0" :column="0" :row-span="3" class="row-number-container">
                         <div class="row-number">{{ getIndex(index) }}</div>
                     </GridItem>
                     
-                    <!-- 添加位置索引显示 -->
-                    <GridItem :row="0" :column="5" :column-span="1" class="location-index-container">
+                    <!-- 第一行：工种和计划数 -->
+                    <GridItem :row="0" :column="1" :column-span="2">
+                        <van-field v-model="item.TypeofWorkName" label="工种"
+                            :label-width="getLabelWidth(2)" :readonly="isReadOnly"
+                            v-click-tooltip="item.TypeofWorkName" />
+                    </GridItem>
+                    <GridItem :row="0" :column="3" :column-span="1">
+                        <van-field v-model="item.BQty" label="计划数" :label-width="getLabelWidth(3)"
+                            :readonly="isReadOnly" class="qty-field"
+                            v-click-tooltip="item.BQty" />
+                    </GridItem>
+                    <!-- 位置索引显示 -->
+                    <GridItem :row="0" :column="4" :column-span="1" class="location-index-container">
                         <div class="location-index" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}</div>
                     </GridItem>
                     
-                    <GridItem :row="0" :column="1" :column-span="2">
-                        <van-field v-model="item.TypeofWorkName" label="工种"
-                            :label-width="fontSize * 2" :readonly="isReadOnly"
-                            v-click-tooltip="item.TypeofWorkName" />
-                    </GridItem>
-                    <GridItem :row="0" :column="3" :column-span="2">
-                        <van-field v-model="item.VestInName" label="操作工"
-                            :label-width="fontSize * 3" :readonly="isReadOnly"
-                            v-click-tooltip="item.VestInName" />
-                    </GridItem>
-                    <GridItem :row="1" :column="1" :column-span="5">
+                    <!-- 第二行：工艺内容、生产数、接收按钮 -->
+                    <GridItem :row="1" :column="1" :column-span="2">
                         <van-field v-model="item.Content" label="工艺内容"
-                            :label-width="fontSize * 4" :readonly="isReadOnly"
+                            :label-width="getLabelWidth(4)" :readonly="isReadOnly"
                             v-click-tooltip="item.Content" />
                     </GridItem>
-                    <GridItem :row="2" :column="1" :column-span="5">
-                        <van-field v-model="item.WorkRequirements" label="工艺要求"
-                            :label-width="fontSize * 4" :readonly="isReadOnly"
-                            v-click-tooltip="item.WorkRequirements" />
-                    </GridItem>
-                    <GridItem :row="3" :column="1" :column-span="1">
-                        <van-field v-model="item.BQty" label="计划数" :label-width="fontSize * 3"
-                            :readonly="isReadOnly"
-                            v-click-tooltip="item.BQty" />
-                    </GridItem>
-                    <GridItem :row="3" :column="2" :column-span="2">
+                    <GridItem :row="1" :column="3" :column-span="1">
                         <van-field v-model="item.PreCmpBQty" label="生产数"
-                            :label-width="fontSize * 3" :readonly="isReadOnly"
+                            :label-width="getLabelWidth(3)" :readonly="isReadOnly" class="qty-field"
                             v-click-tooltip="item.PreCmpBQty" />
                     </GridItem>
-                    <GridItem :row="3" :column="4" :column-span="2">
+                    <GridItem :row="1" :column="4" :column-span="1" class="button-cell">
+                        <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
+                            class="small-button" @click="handleReceive(item)"
+                            :disabled="isReceiveButtonDisabled(item)">
+                            {{ getReceiveStatusText(item.ReceiveStatus) }}
+                        </van-button>
+                    </GridItem>
+                    
+                    <!-- 第三行：工艺要求、合格数、完工按钮 -->
+                    <GridItem :row="2" :column="1" :column-span="2">
+                        <van-field v-model="item.WorkRequirements" label="工艺要求"
+                            :label-width="getLabelWidth(4)" :readonly="isReadOnly"
+                            v-click-tooltip="item.WorkRequirements" />
+                    </GridItem>
+                    <GridItem :row="2" :column="3" :column-span="1">
                         <van-field v-model="item.CmpBQty" label="合格数"
-                            :label-width="fontSize * 3" :readonly="isReadOnly"
+                            :label-width="getLabelWidth(3)" :readonly="isReadOnly" class="qty-field"
                             v-click-tooltip="item.CmpBQty" />
                     </GridItem>
-                    <GridItem :row="4" :column="1" :column-span="5" :vertical-alignment="'center'" style="text-align: center; padding: 0 5px;">
-                        <div class="button-container">
-                            <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
-                                style="flex: 1; margin: 0 5px;" @click="handleReceive(item)"
-                                :disabled="isReceiveButtonDisabled(item)">
-                                {{ getReceiveStatusText(item.ReceiveStatus) }}
-                            </van-button>
-                            <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
-                                style="flex: 1; margin: 0 5px;" @click="handleComplete(item)"
-                                :disabled="isCompleteButtonDisabled(item)">
-                                {{ getCompleteStatusText(item.CompleteStatus) }}
-                            </van-button>
-                        </div>
+                    <GridItem :row="2" :column="4" :column-span="1" class="button-cell">
+                        <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
+                            class="small-button" @click="handleComplete(item)"
+                            :disabled="isCompleteButtonDisabled(item)">
+                            {{ getCompleteStatusText(item.CompleteStatus) }}
+                        </van-button>
                     </GridItem>
                 </GridContainer>
             </div>
             <div v-else>
                 <div class="card-item" v-for="(item, index) in details"
                     :key="index">
-                    <van-form>
+                    <van-form class="compact-form">
                         <van-cell-group :title="'序号:' + getIndex(index)" :border="false"
                             :class="getClassForRowStatus(item)">
                             <!-- 添加位置索引显示 - 窄屏模式 -->
                             <div class="location-index-mobile" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}</div>
                             
-                            <van-field v-model="item.TypeofWorkName" label="工种"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.TypeofWorkName" />
-                            <van-field v-model="item.VestInName" label="操作工"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.VestInName" />
-                            <van-field v-model="item.Content" label="工艺内容"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.Content" />
-                            <van-field v-model="item.WorkRequirements" label="工艺要求"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.WorkRequirements" />
-                            <van-field v-model="item.BQty" label="计划数"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.BQty" />
-                            <van-field v-model="item.PreCmpBQty" label="生产数"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.PreCmpBQty" />
-                            <van-field v-model="item.CmpBQty" label="合格数"
-                                :readonly="isReadOnly"
-                                v-click-tooltip="item.CmpBQty" />
-                            <div style="display: flex; margin-top: 10px;">
+                            <!-- 第一行：工种和计划数 -->
+                            <div class="mobile-row">
+                                <van-field v-model="item.TypeofWorkName" label="工种"
+                                    :readonly="isReadOnly" class="field-grow"
+                                    v-click-tooltip="item.TypeofWorkName" />
+                                <van-field v-model="item.BQty" label="计划数"
+                                    :readonly="isReadOnly" class="qty-field"
+                                    v-click-tooltip="item.BQty" />
+                            </div>
+                            
+                            <!-- 第二行：工艺内容、生产数、接收按钮 -->
+                            <div class="mobile-row">
+                                <van-field v-model="item.Content" label="工艺内容"
+                                    :readonly="isReadOnly" class="field-grow"
+                                    v-click-tooltip="item.Content" />
+                                <van-field v-model="item.PreCmpBQty" label="生产数"
+                                    :readonly="isReadOnly" class="qty-field"
+                                    v-click-tooltip="item.PreCmpBQty" />
                                 <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
-                                    style="flex: 1; margin: 5px;" @click="handleReceive(item)"
+                                    class="small-button mobile-button" @click="handleReceive(item)"
                                     :disabled="isReceiveButtonDisabled(item)">
                                     {{ getReceiveStatusText(item.ReceiveStatus) }}
                                 </van-button>
+                            </div>
+                            
+                            <!-- 第三行：工艺要求、合格数、完工按钮 -->
+                            <div class="mobile-row">
+                                <van-field v-model="item.WorkRequirements" label="工艺要求"
+                                    :readonly="isReadOnly" class="field-grow"
+                                    v-click-tooltip="item.WorkRequirements" />
+                                <van-field v-model="item.CmpBQty" label="合格数"
+                                    :readonly="isReadOnly" class="qty-field"
+                                    v-click-tooltip="item.CmpBQty" />
                                 <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
-                                    style="flex: 1; margin: 5px;" @click="handleComplete(item)"
+                                    class="small-button mobile-button" @click="handleComplete(item)"
                                     :disabled="isCompleteButtonDisabled(item)">
                                     {{ getCompleteStatusText(item.CompleteStatus) }}
                                 </van-button>
@@ -254,6 +259,30 @@ export default {
             }
             this.$emit('complete', item);
         },
+        /**
+         * 根据屏幕大小动态计算标签宽度
+         * @param {Number} charCount - 标签内容的字符数量
+         * @returns {String|Number} - 返回计算好的标签宽度，小屏幕返回'auto'，大屏幕返回像素值
+         */
+        getLabelWidth(charCount) {
+            // 确保输入参数有效
+            if (typeof charCount !== 'number' || charCount <= 0) {
+                charCount = 2; // 默认最小字符数
+            }
+            
+            // 大屏幕时根据字符数和字体大小计算标签宽度
+            if (this.isWideScreen) {
+                // 计算标签宽度，每个字符的宽度大约为字体大小，再加上一些内边距
+                const padding = 10; // 假设内边距为10px
+                let labelWidth = (this.fontSize * charCount) + padding;
+                
+                // 设置最小宽度以确保标签不会太窄
+                return Math.max(labelWidth, 50) + 'px';
+            } else {
+                // 小屏幕时使用auto自动适应，避免挤压
+                return 'auto';
+            }
+        },
     }
 }
 </script>
@@ -267,7 +296,7 @@ export default {
     padding: 0 1.46vw 3.91vh; /* 15px 30px -> 1.46vw 3.91vh (15/1024*100, 30/768*100) */
     display: flex;
     flex-direction: column;
-    gap: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
+    gap: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
     overflow-y: auto;
     flex: 1;
 }
@@ -278,8 +307,8 @@ export default {
     border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
     box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
     border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
-    padding: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
-    margin-bottom: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
+    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) - 缩小内边距 */
+    margin-bottom: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
     transition: all 0.3s ease;
 
     /* 悬停状态样式 */
@@ -287,6 +316,127 @@ export default {
         box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1); /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
         transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
     }
+}
+
+/* 减小行内元素间的间距 */
+:deep(.van-grid-item) {
+    padding: 0.65vh 0.49vw; /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
+}
+
+/* 减小表单域的内边距 */
+:deep(.van-field) {
+    padding: 0.65vh 0.49vw; /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
+}
+
+/* 确保大屏幕下label始终横向显示 */
+:deep(.van-field__label) {
+    width: auto !important; /* 防止宽度被挤压 */
+    white-space: nowrap !important; /* 防止换行 */
+    overflow: visible !important; /* 防止内容被截断 */
+    flex: 0 0 auto !important; /* 防止被flex布局压缩 */
+    min-width: 4.88vw; /* 50px -> 4.88vw (50/1024*100) - 设置最小宽度 */
+    margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) - 增加右侧间距 */
+}
+
+/* 确保字段内容占据剩余空间 */
+:deep(.van-field__value) {
+    flex: 1 !important;
+    overflow: hidden !important;
+    display: flex !important; /* 确保内部元素也是flex布局 */
+}
+
+/* 确保输入框内容正确显示 */
+:deep(.van-field__body) {
+    min-width: 0 !important; /* 允许宽度收缩 */
+    flex: 1 !important; /* 占据所有可用空间 */
+}
+
+:deep(.van-field__control) {
+    width: 100% !important; /* 确保输入控件占据全部可用宽度 */
+    text-overflow: ellipsis !important; /* 文本溢出时显示省略号 */
+    overflow: hidden !important; /* 隐藏溢出内容 */
+}
+
+/* 大屏幕特定样式 */
+@media screen and (min-width: 800px) {
+    :deep(.van-field) {
+        display: flex !important;
+        flex-direction: row !important; /* 确保大屏幕模式是横向的 */
+        align-items: center !important;
+    }
+}
+
+/* 小屏幕特定样式 */
+@media screen and (max-width: 799px) {
+    .mobile-row {
+        :deep(.van-field) {
+            padding: 0.39vh 0.49vw !important; /* 3px 5px -> 0.39vh 0.49vw (3/768*100, 5/1024*100) */
+        }
+        
+        :deep(.van-field__label) {
+            min-width: auto !important; /* 移动端下不设置最小宽度 */
+            margin-right: 0.49vw !important; /* 5px -> 0.49vw (5/1024*100) - 减小右侧间距 */
+            font-size: 1.69vh !important; /* 13px -> 1.69vh (13/768*100) - 稍微缩小字体 */
+        }
+    }
+}
+
+/* 数量字段统一宽度 */
+.qty-field {
+    width: 100%;
+
+    :deep(.van-field__control) {
+        text-align: left;
+    }
+}
+
+/* 按钮单元格样式 */
+.button-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.78vw; /* 0 8px -> 0 0.78vw (0, 8/1024*100) */
+}
+
+/* 小型按钮样式 */
+.small-button {
+    min-width: 7.81vw; /* 80px -> 7.81vw (80/1024*100) */
+    max-width: 10.74vw; /* 110px -> 10.74vw (110/1024*100) */
+    height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
+    padding: 0 0.98vw; /* 0 10px -> 0 0.98vw (0, 10/1024*100) */
+    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    line-height: 1;
+    border-radius: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+}
+
+/* 紧凑型表单样式 */
+.compact-form {
+    :deep(.van-cell) {
+        padding: 0.65vh 0.98vw; /* 5px 10px -> 0.65vh 0.98vw (5/768*100, 10/1024*100) */
+    }
+}
+
+/* 移动端行样式 */
+.mobile-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    gap: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+}
+
+/* 移动端按钮样式 */
+.mobile-button {
+    min-width: 0;
+    max-width: 8.79vw; /* 90px -> 8.79vw (90/1024*100) */
+    margin: 0 0 0 0.49vw; /* 0 0 0 5px -> 0 0 0 0.49vw (0, 0, 0, 5/1024*100) */
+    flex-shrink: 0;
+}
+
+/* 字段自动伸缩 */
+.field-grow {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 /* 已完成卡片项目样式 */
@@ -399,26 +549,26 @@ export default {
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 0.65vh 0.98vw 0 0; /* 5px 10px 0 0 -> 0.65vh 0.98vw 0 0 (5/768*100, 10/1024*100, 0, 0) */
+    padding-top: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
 }
 
 /* 位置索引样式 */
 .location-index {
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
     padding: 0.26vh 0.78vw; /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
-    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
     border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 移动端位置索引样式 */
 .location-index-mobile {
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
     padding: 0.26vh 0.78vw; /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
-    border-radius: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
     border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
     display: inline-block;
     margin: 0.65vh 0 0.65vh auto; /* 5px 0 5px auto -> 0.65vh 0 0.65vh auto (5/768*100, 0, 5/768*100, auto) */
@@ -438,8 +588,7 @@ export default {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    padding: 0.65vh 0; /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
-    gap: 1.95vh; /* 15px -> 1.95vh (15/768*100) */
-    /* 增加按钮之间的间距 */
+    padding: 0.39vh 0; /* 3px 0 -> 0.39vh 0 (3/768*100, 0) - 减小内边距 */
+    gap: 0.98vh; /* 7.5px -> 0.98vh (7.5/768*100) - 减小间距 */
 }
 </style> 

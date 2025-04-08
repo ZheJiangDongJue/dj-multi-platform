@@ -100,7 +100,7 @@ import generalapi from '@/api/general';
 import DockItem from '@/components/dock/DockItem.vue';
 import DockPanel from '@/components/dock/DockPanel.vue';
 import { BillPageViewModel } from '@/core/temporary/bill-page-vm';
-import { JoinType, Query } from '@/core/query';
+import { Query } from '@/core/query';
 import AssemblyProcessReceivePanel from './AssemblyProcessReceivePanel.vue';
 import AssemblyProcessCompletionPanel from './AssemblyProcessCompletionPanel.vue';
 import craftapi from '@/api/craft';
@@ -214,45 +214,26 @@ export default {
         },
         'vm.billData.data.InnerKey': {
             async handler(newVal, oldVal) {
-                if (newVal == null) return;
-                if (newVal == '') return;
+                // 输入验证与边界条件处理
+                if (newVal == null || newVal === '') return;
+
+                // 避免重复处理同一个值
+                if (newVal === oldVal) return;
+
                 // 如果正在打开单据或正在恢复状态，则不执行查询
                 if (this.vm.isOpeningBill || this.isRestoringState) return;
-                if (newVal != oldVal) {
-                    let query = new Query();
-                    query.TableName = "ProcessAssemblyFlowDocument";
-                    query.ShortName = "p";
-                    query.Select = 'p.id';
-                    query.AddJoin(JoinType.Inner, "DailyPlanDetail", "d", "p.CreateByDetailid=d.id");
-                    query.AddWhere(`p.DeletedTag=0`);
-                    query.AddWhere(`p.CreateByDetailType='DailyPlanDetail'`);
-                    query.AddWhere(`d.CodeForScan='${newVal}'`);
-                    let pack = await generalapi.getDataEx(query);
-                    if (pack.Status == 200) {
-                        if (pack.Data.length > 0) {
-                            let processAssemblyFlow = pack.Data[0];
-                            this.vm.openBill(processAssemblyFlow.id);
-                        }
-                        else {
-                            query = new Query();
-                            query.TableName = "ProcessAssemblyFlowDocument";
-                            query.ShortName = "p";
-                            query.Select = 'p.id';
-                            query.AddWhere(`p.DeletedTag=0`);
-                            query.AddWhere(`p.InnerKey='${newVal}' or p.Code='${newVal}'`);
-                            let pack = await generalapi.getDataEx(query);
-                            if (pack.Status == 200) {
-                                let processAssemblyFlow = pack.Data[0];
-                                this.vm.openBill(processAssemblyFlow.id);
-                            }
-                            else {
-                                this.$dialog.alert({
-                                    title: '提示',
-                                    message: `指定制令单号的流程卡无法找到`,
-                                })
-                            }
-                        }
-                    }
+
+                try {
+                    console.log('扫码或输入单号:', newVal);
+
+                    // 使用processScanByDailyPlanDetail方法处理扫码结果
+                    await this.processScanByDailyPlanDetail(newVal);
+                } catch (error) {
+                    console.error('扫码处理失败:', error);
+                    this.$dialog.alert({
+                        title: '提示',
+                        message: `扫码查询失败: ${error.message || '未知错误'}`,
+                    });
                 }
             },
         },
@@ -319,6 +300,63 @@ export default {
         },
 
         /**
+         * 扫码打开单据后检查并自动审批
+         * 如果单据未审批则自动执行审批操作
+         * @returns {Promise<boolean>} 返回是否成功执行审批
+         */
+        async checkAndAutoApprove() {
+            // 确保单据数据已加载且VM准备就绪
+            if (!this.vm.isReady || !this.vm.billData?.data) {
+                console.warn('单据数据未加载完成，无法执行自动审批');
+                return false;
+            }
+
+            // 检查单据是否有ID（未保存的单据无法审批）
+            if (!this.vm.billData.data.id) {
+                console.warn('单据未保存，无法执行自动审批');
+                return false;
+            }
+
+            // 如果单据未审批，则自动审批
+            if (!this.isBillApproved()) {
+                try {
+                    // 先保存单据，以确保所有数据都已更新
+                    console.log('正在自动保存单据...');
+                    await this.vm.tryRaiseCommandAsync('SaveBill');
+
+                    // 等待短暂延时，确保保存操作完成
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
+                    // 执行审批操作
+                    console.log('正在自动审批单据...');
+                    await this.vm.tryRaiseCommandAsync('ApprovalBill');
+
+                    // 显示成功通知
+                    this.$notify({
+                        type: 'success',
+                        message: '单据已自动审批',
+                        duration: 2000
+                    });
+
+                    return true;
+                } catch (error) {
+                    console.error('自动审批失败:', error);
+
+                    // 显示错误提示
+                    this.$dialog.alert({
+                        title: '提示',
+                        message: `自动审批失败: ${error.message || '未知错误'}`,
+                    });
+
+                    return false;
+                }
+            } else {
+                console.log('单据已审批，无需重复审批');
+                return false;
+            }
+        },
+
+        /**
          * 收集需要保存的状态
          * 为当前组件收集特定的状态数据
          */
@@ -354,6 +392,10 @@ export default {
                             this.scrollPosition = storedState.scrollPosition;
                         }
                     });
+
+                    // 在恢复状态后，也检查是否需要自动审批
+                    // 这里不是通过扫码打开的，所以我们不进行自动审批
+                    // this.checkAndAutoApprove();
 
                     return true;
                 }
@@ -467,57 +509,220 @@ export default {
             }
             return false;
         },
-        // 处理接收按钮点击
+        /**
+         * 处理接收按钮点击
+         * 接收工序前进行多重检查，确保操作的有效性和安全性
+         * 
+         * @param {Object} item - 工序对象
+         * @param {number} item.id - 工序ID
+         * @param {number} item.ReceiveStatus - 接收状态(0:未开始, 1:进行中, 2:已接收, 3:禁用)
+         * @returns {Promise<void>}
+         */
         async handleReceive(item) {
-            var pack = await craftapi.receiveProcessAssemblyFlowDocument(item.id);
-            if (pack.Status == 200) {
-                var tableName = pack.Data.Objects["OpenDocumentTableName"] ?? pack.Data.Objects["TemporaryDocumentTableName"];
-                if (tableName) {
-                    if (tableName == "AssemblyProcessReceiveDocument") {
-                        this.dialogDataContext = { ...(pack.Data.Objects["OpenDocument"] ?? pack.Data.Objects["TemporaryDocument"]) };
-                        this.dialogDataContextTableName = tableName; // 保存表名
-                        this.showReceiveDialog = true;
-                    }
-                    else {
-                        this.$dialog.alert({
-                            title: '提示',
-                            message: "该接收工序是特殊单据,暂时没有支持特殊单据",
-                        })
+            // 健壮性检查：确保item参数存在且有效
+            if (!item || typeof item !== 'object') {
+                console.error('handleReceive方法接收到无效参数');
+                return;
+            }
+            
+            // 健壮性检查：确保工序状态属性存在
+            if (typeof item.ReceiveStatus === 'undefined') {
+                console.error('工序缺少ReceiveStatus属性');
+                this.$toast({
+                    message: "无法获取工序状态信息",
+                    position: 'bottom',
+                    duration: 2000
+                });
+                return;
+            }
+            
+            // 检查工序状态，如果是未开始(0)或禁用(3)，则不允许点击
+            if (item.ReceiveStatus === 0 || item.ReceiveStatus === 3) {
+                console.log('当前工序状态不允许接收操作', item.ReceiveStatus);
+                
+                // 根据状态显示不同的提示信息
+                let message = item.ReceiveStatus === 0 
+                    ? "该工序尚未开始，无法进行接收操作" 
+                    : "该工序已被禁用，无法进行接收操作";
+                
+                this.$toast({
+                    message: message,
+                    position: 'bottom',
+                    duration: 2000
+                });
+                return;
+            }
+            
+            // 健壮性检查：确保工序ID存在
+            if (!item.id) {
+                console.error('工序缺少ID');
+                this.$toast({
+                    message: "无法获取工序ID",
+                    position: 'bottom',
+                    duration: 2000
+                });
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                this.$toast.loading({
+                    message: '加载中...',
+                    forbidClick: true,
+                    duration: 0
+                });
+                
+                // 调用API处理接收操作
+                var pack = await craftapi.receiveProcessAssemblyFlowDocument(item.id);
+                
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                if (pack.Status == 200) {
+                    // 处理成功响应
+                    var tableName = pack.Data.Objects["OpenDocumentTableName"] ?? pack.Data.Objects["TemporaryDocumentTableName"];
+                    if (tableName) {
+                        if (tableName == "AssemblyProcessReceiveDocument") {
+                            // 设置对话框数据并显示
+                            this.dialogDataContext = { ...(pack.Data.Objects["OpenDocument"] ?? pack.Data.Objects["TemporaryDocument"]) };
+                            this.dialogDataContextTableName = tableName; // 保存表名
+                            this.showReceiveDialog = true;
+                        }
+                        else {
+                            // 处理特殊单据类型
+                            this.$dialog.alert({
+                                title: '提示',
+                                message: "该接收工序是特殊单据,暂时没有支持特殊单据",
+                            })
+                        }
                     }
                 }
-
-            }
-            else {
+                else {
+                    // 处理错误响应
+                    this.$dialog.alert({
+                        title: '提示',
+                        message: pack.Message,
+                    })
+                }
+            } catch (error) {
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                // 错误处理和日志记录
+                console.error('接收工序操作失败:', error);
                 this.$dialog.alert({
                     title: '提示',
-                    message: pack.Message,
-                })
+                    message: `接收工序失败: ${error.message || '未知错误'}`,
+                });
             }
         },
-        // 处理完工按钮点击
+        
+        /**
+         * 处理完工按钮点击
+         * 完工工序前进行多重检查，确保操作的有效性和安全性
+         * 
+         * @param {Object} item - 工序对象
+         * @param {number} item.id - 工序ID
+         * @param {number} item.CompleteStatus - 完工状态(0:未开始, 1:进行中, 2:已完工, 3:禁用)
+         * @param {number|null} item.StepDocumentid - 步骤文档ID
+         * @returns {Promise<void>}
+         */
         async handleComplete(item) {
-            var pack = await craftapi.completeProcessAssemblyFlowDocument(item.id);
-            if (pack.Status == 200) {
-                var tableName = pack.Data.Objects["OpenDocumentTableName"] ?? pack.Data.Objects["TemporaryDocumentTableName"];
-                if (tableName) {
-                    if (tableName == "AssemblyProcessCompletionDocument" && item.StepDocumentid == null) {
-                        this.dialogDataContext = { ...(pack.Data.Objects["OpenDocument"] ?? pack.Data.Objects["TemporaryDocument"]) };
-                        this.dialogDataContextTableName = tableName; // 保存表名
-                        this.showCompleteDialog = true;
-                    }
-                    else {
-                        this.$dialog.alert({
-                            title: '提示',
-                            message: "该完工工序是特殊单据,暂时没有支持特殊单据",
-                        })
+            // 健壮性检查：确保item参数存在且有效
+            if (!item || typeof item !== 'object') {
+                console.error('handleComplete方法接收到无效参数');
+                return;
+            }
+            
+            // 健壮性检查：确保工序状态属性存在
+            if (typeof item.CompleteStatus === 'undefined') {
+                console.error('工序缺少CompleteStatus属性');
+                this.$toast({
+                    message: "无法获取工序状态信息",
+                    position: 'bottom',
+                    duration: 2000
+                });
+                return;
+            }
+            
+            // 检查工序状态，如果是未开始(0)或禁用(3)，则不允许点击
+            if (item.CompleteStatus === 0 || item.CompleteStatus === 3) {
+                console.log('当前工序状态不允许完工操作', item.CompleteStatus);
+                
+                // 根据状态显示不同的提示信息
+                let message = item.CompleteStatus === 0 
+                    ? "该工序尚未开始，无法进行完工操作" 
+                    : "该工序已被禁用，无法进行完工操作";
+                
+                this.$toast({
+                    message: message,
+                    position: 'bottom',
+                    duration: 2000
+                });
+                return;
+            }
+            
+            // 健壮性检查：确保工序ID存在
+            if (!item.id) {
+                console.error('工序缺少ID');
+                this.$toast({
+                    message: "无法获取工序ID",
+                    position: 'bottom',
+                    duration: 2000
+                });
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                this.$toast.loading({
+                    message: '加载中...',
+                    forbidClick: true,
+                    duration: 0
+                });
+                
+                // 调用API处理完工操作
+                var pack = await craftapi.completeProcessAssemblyFlowDocument(item.id);
+                
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                if (pack.Status == 200) {
+                    // 处理成功响应
+                    var tableName = pack.Data.Objects["OpenDocumentTableName"] ?? pack.Data.Objects["TemporaryDocumentTableName"];
+                    if (tableName) {
+                        if (tableName == "AssemblyProcessCompletionDocument" && item.StepDocumentid == null) {
+                            // 设置对话框数据并显示
+                            this.dialogDataContext = { ...(pack.Data.Objects["OpenDocument"] ?? pack.Data.Objects["TemporaryDocument"]) };
+                            this.dialogDataContextTableName = tableName; // 保存表名
+                            this.showCompleteDialog = true;
+                        }
+                        else {
+                            // 处理特殊单据类型
+                            this.$dialog.alert({
+                                title: '提示',
+                                message: "该完工工序是特殊单据,暂时没有支持特殊单据",
+                            })
+                        }
                     }
                 }
-            }
-            else {
+                else {
+                    // 处理错误响应
+                    this.$dialog.alert({
+                        title: '提示',
+                        message: pack.Message,
+                    })
+                }
+            } catch (error) {
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                // 错误处理和日志记录
+                console.error('完工工序操作失败:', error);
                 this.$dialog.alert({
                     title: '提示',
-                    message: pack.Message,
-                })
+                    message: `完工工序失败: ${error.message || '未知错误'}`,
+                });
             }
         },
         // 处理页面滚动并保存滚动位置
@@ -552,107 +757,186 @@ export default {
             // 在对话框关闭时重置相关数据
             this.dialogDataContextTableName = '';
         },
-        // 配置全局对话框的默认z-index
-        configureDialogZIndex() {
-            // 设置Vant Dialog的默认z-index
-            if (this.$dialog && this.$dialog.setDefaultOptions) {
-                this.$dialog.setDefaultOptions({
-                    overlay: {
-                        zIndex: 9999,
-                    },
-                    zIndex: 10000
-                });
-            }
-
-            // 添加一个全局样式，确保alert和confirm对话框显示在最上层
-            const dialogStyle = document.createElement('style');
-            dialogStyle.type = 'text/css';
-            dialogStyle.innerHTML = `
-                .van-dialog--confirm,
-                .van-dialog--alert {
-                    // z-index: 10000 !important;
-                    border-radius: 8px !important;
-                }
-                .van-overlay.van-dialog__overlay {
-                    // z-index: 9999 !important;
-                }
-                .van-dialog__content,
-                .van-dialog__footer {
-                    border-bottom-left-radius: 8px !important;
-                    border-bottom-right-radius: 8px !important;
-                    overflow: hidden;
-                }
-                body .van-dialog,
-                body .van-popup {
-                    border-radius: 8px !important;
-                }
-            `;
-            document.head.appendChild(dialogStyle);
-        },
         // 处理子组件操作完成事件
-        async handleOperationComplete() {
+        async handleOperationComplete(options = { preserveScroll: true }) {
+            // 记录当前滚动位置
+            const currentScrollPosition = this.$refs.pageContent ? this.$refs.pageContent.scrollTop : 0;
+            console.log('操作完成前记录滚动位置:', currentScrollPosition);
+
             // 关闭对话框
             this.showReceiveDialog = false;
             this.showCompleteDialog = false;
             // 重置表名
             this.dialogDataContextTableName = '';
-            // 刷新数据
-            await this.vm.reopenBill();
-            // 不再需要在操作完成后保存状态
+
+            try {
+                // 刷新数据
+                await this.vm.reopenBill();
+
+                // 在下一个渲染周期恢复滚动位置
+                if (options.preserveScroll) {
+                    // 使用多个nextTick和setTimeout组合，确保在DOM完全更新后设置滚动位置
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            if (this.$refs.pageContent) {
+                                this.$refs.pageContent.scrollTop = currentScrollPosition;
+                                console.log('刷新后恢复滚动位置:', currentScrollPosition);
+
+                                // 再次检查滚动位置是否设置成功
+                                setTimeout(() => {
+                                    if (this.$refs.pageContent &&
+                                        Math.abs(this.$refs.pageContent.scrollTop - currentScrollPosition) > 5) {
+                                        console.log('滚动位置设置可能未成功，再次尝试:', this.$refs.pageContent.scrollTop);
+                                        this.$refs.pageContent.scrollTop = currentScrollPosition;
+                                    }
+                                }, 100);
+                            }
+                        }, 50);
+                    });
+                }
+            } catch (error) {
+                console.error('刷新数据时出错:', error);
+                // 即使刷新失败，也尝试恢复滚动位置
+                if (options.preserveScroll && this.$refs.pageContent) {
+                    this.$refs.pageContent.scrollTop = currentScrollPosition;
+                }
+
+                // 显示错误提示
+                this.$dialog.alert({
+                    title: '提示',
+                    message: `刷新数据时出错: ${error.message || '未知错误'}`,
+                });
+            }
         },
         handleUpdateField({ field, value }) {
             // 处理子组件发出的字段更新事件
             this.vm.billData.setValue(field, value);
             // 不再需要在字段更新后保存状态
         },
-        // // 保存页面状态到localStorage
-        // savePageState() {
-        //     // 获取当前的页面状态
-        //     const pageState = {
-        //         billId: this.vm.billData?.data?.id, // 当前单据ID
-        //         scrollPosition: this.$refs.pageContent ? this.$refs.pageContent.scrollTop : 0, // 滚动位置
-        //         timestamp: new Date().getTime() // 添加时间戳方便判断状态是否过期
-        //     };
+        /**
+         * 处理扫码查询结果
+         * @param {number} billId 单据ID
+         * @returns {Promise<void>}
+         */
+        async processScanResult(billId) {
+            if (!billId) {
+                console.error('处理扫码结果失败: 单据ID为空');
+                return;
+            }
 
-        //     // 如果有单据ID，则保存状态
-        //     if (pageState.billId) {
-        //         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(pageState));
-        //         console.log('页面状态已保存', pageState);
-        //     } else {
-        //         // 如果没有单据ID，则清除可能存在的之前的状态
-        //         localStorage.removeItem(this.STORAGE_KEY);
-        //     }
-        // },
+            try {
+                // 打开单据
+                console.log('正在打开单据ID:', billId);
+                await this.vm.openBill(billId);
 
-        // // 从localStorage恢复页面状态
-        // async tryRestorePageState() {
-        //     try {
-        //         // 获取存储的状态
-        //         const storedStateStr = localStorage.getItem(this.STORAGE_KEY);
-        //         if (!storedStateStr) return false;
+                // 检查单据是否已打开
+                if (!this.vm.billData?.data?.id) {
+                    throw new Error('单据打开失败');
+                }
 
-        //         const storedState = JSON.parse(storedStateStr);
+                // 扫码打开单据后，检查是否需要自动审批
+                await this.checkAndAutoApprove();
 
-        //         // 检查状态是否过期（例如，超过30分钟）
-        //         const currentTime = new Date().getTime();
-        //         const STATE_EXPIRATION_TIME = 30 * 60 * 1000; // 30分钟
+                // 滚动到页面顶部
+                this.$nextTick(() => {
+                    this.scrollToTop();
+                });
+            } catch (error) {
+                console.error('处理扫码结果失败:', error);
+                this.$dialog.alert({
+                    title: '提示',
+                    message: `打开单据失败: ${error.message || '未知错误'}`,
+                });
+            }
+        },
+        /**
+         * 处理扫码查询结果 - 通过日计划明细
+         * @param {string} code 扫描的编码
+         * @returns {Promise<void>}
+         */
+        async processScanByDailyPlanDetail(code) {
+            if (!code) {
+                console.error('处理扫码结果失败: 扫描编码为空');
+                return;
+            }
 
-        //         if (currentTime - storedState.timestamp > STATE_EXPIRATION_TIME) {
-        //             // 状态已过期，清除它
-        //             localStorage.removeItem(this.STORAGE_KEY);
-        //             await this.vm.tryRaiseCommandAsync('NewBill');
-        //             return false;
-        //         }
+            try {
+                // 创建查询对象
+                const query = new Query();
+                query.TableName = 'DailyPlanDetail';
+                query.ShortName = 'dpd';
+                query.Select = 'dpd.id';
+                query.AddWhere(`dpd.CodeForScan = '${code}'`);
+                query.AddWhere('dpd.DeletedTag = 0');
 
-        //         // 应用保存的状态
-        //         return await this.applyState(storedState);
-        //     } catch (error) {
-        //         console.error('尝试恢复页面状态时出错:', error);
-        //         // 出错时创建新单据
-        //         await this.vm.tryRaiseCommandAsync('NewBill');
-        //         return false;
-        //     }
-        // },
+                // 执行查询
+                const response = await generalapi.getDataEx(query);
+
+                if (response.Status === 200 && response.Data && response.Data.length > 0) {
+                    // 找到了日计划明细记录
+                    let id = response.Data[0].id;
+
+                    // 调用prepareAssemblyFlowCardReceive API
+                    let pack = await craftapi.prepareAssemblyFlowCardReceive(id);
+                    if (pack.Status === 200) {
+                        let data = pack.Data;
+
+                        // 如果返回了ProcessAssemblyFlowDocument，则打开该单据
+                        if (data && data.ProcessAssemblyFlowDocument && data.ProcessAssemblyFlowDocument.id) {
+                            await this.processScanResult(data.ProcessAssemblyFlowDocument.id);
+                        } else {
+                            throw new Error('未找到有效的流程卡单据');
+                        }
+                    } else {
+                        throw new Error(pack.Message || '准备流程卡接收失败,未知错误');
+                    }
+                } else {
+                    // 未找到对应的日计划明细记录，尝试直接通过单号查询
+                    await this.processScanByInnerKey(code);
+                }
+            } catch (error) {
+                console.error('通过日计划处理扫码结果失败:', error);
+                this.$dialog.alert({
+                    title: '提示',
+                    message: `处理扫码结果失败: ${error.message || '未知错误'}`,
+                });
+            }
+        },
+        /**
+         * 通过内部编号直接查询流程卡
+         * @param {string} code 扫描的编码
+         * @returns {Promise<void>}
+         */
+        async processScanByInnerKey(code) {
+            try {
+                // 直接查询流程卡单据
+                const query = new Query();
+                query.TableName = "ProcessAssemblyFlowDocument";
+                query.ShortName = "p";
+                query.Select = 'p.id';
+                query.AddWhere(`p.DeletedTag=0`);
+                query.AddWhere(`p.InnerKey='${code}' or p.Code='${code}'`);
+
+                const pack = await generalapi.getDataEx(query);
+
+                if (pack.Status != 200) {
+                    throw new Error(`查询单据失败: ${pack.Message || '未知错误'}`);
+                }
+
+                if (pack.Data.length > 0) {
+                    let processAssemblyFlow = pack.Data[0];
+                    await this.processScanResult(processAssemblyFlow.id);
+                } else {
+                    this.$dialog.alert({
+                        title: '提示',
+                        message: `未找到对应的流程卡单据，请检查扫描的编码是否正确`,
+                    });
+                }
+            } catch (error) {
+                console.error('通过内部编号处理扫码结果失败:', error);
+                throw error; // 将错误向上传递
+            }
+        },
     }
 }
 </script>
@@ -664,7 +948,8 @@ export default {
 .back-button {
     display: flex;
     align-items: center;
-    padding: 0 1.46vw; /* 15px -> 1.46vw (15/1024*100) */
+    padding: 0 1.46vw;
+    /* 15px -> 1.46vw (15/1024*100) */
     cursor: pointer;
     height: 100%;
     transition: all 0.2s ease;
@@ -675,20 +960,25 @@ export default {
     }
 
     .van-icon {
-        font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
-        margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
+        font-size: 2.08vh;
+        /* 16px -> 2.08vh (16/768*100) */
+        margin-right: 0.49vw;
+        /* 5px -> 0.49vw (5/1024*100) */
     }
 
     span {
-        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+        font-size: 1.82vh;
+        /* 14px -> 1.82vh (14/768*100) */
     }
 }
 
 /* 固定头部面板容器样式 */
 .header-panel-container {
     background-color: #f9f9f9;
-    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
-    box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.05); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
+    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.1);
+    /* 1px -> 0.13vh (1/768*100) */
+    box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.05);
+    /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
     z-index: 10;
 }
 
@@ -707,7 +997,8 @@ export default {
 /* 宽屏模式下内容区域调整 */
 @media screen and (min-width: 800px) {
     .assembly-flow__page-content {
-        padding-top: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
+        padding-top: 1.04vh;
+        /* 8px -> 1.04vh (8/768*100) */
     }
 }
 </style>
@@ -743,7 +1034,8 @@ export default {
 .van-dialog {
     overflow: visible;
     z-index: var(--z-index-dialog);
-    border-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
+    border-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
     /* 确保四个角都有相同的圆角 */
 }
 
@@ -768,29 +1060,35 @@ export default {
 .van-dialog--confirm,
 .van-dialog--alert {
     z-index: var(--z-index-toast);
-    border-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
+    border-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
     /* 确保四个角都有相同的圆角 */
 }
 
 /* 修复Vant对话框底部圆角丢失问题 */
 .van-dialog__content,
 .van-dialog__footer {
-    border-bottom-left-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
-    border-bottom-right-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
+    border-bottom-left-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
+    border-bottom-right-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
     overflow: hidden;
 }
 
 /* 修复系统对话框圆角问题 */
 body .van-dialog,
 body .van-popup {
-    border-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
+    border-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
 }
 
 /* 确保对话框内内容和底部都有圆角 */
 body .van-dialog__content,
 body .van-dialog__footer {
-    border-bottom-left-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
-    border-bottom-right-radius: 1.04vh !important; /* 8px -> 1.04vh (8/768*100) */
+    border-bottom-left-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
+    border-bottom-right-radius: 1.04vh !important;
+    /* 8px -> 1.04vh (8/768*100) */
     overflow: hidden;
 }
 
