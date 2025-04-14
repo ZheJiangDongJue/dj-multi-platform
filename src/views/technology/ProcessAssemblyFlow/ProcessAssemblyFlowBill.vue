@@ -67,7 +67,7 @@
 
         <!-- 接收对话框 -->
         <van-dialog v-model="showReceiveDialog" title="组装工序接收" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: '60%' }" :show-confirm-button="false" get-container="body"
+            class="assembly-flow-popup" :style="{ width: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
             @closed="handleDialogClosed">
             <template #title>
                 <div class="dialog-title">
@@ -81,7 +81,7 @@
 
         <!-- 完工对话框 -->
         <van-dialog v-model="showCompleteDialog" title="组装工序完工" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: '60%' }" :show-confirm-button="false" get-container="body"
+            class="assembly-flow-popup" :style="{ width: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
             @closed="handleDialogClosed">
             <template #title>
                 <div class="dialog-title">
@@ -992,6 +992,31 @@ export default {
 /* 滚动区域内头部面板样式 */
 .scrollable-header-panel {
     /* 特定针对滚动区域内的样式，如有需要 */
+}
+
+/* 窄屏下固定顶部区域样式 */
+.assembly-flow__sticky-header {
+    .mobile-header-section {
+        .van-field {
+            padding: 0.65vh 0.98vw;  /* 减少padding，5px -> 0.65vh (5/768*100), 10px -> 0.98vw (10/1024*100) */
+            margin-bottom: 0.26vh;   /* 减少间距，2px -> 0.26vh (2/768*100) */
+
+            .van-cell__title {
+                margin-right: 0.49vw;  /* 减少标签右边距，5px -> 0.49vw (5/1024*100) */
+            }
+
+            .van-field__control {
+                height: 2.60vh;  /* 减少输入框高度，20px -> 2.60vh (20/768*100) */
+                min-height: 2.60vh;  /* 确保最小高度一致 */
+                line-height: 2.60vh;  /* 行高与高度一致 */
+            }
+        }
+
+        /* 移除最后一个字段的底部间距 */
+        .van-field:last-child {
+            margin-bottom: 0;
+        }
+    }
 }
 
 /* 宽屏模式下内容区域调整 */

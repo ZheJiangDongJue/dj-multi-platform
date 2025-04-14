@@ -3,12 +3,15 @@
     <div class="container">
       <!-- 两列布局 -->
       <div class="field-container">
-        <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode" />
-        <van-field v-model="data.Code" label="单据编号" readonly v-click-tooltip="data.Code" />
-        <van-field v-model="data.PassBQty" label="接收数量" required clearable v-click-tooltip="data.PassBQty" :disabled="data?.Status > 0" />
+        <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode"
+          class="material-code-field" />
+        <van-field v-model="data.Code" label="单据编号" readonly v-click-tooltip="data.Code" class="document-code-field" />
+        <van-field v-model="data.PassBQty" label="接收数量" required clearable v-click-tooltip="data.PassBQty"
+          :disabled="data?.Status > 0" />
       </div>
       <van-field v-model="data.MaterialSpecType" label="规格型号" readonly v-click-tooltip="data.MaterialSpecType" />
-      <van-field v-model="data.MaterialSpecTypeExplain" label="规格型号说明" readonly v-click-tooltip="data.MaterialSpecTypeExplain" />
+      <van-field v-model="data.MaterialSpecTypeExplain" label="规格型号说明" readonly
+        v-click-tooltip="data.MaterialSpecTypeExplain" />
 
       <div class="field-container">
         <van-field v-model="data.InnerKey" label="制令单号" readonly v-click-tooltip="data.InnerKey" />
@@ -18,28 +21,16 @@
         <van-field v-model="data.ClientName" label="客户名称" readonly v-click-tooltip="data.ClientName" />
         <van-field v-model="data.MaterialTuHao" label="图号" readonly v-click-tooltip="data.MaterialTuHao" />
         <div class="employee-select-wrapper">
-          <van-field
-            v-model="data.ReceiveEmployeeName"
-            label="计件人员"
-            readonly
-            clickable
-            required
-            :disabled="data?.Status > 0"
-            right-icon="arrow-down"
-            @click="handleEmployeeFieldClick"
-            v-click-tooltip="data.ReceiveEmployeeName"
-          />
+          <van-field v-model="data.ReceiveEmployeeName" label="计件人员" readonly clickable required
+            :disabled="data?.Status > 0" right-icon="arrow-down" @click="handleEmployeeFieldClick"
+            v-click-tooltip="data.ReceiveEmployeeName" />
           <van-popup v-model="showEmployeeSelector" position="bottom" round get-container="body">
             <div class="employee-search">
-              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" ref="employeeSearch" />
+              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees"
+                ref="employeeSearch" />
             </div>
-            <van-picker
-              show-toolbar
-              :columns="filteredEmployeeList"
-              @confirm="onEmployeeSelected"
-              @cancel="showEmployeeSelector = false"
-              value-key="Name"
-            />
+            <van-picker show-toolbar :columns="filteredEmployeeList" @confirm="onEmployeeSelected"
+              @cancel="showEmployeeSelector = false" value-key="Name" />
           </van-popup>
         </div>
       </div>
@@ -119,7 +110,7 @@ export default {
           this.data = JSON.parse(JSON.stringify(newVal));
           // 初始化后立即加载数据，但不再触发更多循环
           await this.refreshData();
-          
+
           // 加载员工列表
           await this.loadEmployeeList();
 
@@ -151,16 +142,16 @@ export default {
         this.filteredEmployeeList = [...this.employeeList];
         return;
       }
-      
+
       const searchText = this.employeeSearchText.toLowerCase();
       this.filteredEmployeeList = this.employeeList.filter(employee => {
         return (
-          (employee.Name && employee.Name.toLowerCase().includes(searchText)) || 
+          (employee.Name && employee.Name.toLowerCase().includes(searchText)) ||
           (employee.CodeForScan && employee.CodeForScan.toLowerCase().includes(searchText))
         );
       });
     },
-    
+
     // 加载所有员工列表
     async loadEmployeeList() {
       try {
@@ -171,9 +162,9 @@ export default {
         query.AddWhere(`e.DeletedTag=0`);
         query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
         query.Order = 'e.Name ASC'; // 按姓名排序
-        
+
         const pack = await generalapi.getDataEx(query);
-        
+
         if (pack.Status == 200) {
           this.employeeList = pack.Data || [];
           // 初始设置过滤后的列表为完整列表
@@ -194,7 +185,7 @@ export default {
         });
       }
     },
-    
+
     // 处理员工选择
     onEmployeeSelected(employee) {
       if (employee && employee.id) {
@@ -209,7 +200,7 @@ export default {
       // 重置过滤的员工列表
       this.filteredEmployeeList = [...this.employeeList];
     },
-    
+
     onSelectDate(date) {
       this.showCalendar = false;
       // 已审批状态下不允许修改日期
@@ -475,7 +466,8 @@ export default {
 <style lang="scss" scoped>
 .container {
   background-color: rgb(245, 247, 250);
-  padding-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+  padding-bottom: 2.6vh;
+  /* 20px -> 2.6vh (20/768*100) */
   /* 添加底部边距 */
 }
 
@@ -489,20 +481,33 @@ export default {
 
 /* 让每个输入框占 50% 宽度 */
 .van-field {
-  flex: 1 1 calc(50% - 0.6vw); /* 6px -> 0.6vw (6/1024*100) */
+  flex: 1 1 calc(50% - 0.6vw);
+  /* 6px -> 0.6vw (6/1024*100) */
   /* 减去 gap 的一半，保证对齐 */
   // border: 1px solid #e2e2e2;
   // background: #f6f6f6;
 }
 
+/* 调整物料编码和单据编号的宽度 */
+.material-code-field {
+  flex: 0.7 1 calc(40% - 0.6vw);
+}
+
+.document-code-field {
+  flex: 1.3 1 calc(60% - 0.6vw);
+}
+
 .van-cell {
-  padding: 0.4vh 1.56vw; /* 3px 16px -> 0.4vh 1.56vw (3/768*100, 16/1024*100) */
+  padding: 0.4vh 1.56vw;
+  /* 3px 16px -> 0.4vh 1.56vw (3/768*100, 16/1024*100) */
   background-color: transparent;
 }
 
 ::v-deep .van-field__body {
-  border: 0.13vh solid #000; /* 1px -> 0.13vh (1/768*100) */
-  border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+  border: 0.13vh solid #000;
+  /* 1px -> 0.13vh (1/768*100) */
+  border-radius: 0.52vh;
+  /* 4px -> 0.52vh (4/768*100) */
 }
 
 /* 对话框底部样式 */
@@ -510,20 +515,27 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1.04vh 0; /* 8px 0 -> 1.04vh 0 (8/768*100) */
-  border-top: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
-  margin-top: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+  padding: 1.04vh 0;
+  /* 8px 0 -> 1.04vh 0 (8/768*100) */
+  border-top: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
+  margin-top: 2.6vh;
+  /* 20px -> 2.6vh (20/768*100) */
   position: relative;
 
   /* 审批按钮样式 */
   .approve-button {
-    min-width: 11.7vw; /* 120px -> 11.7vw (120/1024*100) */
-    border-radius: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    min-width: 11.7vw;
+    /* 120px -> 11.7vw (120/1024*100) */
+    border-radius: 2.6vh;
+    /* 20px -> 2.6vh (20/768*100) */
+    font-size: 1.82vh;
+    /* 14px -> 1.82vh (14/768*100) */
     font-weight: 500;
     transition: all 0.3s ease;
     border: none;
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1);
+    /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
 
     /* 非反审批状态样式 */
     &:not(.reverse-approve) {
@@ -533,8 +545,10 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #45a049, #3d8b40);
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
+        transform: translateY(-0.13vh);
+        /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15);
+        /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
       }
     }
 
@@ -546,8 +560,10 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #F57C00, #EF6C00);
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
+        transform: translateY(-0.13vh);
+        /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15);
+        /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
       }
     }
   }
@@ -555,9 +571,12 @@ export default {
   /* 删除按钮样式 */
   .delete-button {
     position: absolute;
-    right: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
-    width: 5.2vh; /* 40px -> 5.2vh (40/768*100) */
-    height: 5.2vh; /* 40px -> 5.2vh (40/768*100) */
+    right: 1.95vw;
+    /* 20px -> 1.95vw (20/1024*100) */
+    width: 5.2vh;
+    /* 40px -> 5.2vh (40/768*100) */
+    height: 5.2vh;
+    /* 40px -> 5.2vh (40/768*100) */
     border-radius: 50%;
     padding: 0;
     display: flex;
@@ -566,7 +585,8 @@ export default {
     background: linear-gradient(135deg, #ff4d4d, #e33333);
     color: white;
     border: none;
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1);
+    /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
     transition: all 0.3s ease;
 
     // /* 悬停状态样式 */
@@ -578,25 +598,39 @@ export default {
 
     /* 图标样式 */
     .van-icon {
-      font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+      font-size: 2.6vh;
+      /* 20px -> 2.6vh (20/768*100) */
     }
   }
 
   /* 合格性下拉框样式 */
   .qualification-wrapper {
     position: absolute;
-    left: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
-    width: 9.77vw; /* 100px -> 9.77vw (100/1024*100) */
+    left: 1.95vw;
+    /* 20px -> 1.95vw (20/1024*100) */
+    width: 25.7vw;
+    // min-width: 14.65vw;
+    /* 增加最小宽度，确保文本能够显示 */
+    /* 100px -> 11.7vw (120/1024*100) */
   }
 
   .qualification-dropdown {
+    width: 100%;
+
     ::v-deep .el-input__inner {
-      border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
-      height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
-      border: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+      border-radius: 2.34vh;
+      /* 18px -> 2.34vh (18/768*100) */
+      height: 4.69vh;
+      /* 36px -> 4.69vh (36/768*100) */
+      border: 0.13vh solid #ebedf0;
+      /* 1px -> 0.13vh (1/768*100) */
       background: #f7f8fa;
       color: #323233;
       transition: all 0.3s ease;
+      padding: 0 2.34vh;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     ::v-deep .el-input__inner:hover {
@@ -605,7 +639,8 @@ export default {
     }
 
     ::v-deep .el-input__suffix {
-      right: 0.78vw; /* 8px -> 0.78vw (8/1024*100) */
+      right: 0.78vw;
+      /* 8px -> 0.78vw (8/1024*100) */
     }
 
     ::v-deep .el-select__caret {
@@ -631,13 +666,41 @@ export default {
   cursor: not-allowed;
 }
 
+/* 添加媒体查询，针对窄屏设备优化下拉框显示 */
+@media screen and (max-width: 480px) {
+  .qualification-wrapper {
+    min-width: 18vw;
+    width: auto;
+  }
+
+  .dialog-footer {
+    .delete-button {
+      right: 1vw;
+      width: 4.5vh;
+      height: 4.5vh;
+    }
+
+    .qualification-wrapper {
+      left: 1vw;
+    }
+
+    .approve-button {
+      min-width: 10vw;
+      font-size: 1.6vh;
+    }
+  }
+}
+
 /* 员工选择器样式 */
 .employee-select-wrapper {
-  flex: 1 1 calc(50% - 0.6vw); /* 6px -> 0.6vw (6/1024*100) */
-  
+  flex: 1 1 calc(50% - 0.6vw);
+  /* 6px -> 0.6vw (6/1024*100) */
+
   ::v-deep .van-field__body {
-    border: 0.13vh solid #000; /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    border: 0.13vh solid #000;
+    /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh;
+    /* 4px -> 0.52vh (4/768*100) */
   }
 }
 
@@ -652,16 +715,44 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+  font-size: 2.08vh;
+  /* 16px -> 2.08vh (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  border-bottom: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 1.04vh 1.56vw; /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
-  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  padding: 1.04vh 1.56vw;
+  /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
+  border-bottom: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
+}
+</style>
+
+<style lang="scss">
+/* 全局样式 */
+.high-priority-dropdown {
+  z-index: 9999 !important;
+
+  .el-select-dropdown__item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 2vw;
+  }
+
+  /* 窄屏适配 */
+  @media screen and (max-width: 480px) {
+    min-width: 20vw !important;
+    width: auto !important;
+
+    .el-select-dropdown__item {
+      font-size: 1.8vh;
+    }
+  }
 }
 </style>

@@ -6,110 +6,96 @@
         </div>
         <div v-if="!isEmpty">
             <div v-if="isWideScreen">
-                <GridContainer class="card-item" v-for="(item, index) in details"
-                    :key="index" :class="getClassForRowStatus(item)"
-                    :rows="['auto', 'auto', 'auto']" :columns="['40px', '1*', '1*', '1*', 'auto']">
+                <GridContainer class="card-item" v-for="(item, index) in details" :key="index"
+                    :class="getClassForRowStatus(item)" :rows="['auto', 'auto', 'auto']"
+                    :columns="['40px', '1*', '1*', '1*', 'auto']">
                     <!-- 新增行号显示 -->
                     <GridItem :row="0" :column="0" :row-span="3" class="row-number-container">
                         <div class="row-number">{{ getIndex(index) }}</div>
                     </GridItem>
-                    
+
                     <!-- 第一行：工种和计划数 -->
                     <GridItem :row="0" :column="1" :column-span="2">
-                        <van-field v-model="item.TypeofWorkName" label="工种"
-                            :label-width="getLabelWidth(2)" :readonly="isReadOnly"
-                            v-click-tooltip="item.TypeofWorkName" />
+                        <van-field v-model="item.TypeofWorkName" label="工种" :label-width="getLabelWidth(2)"
+                            :readonly="isReadOnly" v-click-tooltip="item.TypeofWorkName" />
                     </GridItem>
                     <GridItem :row="0" :column="3" :column-span="1">
                         <van-field v-model="item.BQty" label="计划数" :label-width="getLabelWidth(3)"
-                            :readonly="isReadOnly" class="qty-field"
-                            v-click-tooltip="item.BQty" />
+                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.BQty" />
                     </GridItem>
                     <!-- 位置索引显示 -->
                     <GridItem :row="0" :column="4" :column-span="1" class="location-index-container">
                         <div class="location-index" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}</div>
                     </GridItem>
-                    
+
                     <!-- 第二行：工艺内容、生产数、接收按钮 -->
                     <GridItem :row="1" :column="1" :column-span="2">
-                        <van-field v-model="item.Content" label="工艺内容"
-                            :label-width="getLabelWidth(4)" :readonly="isReadOnly"
-                            v-click-tooltip="item.Content" />
+                        <van-field v-model="item.Content" label="工艺内容" :label-width="getLabelWidth(4)"
+                            :readonly="isReadOnly" v-click-tooltip="item.Content" />
                     </GridItem>
                     <GridItem :row="1" :column="3" :column-span="1">
-                        <van-field v-model="item.PreCmpBQty" label="生产数"
-                            :label-width="getLabelWidth(3)" :readonly="isReadOnly" class="qty-field"
-                            v-click-tooltip="item.PreCmpBQty" />
+                        <van-field v-model="item.PreCmpBQty" label="生产数" :label-width="getLabelWidth(3)"
+                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.PreCmpBQty" />
                     </GridItem>
                     <GridItem :row="1" :column="4" :column-span="1" class="button-cell">
-                        <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
-                            class="small-button" @click="handleReceive(item)"
-                            :disabled="isReceiveButtonDisabled(item)">
+                        <van-button :class="getReceiveStatusClass(item.ReceiveStatus)" class="small-button"
+                            @click="handleReceive(item)" :disabled="isReceiveButtonDisabled(item)">
                             {{ getReceiveStatusText(item.ReceiveStatus) }}
                         </van-button>
                     </GridItem>
-                    
+
                     <!-- 第三行：工艺要求、合格数、完工按钮 -->
                     <GridItem :row="2" :column="1" :column-span="2">
-                        <van-field v-model="item.WorkRequirements" label="工艺要求"
-                            :label-width="getLabelWidth(4)" :readonly="isReadOnly"
-                            v-click-tooltip="item.WorkRequirements" />
+                        <van-field v-model="item.WorkRequirements" label="工艺要求" :label-width="getLabelWidth(4)"
+                            :readonly="isReadOnly" v-click-tooltip="item.WorkRequirements" />
                     </GridItem>
                     <GridItem :row="2" :column="3" :column-span="1">
-                        <van-field v-model="item.CmpBQty" label="合格数"
-                            :label-width="getLabelWidth(3)" :readonly="isReadOnly" class="qty-field"
-                            v-click-tooltip="item.CmpBQty" />
+                        <van-field v-model="item.CmpBQty" label="合格数" :label-width="getLabelWidth(3)"
+                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.CmpBQty" />
                     </GridItem>
                     <GridItem :row="2" :column="4" :column-span="1" class="button-cell">
-                        <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
-                            class="small-button" @click="handleComplete(item)"
-                            :disabled="isCompleteButtonDisabled(item)">
+                        <van-button :class="getCompleteStatusClass(item.CompleteStatus)" class="small-button"
+                            @click="handleComplete(item)" :disabled="isCompleteButtonDisabled(item)">
                             {{ getCompleteStatusText(item.CompleteStatus) }}
                         </van-button>
                     </GridItem>
                 </GridContainer>
             </div>
             <div v-else>
-                <div class="card-item" v-for="(item, index) in details"
-                    :key="index">
+                <div class="card-item" v-for="(item, index) in details" :key="index">
                     <van-form class="compact-form">
                         <van-cell-group :title="'序号:' + getIndex(index)" :border="false"
                             :class="getClassForRowStatus(item)">
                             <!-- 添加位置索引显示 - 窄屏模式 -->
-                            <div class="location-index-mobile" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}</div>
-                            
+                            <div class="location-index-mobile" v-if="item.LocationIndex">位置: {{ item.LocationIndex }}
+                            </div>
+
                             <!-- 第一行：工种和计划数 -->
                             <div class="mobile-row">
-                                <van-field v-model="item.TypeofWorkName" label="工种"
-                                    :readonly="isReadOnly" class="field-grow"
-                                    v-click-tooltip="item.TypeofWorkName" />
-                                <van-field v-model="item.BQty" label="计划数"
-                                    :readonly="isReadOnly" class="qty-field"
+                                <van-field v-model="item.TypeofWorkName" label="工种" :readonly="isReadOnly"
+                                    class="field-grow" v-click-tooltip="item.TypeofWorkName" />
+                                <van-field v-model="item.BQty" label="计划数" :readonly="isReadOnly" class="qty-field"
                                     v-click-tooltip="item.BQty" />
                             </div>
-                            
+
                             <!-- 第二行：工艺内容、生产数、接收按钮 -->
                             <div class="mobile-row">
-                                <van-field v-model="item.Content" label="工艺内容"
-                                    :readonly="isReadOnly" class="field-grow"
+                                <van-field v-model="item.Content" label="工艺内容" :readonly="isReadOnly" class="field-grow"
                                     v-click-tooltip="item.Content" />
-                                <van-field v-model="item.PreCmpBQty" label="生产数"
-                                    :readonly="isReadOnly" class="qty-field"
-                                    v-click-tooltip="item.PreCmpBQty" />
+                                <van-field v-model="item.PreCmpBQty" label="生产数" :readonly="isReadOnly"
+                                    class="qty-field" v-click-tooltip="item.PreCmpBQty" />
                                 <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
                                     class="small-button mobile-button" @click="handleReceive(item)"
                                     :disabled="isReceiveButtonDisabled(item)">
                                     {{ getReceiveStatusText(item.ReceiveStatus) }}
                                 </van-button>
                             </div>
-                            
+
                             <!-- 第三行：工艺要求、合格数、完工按钮 -->
                             <div class="mobile-row">
-                                <van-field v-model="item.WorkRequirements" label="工艺要求"
-                                    :readonly="isReadOnly" class="field-grow"
-                                    v-click-tooltip="item.WorkRequirements" />
-                                <van-field v-model="item.CmpBQty" label="合格数"
-                                    :readonly="isReadOnly" class="qty-field"
+                                <van-field v-model="item.WorkRequirements" label="工艺要求" :readonly="isReadOnly"
+                                    class="field-grow" v-click-tooltip="item.WorkRequirements" />
+                                <van-field v-model="item.CmpBQty" label="合格数" :readonly="isReadOnly" class="qty-field"
                                     v-click-tooltip="item.CmpBQty" />
                                 <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
                                     class="small-button mobile-button" @click="handleComplete(item)"
@@ -141,7 +127,7 @@ export default {
             default: () => [],
         },
         isReadOnly: {
-            type: Boolean, 
+            type: Boolean,
             default: false,
         },
         screenWidth: {
@@ -269,13 +255,13 @@ export default {
             if (typeof charCount !== 'number' || charCount <= 0) {
                 charCount = 2; // 默认最小字符数
             }
-            
+
             // 大屏幕时根据字符数和字体大小计算标签宽度
             if (this.isWideScreen) {
                 // 计算标签宽度，每个字符的宽度大约为字体大小，再加上一些内边距
                 const padding = 10; // 假设内边距为10px
                 let labelWidth = (this.fontSize * charCount) + padding;
-                
+
                 // 设置最小宽度以确保标签不会太窄
                 return Math.max(labelWidth, 50) + 'px';
             } else {
@@ -293,10 +279,12 @@ export default {
 
 /* 卡片列表区域 */
 .card-list {
-    padding: 0 1.46vw 3.91vh; /* 15px 30px -> 1.46vw 3.91vh (15/1024*100, 30/768*100) */
+    padding: 0 1.46vw 3.91vh;
+    /* 15px 30px -> 1.46vw 3.91vh (15/1024*100, 30/768*100) */
     display: flex;
     flex-direction: column;
-    gap: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
+    gap: 1.56vh;
+    /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
     overflow-y: auto;
     flex: 1;
 }
@@ -304,64 +292,86 @@ export default {
 /* 卡片项目默认样式 */
 .card-item {
     background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
-    border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
-    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) - 缩小内边距 */
-    margin-bottom: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
+    border-radius: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
+    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05);
+    /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    border: 0.13vh solid rgba(0, 0, 0, 0.05);
+    /* 1px -> 0.13vh (1/768*100) */
+    padding: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) - 缩小内边距 */
+    margin-bottom: 1.56vh;
+    /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
     transition: all 0.3s ease;
 
     /* 悬停状态样式 */
     &:hover {
-        box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1); /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
-        transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
+        box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1);
+        /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+        transform: translateY(-0.26vh);
+        /* -2px -> -0.26vh (2/768*100) */
     }
 }
 
 /* 减小行内元素间的间距 */
 :deep(.van-grid-item) {
-    padding: 0.65vh 0.49vw; /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
+    padding: 0.65vh 0.49vw;
+    /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
 }
 
 /* 减小表单域的内边距 */
 :deep(.van-field) {
-    padding: 0.65vh 0.49vw; /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
+    padding: 0.65vh 0.49vw;
+    /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
 }
 
 /* 确保大屏幕下label始终横向显示 */
 :deep(.van-field__label) {
-    width: auto !important; /* 防止宽度被挤压 */
-    white-space: nowrap !important; /* 防止换行 */
-    overflow: visible !important; /* 防止内容被截断 */
-    flex: 0 0 auto !important; /* 防止被flex布局压缩 */
-    min-width: 4.88vw; /* 50px -> 4.88vw (50/1024*100) - 设置最小宽度 */
-    margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) - 增加右侧间距 */
+    width: auto !important;
+    /* 防止宽度被挤压 */
+    white-space: nowrap !important;
+    /* 防止换行 */
+    overflow: visible !important;
+    /* 防止内容被截断 */
+    flex: 0 0 auto !important;
+    /* 防止被flex布局压缩 */
+    min-width: 4.88vw;
+    /* 50px -> 4.88vw (50/1024*100) - 设置最小宽度 */
+    margin-right: 0.98vw;
+    /* 10px -> 0.98vw (10/1024*100) - 增加右侧间距 */
 }
 
 /* 确保字段内容占据剩余空间 */
 :deep(.van-field__value) {
     flex: 1 !important;
     overflow: hidden !important;
-    display: flex !important; /* 确保内部元素也是flex布局 */
+    display: flex !important;
+    /* 确保内部元素也是flex布局 */
 }
 
 /* 确保输入框内容正确显示 */
 :deep(.van-field__body) {
-    min-width: 0 !important; /* 允许宽度收缩 */
-    flex: 1 !important; /* 占据所有可用空间 */
+    min-width: 0 !important;
+    /* 允许宽度收缩 */
+    flex: 1 !important;
+    /* 占据所有可用空间 */
 }
 
 :deep(.van-field__control) {
-    width: 100% !important; /* 确保输入控件占据全部可用宽度 */
-    text-overflow: ellipsis !important; /* 文本溢出时显示省略号 */
-    overflow: hidden !important; /* 隐藏溢出内容 */
+    width: 100% !important;
+    /* 确保输入控件占据全部可用宽度 */
+    text-overflow: ellipsis !important;
+    /* 文本溢出时显示省略号 */
+    overflow: hidden !important;
+    /* 隐藏溢出内容 */
 }
 
 /* 大屏幕特定样式 */
 @media screen and (min-width: 800px) {
     :deep(.van-field) {
         display: flex !important;
-        flex-direction: row !important; /* 确保大屏幕模式是横向的 */
+        flex-direction: row !important;
+        /* 确保大屏幕模式是横向的 */
         align-items: center !important;
     }
 }
@@ -370,13 +380,17 @@ export default {
 @media screen and (max-width: 799px) {
     .mobile-row {
         :deep(.van-field) {
-            padding: 0.39vh 0.49vw !important; /* 3px 5px -> 0.39vh 0.49vw (3/768*100, 5/1024*100) */
+            padding: 0.39vh 0.49vw !important;
+            /* 3px 5px -> 0.39vh 0.49vw (3/768*100, 5/1024*100) */
         }
-        
+
         :deep(.van-field__label) {
-            min-width: auto !important; /* 移动端下不设置最小宽度 */
-            margin-right: 0.49vw !important; /* 5px -> 0.49vw (5/1024*100) - 减小右侧间距 */
-            font-size: 1.69vh !important; /* 13px -> 1.69vh (13/768*100) - 稍微缩小字体 */
+            min-width: auto !important;
+            /* 移动端下不设置最小宽度 */
+            margin-right: 0.49vw !important;
+            /* 5px -> 0.49vw (5/1024*100) - 减小右侧间距 */
+            font-size: 1.69vh !important;
+            /* 13px -> 1.69vh (13/768*100) - 稍微缩小字体 */
         }
     }
 }
@@ -395,24 +409,46 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 0.78vw; /* 0 8px -> 0 0.78vw (0, 8/1024*100) */
+    padding: 0 0.78vw;
+    /* 0 8px -> 0 0.78vw (0, 8/1024*100) */
 }
 
 /* 小型按钮样式 */
 .small-button {
-    min-width: 7.81vw; /* 80px -> 7.81vw (80/1024*100) */
-    max-width: 10.74vw; /* 110px -> 10.74vw (110/1024*100) */
-    height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
-    padding: 0 0.98vw; /* 0 10px -> 0 0.98vw (0, 10/1024*100) */
-    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
+    min-width: 9.77vw;
+    /* 100px -> 9.77vw (100/1024*100) */
+    max-width: 13.67vw;
+    /* 140px -> 13.67vw (140/1024*100) */
+    height: 4.17vh;
+    /* 32px -> 4.17vh (32/768*100) */
+    padding: 0 0.98vw;
+    /* 0 10px -> 0 0.98vw (0, 10/1024*100) */
+    font-size: 1.56vh;
+    /* 12px -> 1.56vh (12/768*100) */
     line-height: 1;
-    border-radius: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    border-radius: 0.65vh;
+    /* 5px -> 0.65vh (5/768*100) */
+    white-space: nowrap;
+    /* 防止文字换行 */
+    overflow: hidden;
+    /* 防止溢出 */
+    text-overflow: ellipsis;
+    /* 文本溢出显示省略号 */
 }
 
 /* 紧凑型表单样式 */
 .compact-form {
     :deep(.van-cell) {
-        padding: 0.65vh 0.98vw; /* 5px 10px -> 0.65vh 0.98vw (5/768*100, 10/1024*100) */
+        padding: 0.65vh 0.98vw;
+        /* 5px 10px -> 0.65vh 0.98vw (5/768*100, 10/1024*100) */
+    }
+    
+    :deep(.van-cell-group__title) {
+        margin-top: 0.052vh;
+        padding-top: 0.039vh;
+        /* 减小窄屏模式下序号的上边距 */
+        font-size: 1.82vh;
+        line-height: 0.3;
     }
 }
 
@@ -420,16 +456,27 @@ export default {
 .mobile-row {
     display: flex;
     align-items: center;
-    margin-bottom: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
-    gap: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    margin-bottom: 0.65vh;
+    /* 5px -> 0.65vh (5/768*100) */
+    gap: 0.65vh;
+    /* 5px -> 0.65vh (5/768*100) */
 }
 
 /* 移动端按钮样式 */
 .mobile-button {
-    min-width: 0;
-    max-width: 8.79vw; /* 90px -> 8.79vw (90/1024*100) */
-    margin: 0 0 0 0.49vw; /* 0 0 0 5px -> 0 0 0 0.49vw (0, 0, 0, 5/1024*100) */
+    min-width: 8.79vw;
+    /* 90px -> 8.79vw (90/1024*100) */
+    max-width: 11.72vw;
+    /* 120px -> 11.72vw (120/1024*100) */
+    margin: 0 0 0 0.49vw;
+    /* 0 0 0 5px -> 0 0 0 0.49vw (0, 0, 0, 5/1024*100) */
     flex-shrink: 0;
+    white-space: nowrap;
+    /* 防止文字换行 */
+    overflow: hidden;
+    /* 防止溢出 */
+    text-overflow: ellipsis;
+    /* 文本溢出显示省略号 */
 }
 
 /* 字段自动伸缩 */
@@ -442,18 +489,25 @@ export default {
 /* 已完成卡片项目样式 */
 .card-item-finished {
     background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
-    border: 0.13vh solid rgba(76, 175, 80, 0.2); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(76, 175, 80, 0.2);
+    /* 1px -> 0.13vh (1/768*100) */
     box-shadow:
-        0 0.52vh 1.95vh rgba(76, 175, 80, 0.1), /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
-        0 0.13vh 0.39vh rgba(76, 175, 80, 0.2), /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
-        inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
+        0 0.52vh 1.95vh rgba(76, 175, 80, 0.1),
+        /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
+        0 0.13vh 0.39vh rgba(76, 175, 80, 0.2),
+        /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
+        inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9);
+    /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
         box-shadow:
-            0 1.04vh 3.26vh rgba(76, 175, 80, 0.15), /* 8px 25px -> 1.04vh 3.26vh (8/768*100, 25/768*100) */
-            0 0.26vh 0.65vh rgba(76, 175, 80, 0.25), /* 2px 5px -> 0.26vh 0.65vh (2/768*100, 5/768*100) */
-            inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
+            0 1.04vh 3.26vh rgba(76, 175, 80, 0.15),
+            /* 8px 25px -> 1.04vh 3.26vh (8/768*100, 25/768*100) */
+            0 0.26vh 0.65vh rgba(76, 175, 80, 0.25),
+            /* 2px 5px -> 0.26vh 0.65vh (2/768*100, 5/768*100) */
+            inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9);
+        /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
     }
 }
 
@@ -461,7 +515,8 @@ export default {
 .status-not-started {
     background: linear-gradient(145deg, #ffffff, #f5f5f5);
     color: #909399;
-    border: 0.13vh solid rgba(144, 147, 153, 0.2); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(144, 147, 153, 0.2);
+    /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -474,7 +529,8 @@ export default {
 .status-in-progress {
     background: linear-gradient(145deg, #e1f3ff, #d0ecff);
     color: #1989fa;
-    border: 0.13vh solid rgba(25, 137, 250, 0.2); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(25, 137, 250, 0.2);
+    /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -487,7 +543,8 @@ export default {
 .status-completed {
     background: linear-gradient(145deg, #e1f3ea, #d0f0e0);
     color: #19be6b;
-    border: 0.13vh solid rgba(25, 190, 107, 0.2); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(25, 190, 107, 0.2);
+    /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -500,7 +557,8 @@ export default {
 .status-disabled {
     background: linear-gradient(145deg, #fde2e2, #fad1d1);
     color: #fa5555;
-    border: 0.13vh solid rgba(250, 85, 85, 0.2); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(250, 85, 85, 0.2);
+    /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
@@ -512,7 +570,8 @@ export default {
 /* 媒体查询 - 小屏幕样式 */
 @include ps {
     .card-list {
-        padding: 0 0.49vw 6.51vh; /* 5px 50px -> 0.49vw 6.51vh (5/1024*100, 50/768*100) */
+        padding: 0 0.49vw 6.51vh;
+        /* 5px 50px -> 0.49vw 6.51vh (5/1024*100, 50/768*100) */
         /* 增加底部padding，确保内容完全可滚动 */
     }
 }
@@ -522,13 +581,15 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-right: 0.13vh dashed rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
+    border-right: 0.13vh dashed rgba(0, 0, 0, 0.1);
+    /* 1px -> 0.13vh (1/768*100) */
     background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* 行号样式 */
 .row-number {
-    font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    font-size: 2.08vh;
+    /* 16px -> 2.08vh (16/768*100) */
     font-weight: bold;
     color: #909399;
     width: 100%;
@@ -549,29 +610,39 @@ export default {
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding-top: 0.65vh; /* 5px -> 0.65vh (5/768*100) */
+    padding-top: 0.65vh;
+    /* 5px -> 0.65vh (5/768*100) */
 }
 
 /* 位置索引样式 */
 .location-index {
-    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
+    font-size: 1.56vh;
+    /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
-    padding: 0.26vh 0.78vw; /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
-    border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
-    border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
+    padding: 0.26vh 0.78vw;
+    /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
+    border-radius: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
+    border: 0.13vh solid rgba(0, 0, 0, 0.05);
+    /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 移动端位置索引样式 */
 .location-index-mobile {
-    font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
+    font-size: 1.56vh;
+    /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
-    padding: 0.26vh 0.78vw; /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
-    border-radius: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
-    border: 0.13vh solid rgba(0, 0, 0, 0.05); /* 1px -> 0.13vh (1/768*100) */
+    padding: 0.26vh 0.78vw;
+    /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
+    border-radius: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
+    border: 0.13vh solid rgba(0, 0, 0, 0.05);
+    /* 1px -> 0.13vh (1/768*100) */
     display: inline-block;
-    margin: 0.65vh 0 0.65vh auto; /* 5px 0 5px auto -> 0.65vh 0 0.65vh auto (5/768*100, 0, 5/768*100, auto) */
+    margin: 0.65vh 0 0.65vh auto;
+    /* 5px 0 5px auto -> 0.65vh 0 0.65vh auto (5/768*100, 0, 5/768*100, auto) */
     float: right;
 }
 
@@ -580,7 +651,8 @@ export default {
 .card-item-finished .location-index-mobile {
     color: #19be6b;
     background-color: rgba(25, 190, 107, 0.05);
-    border: 0.13vh solid rgba(25, 190, 107, 0.1); /* 1px -> 0.13vh (1/768*100) */
+    border: 0.13vh solid rgba(25, 190, 107, 0.1);
+    /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 按钮容器样式 */
@@ -588,7 +660,9 @@ export default {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    padding: 0.39vh 0; /* 3px 0 -> 0.39vh 0 (3/768*100, 0) - 减小内边距 */
-    gap: 0.98vh; /* 7.5px -> 0.98vh (7.5/768*100) - 减小间距 */
+    padding: 0.39vh 0;
+    /* 3px 0 -> 0.39vh 0 (3/768*100, 0) - 减小内边距 */
+    gap: 0.98vh;
+    /* 7.5px -> 0.98vh (7.5/768*100) - 减小间距 */
 }
-</style> 
+</style>

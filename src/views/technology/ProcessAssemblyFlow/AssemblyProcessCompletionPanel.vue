@@ -44,7 +44,6 @@
             />
           </van-popup>
         </div>
-        
         <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode" />
         <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" :disabled="data?.Status > 0" />
       </div>

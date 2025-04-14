@@ -14,14 +14,14 @@
       <div class="batch-complete__scan-section">
         <div class="batch-complete__scan-title">流程卡扫码区</div>
         <div class="batch-complete__scan-area">
-          <input ref="flowScanInput" v-model="flowScanCode" class="batch-complete__scan-input" 
-            placeholder="请在这里扫描流程卡编码" @keyup.enter="handleFlowScanCodeConfirm" autofocus />
+          <input ref="flowScanInput" v-model="flowScanCode" class="batch-complete__scan-input" placeholder="请在这里扫描流程卡编码"
+            @keyup.enter="handleFlowScanCodeConfirm" autofocus />
         </div>
       </div>
       <div class="batch-complete__scan-section">
         <div class="batch-complete__scan-title">员工扫码区</div>
         <div class="batch-complete__scan-area">
-          <input ref="employeeScanInput" v-model="employeeScanCode" class="batch-complete__scan-input" 
+          <input ref="employeeScanInput" v-model="employeeScanCode" class="batch-complete__scan-input"
             placeholder="请在这里扫描员工编码" @keyup.enter="handleEmployeeScanCodeConfirm" />
         </div>
       </div>
@@ -43,8 +43,8 @@
           <div class="card__header" @click.stop="toggleSelection(index)" title="点击此处切换选择状态">
             <div class="card__title">{{ item.innerKey }}</div>
             <div class="card__checkbox">
-              <van-icon :name="item.selected ? 'success' : 'circle'" 
-                :class="['card__selection-icon', {'card__selection-icon--selected': item.selected}]" />
+              <van-icon :name="item.selected ? 'success' : 'circle'"
+                :class="['card__selection-icon', { 'card__selection-icon--selected': item.selected }]" />
             </div>
           </div>
           <!-- 卡片内容区 -->
@@ -65,10 +65,7 @@
             <div class="card__input-row">
               <label class="card__label">计件人员:</label>
               <div class="employee-select-wrapper">
-                <div 
-                  class="card__employee-field"
-                  @click="handleEmployeeFieldClick(item)"
-                >
+                <div class="card__employee-field" @click="handleEmployeeFieldClick(item)">
                   <span>{{ item.employeeName }}</span>
                   <van-icon name="arrow-down" class="employee-field-icon" />
                 </div>
@@ -91,7 +88,8 @@
               <el-select v-model="item.checkResult" size="small" class="qualification-dropdown" popper-append-to-body
                 popper-class="high-priority-dropdown" :popper-options="{ gpuAcceleration: false }"
                 @visible-change="handleSelectVisibleChange">
-                <el-option v-for="option in qualificationOptions" :key="option.value" :label="option.text" :value="option.value"></el-option>
+                <el-option v-for="option in qualificationOptions" :key="option.value" :label="option.text"
+                  :value="option.value"></el-option>
               </el-select>
             </div>
           </div>
@@ -116,13 +114,8 @@
       <div class="employee-search">
         <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
       </div>
-      <van-picker
-        show-toolbar
-        :columns="filteredEmployeeList"
-        @confirm="onEmployeeSelected"
-        @cancel="cancelEmployeeSelection"
-        value-key="Name"
-      />
+      <van-picker show-toolbar :columns="filteredEmployeeList" @confirm="onEmployeeSelected"
+        @cancel="cancelEmployeeSelection" value-key="Name" />
     </van-popup>
   </div>
 </template>
@@ -397,7 +390,7 @@ export default {
           if (this.itemList.length > 0) {
             // 检查是否有选中的项目
             const hasSelectedItems = this.selectedItems.length > 0;
-            
+
             if (hasSelectedItems) {
               // 有选中项目，询问是否只替换选中的项目
               this.$confirm(`是否将选中的 ${this.selectedItems.length} 个项目的计件人更改为 ${employee.Name}？`, '确认操作', {
@@ -674,9 +667,9 @@ export default {
         query.AddWhere(`e.DeletedTag=0`);
         query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
         query.OrderBy = 'e.Name ASC'; // 按姓名排序
-        
+
         const pack = await generalApi.getDataEx(query);
-        
+
         if (pack.Status == 200) {
           this.employeeList = pack.Data || [];
           // 初始设置过滤后的列表为完整列表
@@ -700,11 +693,11 @@ export default {
         this.filteredEmployeeList = [...this.employeeList];
         return;
       }
-      
+
       const searchText = this.employeeSearchText.toLowerCase();
       this.filteredEmployeeList = this.employeeList.filter(employee => {
         return (
-          (employee.Name && employee.Name.toLowerCase().includes(searchText)) || 
+          (employee.Name && employee.Name.toLowerCase().includes(searchText)) ||
           (employee.CodeForScan && employee.CodeForScan.toLowerCase().includes(searchText))
         );
       });
@@ -717,7 +710,7 @@ export default {
     async handleEmployeeFieldClick(item) {
       // 先加载员工列表
       await this.loadEmployeeList();
-      
+
       // 设置当前正在选择员工的项目
       this.currentSelectingItem = item;
       // 显示员工选择弹窗
@@ -726,7 +719,7 @@ export default {
       this.employeeSearchText = '';
       // 重置过滤的员工列表
       this.filteredEmployeeList = [...this.employeeList];
-      
+
       // 在下一个事件循环中让搜索框获取焦点
       this.$nextTick(() => {
         // 查找搜索框元素并设置焦点
@@ -797,22 +790,30 @@ export default {
 @import "@/assets/style/universal/cards.scss";
 
 .batch-complete {
-  padding: 2.08vh 1.56vw; /* 16px -> 2.08vh 1.56vw (16/768*100, 16/1024*100) */
-  height: 100vh; /* 确保占满整个视口高度 */
-  max-height: 100vh; /* 最大高度限制为视口高度 */
+  padding: 2.08vh 1.56vw;
+  /* 16px -> 2.08vh 1.56vw (16/768*100, 16/1024*100) */
+  height: 100vh;
+  /* 确保占满整个视口高度 */
+  max-height: 100vh;
+  /* 最大高度限制为视口高度 */
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 防止整体溢出 */
-  box-sizing: border-box; /* 确保padding不会增加元素总大小 */
-  padding-bottom: calc(2.08vh + env(safe-area-inset-bottom, 0)); /* 支持安全区域 (16px -> 2.08vh) */
+  overflow: hidden;
+  /* 防止整体溢出 */
+  box-sizing: border-box;
+  /* 确保padding不会增加元素总大小 */
+  padding-bottom: calc(2.08vh + env(safe-area-inset-bottom, 0));
+  /* 支持安全区域 (16px -> 2.08vh) */
 
   &__title {
-    margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    margin-bottom: 2.08vh;
+    /* 16px -> 2.08vh (16/768*100) */
     display: flex;
     align-items: center;
 
     h2 {
-      font-size: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
+      font-size: 2.34vh;
+      /* 18px -> 2.34vh (18/768*100) */
       color: #303133;
       margin: 0;
       padding: 0;
@@ -821,25 +822,32 @@ export default {
     .back-button {
       display: flex;
       align-items: center;
-      padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-      margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
+      padding: 0 0.98vw;
+      /* 10px -> 0.98vw (10/1024*100) */
+      margin-right: 0.98vw;
+      /* 10px -> 0.98vw (10/1024*100) */
       cursor: pointer;
-      height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
+      height: 4.17vh;
+      /* 32px -> 4.17vh (32/768*100) */
       transition: all 0.2s ease;
       user-select: none;
-      border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+      border-radius: 0.52vh;
+      /* 4px -> 0.52vh (4/768*100) */
 
       &:hover {
         background-color: rgba(0, 0, 0, 0.05);
       }
 
       .van-icon {
-        font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
-        margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
+        font-size: 2.08vh;
+        /* 16px -> 2.08vh (16/768*100) */
+        margin-right: 0.49vw;
+        /* 5px -> 0.49vw (5/1024*100) */
       }
 
       span {
-        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+        font-size: 1.82vh;
+        /* 14px -> 1.82vh (14/768*100) */
       }
     }
   }
@@ -847,25 +855,32 @@ export default {
   /* 新增扫码容器样式 */
   &__scan-container {
     display: flex;
-    gap: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
-    margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    gap: 2.08vh;
+    /* 16px -> 2.08vh (16/768*100) */
+    margin-bottom: 2.08vh;
+    /* 16px -> 2.08vh (16/768*100) */
   }
 
   &__scan-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border: 0.13vh solid #ebeef5; /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
-    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    border: 0.13vh solid #ebeef5;
+    /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh;
+    /* 4px -> 0.52vh (4/768*100) */
+    padding: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
     background-color: #f5f7fa;
   }
 
   &__scan-title {
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    font-size: 1.82vh;
+    /* 14px -> 1.82vh (14/768*100) */
     font-weight: 600;
     color: #303133;
-    margin-bottom: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    margin-bottom: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
     text-align: center;
   }
 
@@ -876,10 +891,14 @@ export default {
 
   &__scan-input {
     flex: 1;
-    height: 4.17vh; /* 32px -> 4.17vh (32/768*100) */
-    padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-    border: 0.13vh solid #dcdfe6; /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    height: 4.17vh;
+    /* 32px -> 4.17vh (32/768*100) */
+    padding: 0 0.98vw;
+    /* 10px -> 0.98vw (10/1024*100) */
+    border: 0.13vh solid #dcdfe6;
+    /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh;
+    /* 4px -> 0.52vh (4/768*100) */
 
     &:focus {
       outline: none;
@@ -890,42 +909,59 @@ export default {
   &__operation {
     flex-wrap: wrap;
     justify-content: center;
-    margin-bottom: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+    margin-bottom: 2.08vh;
+    /* 16px -> 2.08vh (16/768*100) */
     display: flex;
-    gap: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-    padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
+    gap: 0.98vw;
+    /* 10px -> 0.98vw (10/1024*100) */
+    padding: 0 1.56vw;
+    /* 16px -> 1.56vw (16/1024*100) */
 
     .operation-button {
-      min-width: 15.63vw; /* 120px -> 15.63vw (120/768*100) */
+      min-width: 15.63vw;
+      /* 120px -> 15.63vw (120/768*100) */
       flex: 0 0 auto;
-      margin-bottom: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
-      height: 3.65vh; /* 28px -> 3.65vh (28/768*100) */
-      padding: 0 1.46vw; /* 0 15px -> 0 1.46vw (15/1024*100) */
-      font-size: 1.69vh; /* 13px -> 1.69vh (13/768*100) */
-      border-radius: 0.39vh; /* 3px -> 0.39vh (3/768*100) */
-      line-height: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+      margin-bottom: 1.04vh;
+      /* 8px -> 1.04vh (8/768*100) */
+      height: 3.65vh;
+      /* 28px -> 3.65vh (28/768*100) */
+      padding: 0 1.46vw;
+      /* 0 15px -> 0 1.46vw (15/1024*100) */
+      font-size: 1.69vh;
+      /* 13px -> 1.69vh (13/768*100) */
+      border-radius: 0.39vh;
+      /* 3px -> 0.39vh (3/768*100) */
+      line-height: 1.82vh;
+      /* 14px -> 1.82vh (14/768*100) */
       font-weight: 500;
     }
   }
 
   &__card-list {
     flex: 1;
-    min-height: 0; /* 重要：确保flex子元素在flex容器中可以正确滚动 */
+    min-height: 0;
+    /* 重要：确保flex子元素在flex容器中可以正确滚动 */
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* 增加iOS设备的滚动惯性 */
-    position: relative; /* 添加相对定位作为子元素的定位上下文 */
-    margin-bottom: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    -webkit-overflow-scrolling: touch;
+    /* 增加iOS设备的滚动惯性 */
+    position: relative;
+    /* 添加相对定位作为子元素的定位上下文 */
+    margin-bottom: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
   }
 
   &__card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(22vw, 1fr)); /* 减小最小宽度从27.34vw到22vw */
-    gap: 1.3vh 1.04vw; /* 减小间距 */
+    grid-template-columns: repeat(auto-fill, minmax(22vw, 1fr));
+    /* 减小最小宽度从27.34vw到22vw */
+    gap: 1.3vh 1.04vw;
+    /* 减小间距 */
     padding: 0 1.56vw;
   }
 
   &__empty-tip {
-    height: 13.02vh; /* 100px -> 13.02vh (100/768*100) */
+    height: 13.02vh;
+    /* 100px -> 13.02vh (100/768*100) */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -934,32 +970,49 @@ export default {
 
   &__submit {
     display: flex;
-    justify-content: center; /* 将右对齐改为居中对齐 */
-    margin-top: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
-    padding: 0 1.56vw; /* 16px -> 1.56vw (16/1024*100) */
-    position: sticky; /* 使底部按钮区域保持可见 */
+    justify-content: center;
+    /* 将右对齐改为居中对齐 */
+    margin-top: 2.08vh;
+    /* 16px -> 2.08vh (16/768*100) */
+    padding: 0 1.56vw;
+    /* 16px -> 1.56vw (16/1024*100) */
+    position: sticky;
+    /* 使底部按钮区域保持可见 */
     bottom: 0;
-    background-color: #fff; /* 确保背景色与页面一致 */
-    z-index: 5; /* 保持在一定层级上，避免被卡片遮挡 */
-    padding-bottom: max(1.3vh, env(safe-area-inset-bottom, 1.3vh)); /* 支持安全区域 (10px -> 1.3vh) */
-    box-shadow: 0 -0.26vh 1.3vh rgba(0, 0, 0, 0.05); /* 轻微阴影区分内容区 (2px 10px -> 0.26vh 1.3vh) */
+    background-color: #fff;
+    /* 确保背景色与页面一致 */
+    z-index: 5;
+    /* 保持在一定层级上，避免被卡片遮挡 */
+    padding-bottom: max(1.3vh, env(safe-area-inset-bottom, 1.3vh));
+    /* 支持安全区域 (10px -> 1.3vh) */
+    box-shadow: 0 -0.26vh 1.3vh rgba(0, 0, 0, 0.05);
+    /* 轻微阴影区分内容区 (2px 10px -> 0.26vh 1.3vh) */
 
     .batch-complete__button-wrapper {
       display: flex;
-      justify-content: center; /* 确保按钮在容器中居中 */
-      gap: 2.93vw; /* 增加按钮间距为30px -> 2.93vw (30/1024*100) */
-      padding: 0.65vh 0; /* 增加上下内边距，5px -> 0.65vh (5/768*100) */
+      justify-content: center;
+      /* 确保按钮在容器中居中 */
+      gap: 2.93vw;
+      /* 增加按钮间距为30px -> 2.93vw (30/1024*100) */
+      padding: 0.65vh 0;
+      /* 增加上下内边距，5px -> 0.65vh (5/768*100) */
     }
 
     .el-button {
-      padding: 1.3vh 1.95vw; /* 10px 20px -> 1.3vh 1.95vw (10/768*100, 20/1024*100) */
-      font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
-      border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
-      min-width: 9.77vw; /* 设置最小宽度 100px -> 9.77vw (100/1024*100) */
+      padding: 1.3vh 1.95vw;
+      /* 10px 20px -> 1.3vh 1.95vw (10/768*100, 20/1024*100) */
+      font-size: 1.82vh;
+      /* 14px -> 1.82vh (14/768*100) */
+      border-radius: 0.52vh;
+      /* 4px -> 0.52vh (4/768*100) */
+      min-width: 9.77vw;
+      /* 设置最小宽度 100px -> 9.77vw (100/1024*100) */
 
       &:hover {
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.15); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+        transform: translateY(-0.13vh);
+        /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.15);
+        /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
       }
     }
   }
@@ -970,18 +1023,23 @@ export default {
   display: flex;
   flex-direction: column;
   background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  border-radius: 0.78vh; /* 减小圆角 */
-  box-shadow: 0 0.26vh 0.65vh rgba(0, 0, 0, 0.05); /* 减小阴影 */
+  border-radius: 0.78vh;
+  /* 减小圆角 */
+  box-shadow: 0 0.26vh 0.65vh rgba(0, 0, 0, 0.05);
+  /* 减小阴影 */
   border: 0.13vh solid rgba(0, 0, 0, 0.05);
   padding: 0;
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
-  --lable-width: 6.25vw; /* 减小标签宽度 */
+  --lable-width: 6.25vw;
+  /* 减小标签宽度 */
 
   &:hover {
-    box-shadow: 0 0.26vh 1.3vh rgba(0, 0, 0, 0.1); /* 减小悬停阴影 */
-    transform: translateY(-0.13vh); /* 减小悬停上移效果 */
+    box-shadow: 0 0.26vh 1.3vh rgba(0, 0, 0, 0.1);
+    /* 减小悬停阴影 */
+    transform: translateY(-0.13vh);
+    /* 减小悬停上移效果 */
   }
 
   /* 选中状态样式 */
@@ -1003,7 +1061,8 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.78vh 0.98vw; /* 减小内边距 */
+    padding: 0.78vh 0.98vw;
+    /* 减小内边距 */
     background: linear-gradient(145deg, #f8f9fa, #f2f3f5);
     border-bottom: 0.13vh solid rgba(0, 0, 0, 0.05);
     cursor: pointer;
@@ -1020,7 +1079,8 @@ export default {
 
   &__title {
     font-weight: 600;
-    font-size: 1.69vh; /* 减小字体大小 */
+    font-size: 1.69vh;
+    /* 减小字体大小 */
     color: #303133;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1033,14 +1093,16 @@ export default {
   }
 
   &__content {
-    padding: 1.04vh 0.98vw; /* 减小内边距 */
+    padding: 1.04vh 0.98vw;
+    /* 减小内边距 */
     flex: 1;
   }
 
   &__input-row {
     display: flex;
     align-items: center;
-    margin-bottom: 0.78vh; /* 减小间距 */
+    margin-bottom: 0.78vh;
+    /* 减小间距 */
     width: 100%;
 
     &:last-child {
@@ -1050,7 +1112,8 @@ export default {
 
   &__info-row {
     display: flex;
-    margin-bottom: 0.78vh; /* 减小间距 */
+    margin-bottom: 0.78vh;
+    /* 减小间距 */
     align-items: flex-start;
     width: 100%;
 
@@ -1061,7 +1124,8 @@ export default {
 
   &__label {
     width: var(--lable-width);
-    font-size: 1.56vh; /* 减小字体大小 */
+    font-size: 1.56vh;
+    /* 减小字体大小 */
     color: #606266;
     font-weight: 500;
     flex-shrink: 0;
@@ -1070,15 +1134,20 @@ export default {
 
   &__readonly-text {
     flex: 1;
-    font-size: 1.56vh; /* 减小字体大小 */
+    font-size: 1.56vh;
+    /* 减小字体大小 */
     color: #606266;
-    line-height: 1.3; /* 减小行高 */
+    line-height: 1.3;
+    /* 减小行高 */
     background-color: #f5f7fa;
-    border-radius: 0.26vh; /* 减小圆角 */
+    border-radius: 0.26vh;
+    /* 减小圆角 */
     border: 0.13vh solid #e4e7ed;
-    min-height: 3.52vh; /* 减小高度 */
+    min-height: 3.52vh;
+    /* 减小高度 */
     word-break: break-all;
-    padding: 0 0.65vw; /* 减小内边距 */
+    padding: 0 0.65vw;
+    /* 减小内边距 */
     align-content: center;
     text-align: start;
     width: calc(100% - var(--lable-width));
@@ -1086,31 +1155,40 @@ export default {
 
   &__input {
     flex: 1;
-    height: 3.52vh; /* 减小高度 */
-    line-height: 3.52vh; /* 减小行高 */
-    padding: 0 0.65vw; /* 减小内边距 */
+    height: 3.52vh;
+    /* 减小高度 */
+    line-height: 3.52vh;
+    /* 减小行高 */
+    padding: 0 0.65vw;
+    /* 减小内边距 */
     border: 0.13vh solid #dcdfe6;
-    border-radius: 0.26vh; /* 减小圆角 */
+    border-radius: 0.26vh;
+    /* 减小圆角 */
     background-color: #fff;
     width: calc(100% - var(--lable-width));
-    font-size: 1.56vh; /* 减小字体大小 */
+    font-size: 1.56vh;
+    /* 减小字体大小 */
 
     &:focus {
       outline: none;
       border-color: #409eff;
-      box-shadow: 0 0 0 0.13vh rgba(64, 158, 255, 0.2); /* 减小阴影 */
+      box-shadow: 0 0 0 0.13vh rgba(64, 158, 255, 0.2);
+      /* 减小阴影 */
     }
   }
 
   &__radio-group {
     flex: 1;
     display: flex;
-    gap: 1.17vw; /* 减小间距 */
+    gap: 1.17vw;
+    /* 减小间距 */
   }
 
   &__footer {
-    height: 1.82vh; /* 减小高度 */
-    padding: 0.78vh 0.98vw; /* 减小内边距 */
+    height: 1.82vh;
+    /* 减小高度 */
+    padding: 0.78vh 0.98vw;
+    /* 减小内边距 */
     background-color: rgba(0, 0, 0, 0.02);
     border-top: 0.13vh solid rgba(0, 0, 0, 0.05);
     display: flex;
@@ -1124,13 +1202,16 @@ export default {
   }
 
   &__info-label {
-    font-size: 1.43vh; /* 减小字体大小 */
+    font-size: 1.43vh;
+    /* 减小字体大小 */
     color: #909399;
-    margin-right: 0.39vw; /* 减小间距 */
+    margin-right: 0.39vw;
+    /* 减小间距 */
   }
 
   &__info-value {
-    font-size: 1.43vh; /* 减小字体大小 */
+    font-size: 1.43vh;
+    /* 减小字体大小 */
     color: #303133;
     font-weight: 500;
   }
@@ -1139,18 +1220,24 @@ export default {
     display: flex;
     align-items: center;
     position: absolute;
-    top: 0.26vh; /* 减小位置 */
-    right: 0.98vw; /* 减小右侧距离 */
-    width: 8.79vw; /* 减小宽度 */
+    top: 0.26vh;
+    /* 减小位置 */
+    right: 0.98vw;
+    /* 减小右侧距离 */
+    width: 8.79vw;
+    /* 减小宽度 */
   }
 
   /* 员工选择器样式 */
   &__employee-field {
     flex: 1;
-    height: 3.52vh; /* 减小高度 */
-    line-height: 3.52vh; /* 减小行高 */
+    height: 3.52vh;
+    /* 减小高度 */
+    line-height: 3.52vh;
+    /* 减小行高 */
     border: 0.13vh solid #dcdfe6;
-    border-radius: 0.26vh; /* 减小圆角 */
+    border-radius: 0.26vh;
+    /* 减小圆角 */
     background-color: #fff;
     width: 100%;
     display: flex;
@@ -1169,26 +1256,32 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      padding: 0 0.65vw; /* 减小内边距 */
+      padding: 0 0.65vw;
+      /* 减小内边距 */
       text-align: left;
-      font-size: 1.56vh; /* 减小字体大小 */
+      font-size: 1.56vh;
+      /* 减小字体大小 */
     }
 
     .employee-field-icon {
       color: #909399;
-      font-size: 1.69vh; /* 减小图标大小 */
+      font-size: 1.69vh;
+      /* 减小图标大小 */
       transition: transform 0.3s;
-      margin-right: 0.65vw; /* 减小右侧距离 */
+      margin-right: 0.65vw;
+      /* 减小右侧距离 */
     }
   }
 
   &__selection-icon {
-    font-size: 2.08vh; /* 减小图标大小 */
+    font-size: 2.08vh;
+    /* 减小图标大小 */
     color: #909399;
     transition: all 0.3s ease;
     border-radius: 50%;
-    padding: 0.26vh; /* 减小内边距 */
-    
+    padding: 0.26vh;
+    /* 减小内边距 */
+
     &--selected {
       color: #409eff;
       transform: scale(1.1);
@@ -1199,15 +1292,20 @@ export default {
 /* 添加合格性下拉框样式 */
 .qualification-dropdown {
   ::v-deep .el-input__inner {
-    border-radius: 1.69vh; /* 减小圆角 */
-    height: 3.13vh; /* 减小高度 */
-    line-height: 3.13vh; /* 减小行高 */
+    border-radius: 1.69vh;
+    /* 减小圆角 */
+    height: 3.13vh;
+    /* 减小高度 */
+    line-height: 3.13vh;
+    /* 减小行高 */
     border: 0.13vh solid #ebedf0;
     background: #f7f8fa;
     color: #323233;
     transition: all 0.3s ease;
-    padding: 0 0.98vw; /* 减小内边距 */
-    font-size: 1.3vh; /* 减小字体大小 */
+    padding: 0 0.98vw;
+    /* 减小内边距 */
+    font-size: 1.3vh;
+    /* 减小字体大小 */
   }
 
   ::v-deep .el-input__inner:hover {
@@ -1216,12 +1314,14 @@ export default {
   }
 
   ::v-deep .el-input__suffix {
-    right: 0.49vw; /* 减小右侧距离 */
+    right: 0.49vw;
+    /* 减小右侧距离 */
   }
 
   ::v-deep .el-select__caret {
     color: #969799;
-    line-height: 3.13vh; /* 减小行高 */
+    line-height: 3.13vh;
+    /* 减小行高 */
   }
 }
 
@@ -1236,38 +1336,78 @@ export default {
 /* 媒体查询 - 小屏幕适配 */
 @media screen and (max-width: 768px) {
   .batch-complete {
-    padding: 1.3vh; /* 10px -> 1.3vh (10/768*100) */
+    padding: 1.3vh;
+    /* 10px -> 1.3vh (10/768*100) */
+
+    /* 窄屏下扫码区域改为上下布局 */
+    &__scan-container {
+      flex-direction: column;
+      gap: 1.3vh;
+      /* 减小垂直间距 */
+    }
+
+    &__scan-section {
+      width: 100%;
+      box-sizing: border-box;
+      /* 确保宽度包含padding和border */
+      padding: 1.3vh;
+      /* 增加内边距 */
+    }
+
+    &__scan-area {
+      width: 100%;
+      box-sizing: border-box;
+      /* 确保宽度包含padding和border */
+    }
+
+    &__scan-input {
+      width: 100%;
+      box-sizing: border-box;
+      /* 确保宽度包含padding和border */
+    }
 
     &__card-grid {
       grid-template-columns: 1fr;
-      padding: 0 1.04vh; /* 8px -> 1.04vh (8/768*100) */
+      padding: 0 1.04vh;
+      /* 8px -> 1.04vh (8/768*100) */
     }
 
     &__operation {
       flex-wrap: wrap;
       justify-content: center;
-      padding: 0 1.04vh; /* 8px -> 1.04vh (8/768*100) */
-      
+      padding: 0 1.04vh;
+      /* 8px -> 1.04vh (8/768*100) */
+
       .operation-button {
-        min-width: 20vw; /* 小屏幕下设置更合适的宽度 */
-        margin: 0 0.65vh 1.04vh; /* 增加水平间距，0 5px 8px -> 0 0.65vh 1.04vh (5/768*100, 8/768*100) */
+        min-width: 20vw;
+        /* 小屏幕下设置更合适的宽度 */
+        margin: 0 0.65vh 1.04vh;
+        /* 增加水平间距，0 5px 8px -> 0 0.65vh 1.04vh (5/768*100, 8/768*100) */
       }
     }
 
     &__submit {
-      padding: 0 1.04vh 1.04vh; /* 8px 8px -> 1.04vh 1.04vh (8/768*100, 8/768*100) */
-      padding-bottom: max(1.04vh, env(safe-area-inset-bottom, 1.04vh)); /* 支持安全区域 (8px -> 1.04vh) */
-      
+      padding: 0 1.04vh 1.04vh;
+      /* 8px 8px -> 1.04vh 1.04vh (8/768*100, 8/768*100) */
+      padding-bottom: max(1.04vh, env(safe-area-inset-bottom, 1.04vh));
+      /* 支持安全区域 (8px -> 1.04vh) */
+
       .batch-complete__button-wrapper {
-        width: 100%; /* 在小屏幕上占满宽度 */
-        gap: 1.95vw; /* 减小间距以适应小屏幕，20px -> 1.95vw (20/1024*100) */
+        width: 100%;
+        /* 在小屏幕上占满宽度 */
+        gap: 1.95vw;
+        /* 减小间距以适应小屏幕，20px -> 1.95vw (20/1024*100) */
       }
-      
+
       .el-button {
-        flex: 1; /* 在小屏幕上让按钮平均分配空间 */
-        min-width: unset; /* 取消最小宽度限制 */
-        white-space: nowrap; /* 防止文本换行 */
-        padding: 1.3vh 1.17vw; /* 调整内边距 10px 12px -> 1.3vh 1.17vw (10/768*100, 12/1024*100) */
+        flex: 1;
+        /* 在小屏幕上让按钮平均分配空间 */
+        min-width: unset;
+        /* 取消最小宽度限制 */
+        white-space: nowrap;
+        /* 防止文本换行 */
+        padding: 1.3vh 1.17vw;
+        /* 调整内边距 10px 12px -> 1.3vh 1.17vw (10/768*100, 12/1024*100) */
       }
     }
   }
@@ -1284,17 +1424,21 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+  font-size: 2.08vh;
+  /* 16px -> 2.08vh (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  border-bottom: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 1.04vh 1.56vw; /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
-  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  padding: 1.04vh 1.56vw;
+  /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
+  border-bottom: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
 }
 
 .employee-select-wrapper {

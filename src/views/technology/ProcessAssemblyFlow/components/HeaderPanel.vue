@@ -236,20 +236,22 @@ export default {
 .mobile-header-section {
     display: flex;
     flex-direction: column;
-    gap: 1.3vh;
+    gap: 0.8vh;
 
     /* 移动端输入框样式 */
     .van-field {
         width: 100%;
         margin-bottom: 0;
-        padding: 1.3vh 0;
+        padding: 0.3vh 0;
 
         /* 确保标签宽度固定，不会导致输入框变高 */
         ::v-deep .van-field__label {
-            width: 7vw;
-            min-width: 7vw;
-            flex: 0 0 7vw;
+            width: 25vw;
+            min-width: 25vw;
+            flex: 0 0 25vw;
             justify-content: flex-start;
+            text-align: left;
+            white-space: nowrap;
         }
     }
 }
@@ -257,8 +259,8 @@ export default {
 /* 媒体查询 - 小屏幕样式 */
 @include ps {
     .header-panel {
-        padding: 1.3vh;
-        margin-bottom: 1.3vh;
+        padding: 0.8vh;
+        margin-bottom: 1vh;
     }
 }
 </style>

@@ -333,9 +333,19 @@ input:focus {
 /* 响应式调整 */
 @media (max-width: 768px) {
     .login-box {
-        width: 100%;
-        max-width: 37.11vw; /* 380px -> 37.11vw (380/1024*100) */
-        padding: 3.91vh 1.95vw; /* 30px 20px -> 3.91vh 1.95vw (30/768*100, 20/1024*100) */
+        width: 90%;
+        max-width: 90vw;
+        min-width: 280px;
+        padding: 3.91vh 3.91vw; /* 增加左右内边距 */
+    }
+    
+    .logo {
+        width: 50vw; /* 调整logo大小 */
+        max-width: 200px;
+    }
+    
+    input {
+        padding: 1.82vh 1.46vw 1.82vh 5.86vw; /* 增加左侧内边距以适应图标 */
     }
 }
 </style>

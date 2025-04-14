@@ -8,7 +8,7 @@
 let tooltipState = {
   timer: null,
   popup: null,
-  visible: false
+  visible: false,
 };
 
 // 创建全局单例tooltip元素
@@ -18,8 +18,8 @@ const createTooltip = () => {
   }
 
   // 创建tooltip元素
-  const tooltip = document.createElement('div');
-  tooltip.className = 'long-press-tooltip';
+  const tooltip = document.createElement("div");
+  tooltip.className = "long-press-tooltip";
   tooltip.style.cssText = `
     position: fixed;
     background-color: rgba(0, 0, 0, 0.75);
@@ -42,16 +42,16 @@ const createTooltip = () => {
 const showTooltip = (content, x, y, duration = 3000) => {
   const tooltip = createTooltip();
   tooltip.textContent = content;
-  tooltip.style.left = x + 'px';
-  tooltip.style.top = y + 'px';
-  tooltip.style.display = 'block';
+  tooltip.style.left = x + "px";
+  tooltip.style.top = y + "px";
+  tooltip.style.display = "block";
   tooltipState.visible = true;
 
   // 设置自动关闭
   if (tooltipState.timer) {
     clearTimeout(tooltipState.timer);
   }
-  
+
   tooltipState.timer = setTimeout(() => {
     hideTooltip();
   }, duration);
@@ -60,10 +60,10 @@ const showTooltip = (content, x, y, duration = 3000) => {
 // 隐藏tooltip
 const hideTooltip = () => {
   if (tooltipState.popup) {
-    tooltipState.popup.style.display = 'none';
+    tooltipState.popup.style.display = "none";
     tooltipState.visible = false;
   }
-  
+
   if (tooltipState.timer) {
     clearTimeout(tooltipState.timer);
     tooltipState.timer = null;
@@ -74,14 +74,14 @@ export default {
   bind(el, binding) {
     // 从binding中获取值
     let options = {
-      content: '',
+      content: "",
       duration: 3000,
-      delay: 500
+      delay: 500,
     };
 
-    if (typeof binding.value === 'string') {
+    if (typeof binding.value === "string") {
       options.content = binding.value;
-    } else if (typeof binding.value === 'object') {
+    } else if (typeof binding.value === "object") {
       options = { ...options, ...binding.value };
     }
 
@@ -90,18 +90,19 @@ export default {
       pressTimer: null,
       touchStartHandler: null,
       touchEndHandler: null,
-      options
+      options,
     };
 
     // 触摸开始处理函数
-    el._longPressTooltip.touchStartHandler = function(event) {
+    el._longPressTooltip.touchStartHandler = function (event) {
       if (el._longPressTooltip.pressTimer) {
         clearTimeout(el._longPressTooltip.pressTimer);
       }
 
       // 如果内容为空，使用元素的绑定值或文本内容
-      let content = el._longPressTooltip.options.content || 
-                   (el.value || el.textContent || '').trim();
+      let content =
+        el._longPressTooltip.options.content ||
+        (el.value || el.textContent || "").trim();
 
       if (!content) return;
 
@@ -119,7 +120,7 @@ export default {
     };
 
     // 触摸结束处理函数
-    el._longPressTooltip.touchEndHandler = function() {
+    el._longPressTooltip.touchEndHandler = function () {
       if (el._longPressTooltip.pressTimer) {
         clearTimeout(el._longPressTooltip.pressTimer);
         el._longPressTooltip.pressTimer = null;
@@ -127,19 +128,19 @@ export default {
     };
 
     // 添加事件监听
-    el.addEventListener('touchstart', el._longPressTooltip.touchStartHandler);
-    el.addEventListener('touchend', el._longPressTooltip.touchEndHandler);
-    el.addEventListener('touchcancel', el._longPressTooltip.touchEndHandler);
+    el.addEventListener("touchstart", el._longPressTooltip.touchStartHandler);
+    el.addEventListener("touchend", el._longPressTooltip.touchEndHandler);
+    el.addEventListener("touchcancel", el._longPressTooltip.touchEndHandler);
   },
 
   update(el, binding) {
     // 更新选项
-    if (typeof binding.value === 'string') {
+    if (typeof binding.value === "string") {
       el._longPressTooltip.options.content = binding.value;
-    } else if (typeof binding.value === 'object') {
-      el._longPressTooltip.options = { 
-        ...el._longPressTooltip.options, 
-        ...binding.value 
+    } else if (typeof binding.value === "object") {
+      el._longPressTooltip.options = {
+        ...el._longPressTooltip.options,
+        ...binding.value,
       };
     }
   },
@@ -149,13 +150,16 @@ export default {
     if (el._longPressTooltip.pressTimer) {
       clearTimeout(el._longPressTooltip.pressTimer);
     }
-    
+
     // 移除事件监听
-    el.removeEventListener('touchstart', el._longPressTooltip.touchStartHandler);
-    el.removeEventListener('touchend', el._longPressTooltip.touchEndHandler);
-    el.removeEventListener('touchcancel', el._longPressTooltip.touchEndHandler);
-    
+    el.removeEventListener(
+      "touchstart",
+      el._longPressTooltip.touchStartHandler
+    );
+    el.removeEventListener("touchend", el._longPressTooltip.touchEndHandler);
+    el.removeEventListener("touchcancel", el._longPressTooltip.touchEndHandler);
+
     // 删除元素状态
     delete el._longPressTooltip;
-  }
-}; 
+  },
+};

@@ -8,16 +8,16 @@
         <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('SaveBill')" plain>保存</van-button>
         <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('DeleteBill')" plain>删除单据</van-button>
         <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('ApprovalBill')" plain>审批</van-button>
-        <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('ReverseApprovalBill')" plain>反审批</van-button>
-        
+        <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('ReverseApprovalBill')"
+            plain>反审批</van-button>
+
         <!-- 触发按钮 -->
         <!-- <van-button class="btn" @click="showMenu = true" plain>单据操作</van-button> -->
 
         <!-- 下拉菜单 -->
-        <van-popup v-model="showMenu" position="bottom" :style="{ width: '200px', top: '50px' }"
-            get-container="body">
-            <van-cell v-for="item in menuItems" :key="item.command" :title="item.label"
-                class="toolbar__menu-item" @click="handleSelect(item)" />
+        <van-popup v-model="showMenu" position="bottom" :style="{ width: '200px', top: '50px' }" get-container="body">
+            <van-cell v-for="item in menuItems" :key="item.command" :title="item.label" class="toolbar__menu-item"
+                @click="handleSelect(item)" />
         </van-popup>
     </HorizontalStackPanel>
 </template>
@@ -64,18 +64,21 @@ export default {
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0.65vh 0; /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
+    padding: 0.65vh 0;
+    /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
     align-items: center;
-    
+
     &__btn {
-        margin-right: 0.49vw; /* 5px -> 0.49vw (5/1024*100) */
+        margin-right: 0.49vw;
+        /* 5px -> 0.49vw (5/1024*100) */
         white-space: nowrap;
     }
-    
+
     &__menu-item {
-        padding: 1.56vh 1.46vw; /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
+        padding: 1.56vh 1.46vw;
+        /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
         transition: all 0.3s ease;
-        
+
         &:hover {
             background-color: #f5f7fa;
             color: #409EFF;
@@ -86,12 +89,21 @@ export default {
 /* 媒体查询 - 小屏幕样式调整 */
 @include ps {
     .toolbar {
-        padding: 0.39vh 0; /* 3px 0 -> 0.39vh 0 (3/768*100, 0) */
-        
+        padding: 0.39vh 0;
+        /* 3px 0 -> 0.39vh 0 (3/768*100, 0) */
+
         &__btn {
-            font-size: 1.56vh; /* 12px -> 1.56vh (12/768*100) */
-            padding: 0 0.78vw; /* 0 8px -> 0 0.78vw (0, 8/1024*100) */
+            font-size: 1.56vh;
+            /* 12px -> 1.56vh (12/768*100) */
+            padding: 0 1.56vw;
+            /* 修改内边距，从0.78vw增加到1.56vw */
+            min-width: 12vw;
+            /* 添加最小宽度，确保4个字的按钮有足够空间 */
+            overflow: hidden;
+            /* 防止文本溢出 */
+            text-overflow: ellipsis;
+            /* 如果文本仍然溢出，显示省略号 */
         }
     }
 }
-</style> 
+</style>
