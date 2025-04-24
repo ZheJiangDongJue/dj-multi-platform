@@ -30,7 +30,7 @@
                     </div>
                 </div>
                 <div class="grid-item right">
-                    <div class="flex-s-w">
+                    <div v-if="!isChildRouteActive" class="flex-s-w">
                         <Card :header="item.Name" v-for="item in currentModuleItems" :key="item.id" :bind="item"
                             @card-click="onCardClick">
                             <template v-slot:icon>
@@ -39,6 +39,8 @@
                             </template>
                         </Card>
                     </div>
+                    <!-- 添加嵌套路由视图，用于显示子路由内容 -->
+                    <router-view v-if="isChildRouteActive" class="nested-router-view"></router-view>
                 </div>
             </div>
             <div v-if="navigateMode == 1" class="grid-container">
@@ -49,21 +51,13 @@
                     </van-sidebar>
                     <!-- 左下角设置按钮 -->
                     <div class="settings-gear">
-                        <span class="el-dropdown-link" @click="$router.push('/user-settings')">
+                        <span class="el-dropdown-link" @click="$router.push('/home/user-settings')">
                             <i class="el-icon-user"></i>
                         </span>
-                        <!-- <el-dropdown trigger="click" @command="handleCommand">
-                            <span class="el-dropdown-link">
-                                <i class="el-icon-setting"></i>
-                            </span>
-                            <el-dropdown-menu slot="dropdown">
-                                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </el-dropdown> -->
                     </div>
                 </div>
                 <div class="grid-item right">
-                    <div class="flex-s-w">
+                    <div v-if="!isChildRouteActive" class="flex-s-w">
                         <Card :header="item.Name" v-for="item in currentModuleItems" :key="item.id" :bind="item"
                             @card-click="onCardClick">
                             <template v-slot:icon>
@@ -72,6 +66,8 @@
                             </template>
                         </Card>
                     </div>
+                    <!-- 添加嵌套路由视图，用于显示子路由内容 -->
+                    <router-view v-if="isChildRouteActive" class="nested-router-view"></router-view>
                 </div>
             </div>
         </div>
@@ -100,6 +96,13 @@ export default {
                 children: 'Children',
                 label: 'Name'
             },
+        }
+    },
+    computed: {
+        // 判断是否有子路由激活
+        isChildRouteActive() {
+            // 检查当前路由是否为home的子路由
+            return this.$route.path !== '/home';
         }
     },
     watch: {
@@ -154,12 +157,13 @@ export default {
                 if (element === data) {
                     console.log("点击了" + data.PageName);
                     if (data.PageName != undefined) {
-                        let router = PageNameToRouterConverter.Convert(data.PageName);
-                        if (router === undefined) {
+                        // 使用新的嵌套路由转换方法
+                        let nestedRouter = PageNameToRouterConverter.ConvertNested(data.PageName);
+                        if (nestedRouter === undefined) {
                             return;
                         }
-                        console.log('页面名称:"' + data.PageName + '" ->转换为-> 路由:"' + router + '"');
-                        this.$router.push(router);
+                        console.log('页面名称:"' + data.PageName + '" ->转换为-> 子路由:"' + nestedRouter + '"');
+                        this.$router.push('/home/' + nestedRouter);
                     }
                 }
             });
@@ -181,7 +185,7 @@ export default {
                     });
                 }).catch(() => { });
             } else if (command === 'userSettings') {
-                this.$router.push('/user-settings');
+                this.$router.push('/home/user-settings');
             }
         }
     }
@@ -229,6 +233,13 @@ export default {
     flex: 1 1 auto;
     /* 右侧填充剩余空间 */
     /*  或者 flex-grow: 1;  flex-shrink: 1; flex-basis: auto; */
+}
+
+/* 嵌套路由视图样式 */
+.nested-router-view {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
 }
 
 .card {

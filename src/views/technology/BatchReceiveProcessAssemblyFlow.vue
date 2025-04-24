@@ -12,9 +12,9 @@
     <!-- 头部扫码输入区域 - 修改为左右两部分 -->
     <div class="batch-receive__scan-container">
       <div class="batch-receive__scan-section">
-        <div class="batch-receive__scan-title">流程卡扫码区</div>
+        <div class="batch-receive__scan-title">制令单号扫码区</div>
         <div class="batch-receive__scan-area">
-          <input ref="flowScanInput" v-model="flowScanCode" class="batch-receive__scan-input" placeholder="请在这里扫描流程卡编码"
+          <input ref="flowScanInput" v-model="flowScanCode" class="batch-receive__scan-input" placeholder="在这扫描制令单号"
             @keyup.enter="handleFlowScanCodeConfirm" autofocus />
         </div>
       </div>
@@ -22,7 +22,7 @@
         <div class="batch-receive__scan-title">员工扫码区</div>
         <div class="batch-receive__scan-area">
           <input ref="employeeScanInput" v-model="employeeScanCode" class="batch-receive__scan-input"
-            placeholder="请在这里扫描员工编码" @keyup.enter="handleEmployeeScanCodeConfirm" />
+            placeholder="在这扫描员工编码" @keyup.enter="handleEmployeeScanCodeConfirm" />
         </div>
       </div>
     </div>
@@ -934,10 +934,19 @@ export default {
     /* 1px -> 0.13vh (1/768*100) */
     border-radius: 0.52vh;
     /* 4px -> 0.52vh (4/768*100) */
+    font-size: 1.56vh;
+    /* 添加字体大小 12px -> 1.56vh (12/768*100) */
 
     &:focus {
       outline: none;
       border-color: #409eff;
+    }
+
+    &::placeholder {
+      color: #909399;
+      font-size: 1.56vh;
+      /* 设置placeholder字体大小 12px -> 1.56vh (12/768*100) */
+      opacity: 0.8;
     }
   }
 
@@ -1171,7 +1180,7 @@ export default {
     display: flex;
     margin-bottom: 0.78vh;
     /* 进一步减小间距 */
-    align-items: flex-start;
+    align-items: center;
 
     &:last-child {
       margin-bottom: 0;
@@ -1204,8 +1213,8 @@ export default {
     word-break: break-all;
     padding: 0 0.65vw;
     /* 减小内边距 */
-    align-content: center;
-    text-align: start;
+    display: flex;
+    align-items: center;
     width: calc(100% - var(--lable-width));
   }
 
@@ -1450,5 +1459,18 @@ export default {
 
 .employee-select-wrapper {
   flex: 1;
+}
+
+/* 添加van-search的placeholder样式 */
+::v-deep .van-search .van-field__control {
+  font-size: 1.56vh;
+  /* 添加字体大小 12px -> 1.56vh (12/768*100) */
+}
+
+::v-deep .van-search .van-field__control::placeholder {
+  color: #909399;
+  font-size: 1.56vh;
+  /* 设置placeholder字体大小 12px -> 1.56vh (12/768*100) */
+  opacity: 0.8;
 }
 </style>

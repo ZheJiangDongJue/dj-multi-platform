@@ -7,7 +7,8 @@
                 <div class="field-column">
                     <van-field :value="billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码"
                         :readonly="isReadOnly" v-click-tooltip="billData.data.MaterialCode"
-                        @input="updateField('MaterialCode', $event)" />
+                        @input="updateField('MaterialCode', $event)" 
+                        @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" />
                 </div>
                 <div class="field-column">
                     <van-field :value="billData.data.MaterialName" label="物料名称" :readonly="isReadOnly"
@@ -31,7 +32,7 @@
                 <div class="field-column spec-type-explain-field">
                     <van-field :value="billData.data.MaterialSpecTypeExplain" label="规格型号说明" :readonly="isReadOnly"
                         v-click-tooltip="billData.data.MaterialSpecTypeExplain"
-                        @input="updateField('MaterialSpecTypeExplain', $event)" />
+                        @input="updateField('MaterialSpecTypeExplain', $event)" class="long-label-field" />
                 </div>
                 <div class="quantity-column">
                     <van-field :value="billData.data.PreCmpBQty" label="生产数" :readonly="isReadOnly"
@@ -50,12 +51,20 @@
                 </div>
                 <div class="field-column">
                     <van-field :value="billData.data.InnerKey" label="制令单号" :readonly="isReadOnly"
-                        v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" />
+                        v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" 
+                        @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" />
                 </div>
                 <div class="quantity-column">
                     <van-field :value="billData.data.CmpBQty" label="合格数" :readonly="isReadOnly"
                         v-click-tooltip="billData.data.CmpBQty" @input="updateField('CmpBQty', $event)" />
                 </div>
+            </div>
+            <div class="header-row">
+                <div class="field-column"></div>
+                <div class="status-badge-container">
+                    <StatusBadge :status="billData?.data?.Status" />
+                </div>
+                <div class="field-column"></div>
             </div>
         </div>
 
@@ -63,7 +72,8 @@
         <div v-else class="header-content mobile-header-content">
             <div class="mobile-header-section">
                 <van-field :value="billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码" :readonly="isReadOnly"
-                    v-click-tooltip="billData.data.MaterialCode" @input="updateField('MaterialCode', $event)" />
+                    v-click-tooltip="billData.data.MaterialCode" @input="updateField('MaterialCode', $event)" 
+                    @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" />
                 <van-field :value="billData.data.MaterialName" label="物料名称" :readonly="isReadOnly"
                     v-click-tooltip="billData.data.MaterialName" @input="updateField('MaterialName', $event)" />
                 <van-field :value="billData.data.MaterialTuHao" label="物料图号" :readonly="isReadOnly"
@@ -74,7 +84,8 @@
                     v-click-tooltip="billData.data.MaterialSpecTypeExplain"
                     @input="updateField('MaterialSpecTypeExplain', $event)" />
                 <van-field :value="billData.data.InnerKey" label="制令单号" :readonly="isReadOnly"
-                    v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" />
+                    v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" 
+                    @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" />
                 <van-field :value="billData.data.BQty" label="计划数" :readonly="isReadOnly"
                     v-click-tooltip="billData.data.BQty" @input="updateField('BQty', $event)" />
                 <van-field :value="billData.data.PreCmpBQty" label="生产数" :readonly="isReadOnly"
@@ -86,6 +97,9 @@
                     @input="updateField('DocumentTime', $event)" />
                 <van-field :value="billData.data.Code" label="单据编号" :readonly="isReadOnly"
                     v-click-tooltip="billData.data.Code" @input="updateField('Code', $event)" />
+                <div>
+                    <StatusBadge :status="billData?.data?.Status" />
+                </div>
             </div>
         </div>
     </div>
@@ -93,9 +107,13 @@
 
 <script>
 import { formatDate } from '@/utils/date-utils';
+import StatusBadge from '@/views/technology/ProcessAssemblyFlow/components/StatusBadge.vue';
 
 export default {
     name: 'HeaderPanel',
+    components: {
+        StatusBadge
+    },
     props: {
         billData: {
             type: Object,
@@ -119,7 +137,13 @@ export default {
         updateField(field, value) {
             this.$emit('update:field', { field, value });
         },
-        formatDate
+        formatDate,
+        handleMaterialCodeEnter(value) {
+            this.$emit('material-code-enter', value);
+        },
+        handleInnerKeyEnter(value) {
+            this.$emit('inner-key-enter', value);
+        }
     }
 }
 </script>
@@ -189,12 +213,29 @@ export default {
     .spec-type-explain-field {
         flex: 2;
         min-width: 32vw;
+
+        /* 规格型号说明字段特定样式 */
+        ::v-deep .van-field__value,
+        ::v-deep .van-field__body,
+        ::v-deep .van-cell__value,
+        ::v-deep .van-field__control {
+            width: 100%;
+            min-width: 0;
+            text-overflow: ellipsis;
+        }
     }
 
     /* 数量列样式 */
     .quantity-column {
         flex: 0.6;
         min-width: 9vw;
+    }
+
+    /* 状态徽章容器居中 */
+    .status-badge-container {
+        display: flex;
+        justify-content: center;
+        flex: 1;
     }
 
     /* 头部行中的输入框样式 */
@@ -207,9 +248,9 @@ export default {
 
         /* 统一标签宽度 */
         ::v-deep .van-field__label {
-            width: 6vw;
-            min-width: 6vw;
-            flex: 0 0 6vw;
+            width: 8vw;
+            min-width: 8vw;
+            flex: 0 0 8vw;
             justify-content: flex-end;
             padding-right: 1vw;
         }
@@ -220,6 +261,12 @@ export default {
             flex: 1;
         }
 
+        /* 确保输入值充分利用可用空间 */
+        ::v-deep .van-field__control {
+            width: 100%;
+            text-overflow: ellipsis;
+        }
+
         /* 悬停状态样式 */
         &:hover {
             background: transparent;
@@ -228,6 +275,15 @@ export default {
         /* 只读状态样式 */
         &.van-field--readonly {
             background: transparent;
+        }
+
+        /* 规格型号说明专用更宽标签 */
+        &.long-label-field {
+            ::v-deep .van-field__label {
+                width: 10vw;
+                min-width: 10vw;
+                flex: 0 0 10vw;
+            }
         }
     }
 }

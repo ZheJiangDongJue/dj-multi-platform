@@ -367,6 +367,15 @@ export class BillPageViewModel extends PageBaseViewModel {
         }
 
         try {
+            // 检查单据是否已审批
+            if (this.billData.data.id && this.billData.data.Status && (this.billData.data.Status & 1) !== 0) {
+                context.$dialog.alert({
+                    title: '保存失败',
+                    message: "已审批的单据不允许保存",
+                });
+                return { success: false, message: "已审批的单据不允许保存" };
+            }
+
             // 验证单据头必填项
             const billValidation = this.billData.validateRequired();
             if (!billValidation.isValid) {

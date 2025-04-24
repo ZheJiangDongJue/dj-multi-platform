@@ -72,17 +72,19 @@ class NetworkHelper {
    * @private
    */
   handleOffline() {
-    this.isOnline = false;
+    //TODO: 暂时不要网络断开事件
+    return;
+    // this.isOnline = false;
     
-    // 储存当前页面，用于网络恢复后返回（暂未使用）
-    if (router.currentRoute.path !== '/network-error' && 
-        router.currentRoute.path !== '/login') {
-      // eslint-disable-next-line no-unused-vars
-      this.lastValidRoute = router.currentRoute.fullPath;
-    }
+    // // 储存当前页面，用于网络恢复后返回（暂未使用）
+    // if (router.currentRoute.path !== '/network-error' && 
+    //     router.currentRoute.path !== '/login') {
+    //   // eslint-disable-next-line no-unused-vars
+    //   this.lastValidRoute = router.currentRoute.fullPath;
+    // }
     
-    // 通知所有监听器
-    this.notifyListeners();
+    // // 通知所有监听器
+    // this.notifyListeners();
   }
   
   /**

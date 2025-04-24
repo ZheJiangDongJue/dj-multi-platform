@@ -91,7 +91,21 @@ function getPreviousValidRoute() {
 const routes = [
     { path: '/', component: Login },
     { path: '/login', component: Login },
-    { path: '/home', component: Home, meta: { requiresAuth: true } },
+    { 
+        path: '/home', 
+        component: Home, 
+        meta: { requiresAuth: true },
+        children: [
+            // 子路由定义，可以添加更多的子路由
+            { path: 'zzlck', component: ProcessAssemblyFlowBill, meta: { requiresAuth: true } },
+            { path: 'pljszzlck', component: BatchReceiveProcessAssemblyFlow, meta: { requiresAuth: true } },
+            { path: 'plwgzzlck', component: BatchCompleteProcessAssemblyFlow, meta: { requiresAuth: true } },
+            { path: 'user-settings', component: UserSettings, meta: { requiresAuth: true } },
+            // 通用页面路由
+            { path: 'unvs/:pageName', component: UniversalPage, meta: { requiresAuth: true } },
+        ]
+    },
+    // 保留原有的直接路由以兼容现有代码
     { path: '/zzlck', component: ProcessAssemblyFlowBill, meta: { requiresAuth: true } },//组装流程卡
     { path: '/pljszzlck', component: BatchReceiveProcessAssemblyFlow, meta: { requiresAuth: true } },//批量接收装配流程
     { path: '/plwgzzlck', component: BatchCompleteProcessAssemblyFlow, meta: { requiresAuth: true } },//批量完工装配流程
@@ -105,7 +119,6 @@ const routes = [
         skipInHistory: true // 在历史导航中跳过
       }
     },
-
     { path: '/demo/dock', component: DockDemo },
     { path: '/demo/grid', component: GridDemo },
     { path: '/demo/canvas', component: CanvasDemo },
@@ -135,15 +148,17 @@ const handleOnlineStatusChange = () => {
 // 添加网络状态监听
 window.addEventListener('online', handleOnlineStatusChange);
 window.addEventListener('offline', () => {
-  // 如果当前不是网络错误页面或登录页
-  if (navigator.onLine === false && 
-      router.currentRoute.path !== '/network-error' && 
-      router.currentRoute.path !== '/login') {
-    router.replace({ 
-      path: '/network-error',
-      query: { from: router.currentRoute.fullPath }
-    });
-  }
+  //TODO: 暂时不要网络断开事件
+  return;
+  // // 如果当前不是网络错误页面或登录页
+  // if (navigator.onLine === false && 
+  //     router.currentRoute.path !== '/network-error' && 
+  //     router.currentRoute.path !== '/login') {
+  //   router.replace({ 
+  //     path: '/network-error',
+  //     query: { from: router.currentRoute.fullPath }
+  //   });
+  // }
 });
 
 // 将navigationHistory暴露给全局以便调试

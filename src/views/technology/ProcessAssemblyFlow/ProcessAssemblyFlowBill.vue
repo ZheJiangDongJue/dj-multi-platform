@@ -9,12 +9,6 @@
                             <span>返回</span>
                         </div>
                     </DockItem>
-                    <DockItem dock="right">
-                        <StatusBadge :status="vm.billData?.data?.Status" />
-                    </DockItem>
-                    <DockItem dock="right">
-                        <div :style="{ width: '1px', height: '100%', backgroundColor: '#ccc', margin: '0 10px' }"></div>
-                    </DockItem>
                     <DockItem>
                         <ToolbarPanel @command="raiseCommand" />
                     </DockItem>
@@ -24,7 +18,8 @@
             <!-- 宽屏状态下，头部面板放在滚动区域外部 -->
             <DockItem v-if="vm.isReady && isWideScreen()" dock="top" class="header-panel-container">
                 <HeaderPanel :billData="vm.billData" :isReadOnly="isBillApproved()" :screenWidth="screenWidth"
-                    @update:field="handleUpdateField" class="fixed-header-panel" />
+                    @update:field="handleUpdateField" @material-code-enter="handleMaterialCodeEnter" 
+                    @inner-key-enter="handleInnerKeyEnter" class="fixed-header-panel" />
             </DockItem>
 
             <DockItem dock="fill">
@@ -48,6 +43,8 @@
                             <!-- 头部面板区域 - 仅在窄屏时显示 -->
                             <HeaderPanel v-if="!isWideScreen()" :billData="vm.billData" :isReadOnly="isBillApproved()"
                                 :screenWidth="screenWidth" @update:field="handleUpdateField"
+                                @material-code-enter="handleMaterialCodeEnter"
+                                @inner-key-enter="handleInnerKeyEnter"
                                 class="scrollable-header-panel" />
 
                             <!-- 卡片列表区域 -->
@@ -110,7 +107,6 @@ import { pageStateMixin } from '@/mixins';
 import HeaderPanel from './components/HeaderPanel.vue';
 import ToolbarPanel from './components/ToolbarPanel.vue';
 import CardList from './components/CardList.vue';
-import StatusBadge from './components/StatusBadge.vue';
 
 export default {
     components: {
@@ -121,7 +117,6 @@ export default {
         HeaderPanel,
         ToolbarPanel,
         CardList,
-        StatusBadge,
     },
     // 使用页面状态混入
     mixins: [pageStateMixin],
@@ -143,7 +138,10 @@ export default {
             vm: new BillPageViewModel(),
             showBackToTop: false,
             // 当前页面的滚动位置
-            scrollPosition: 0
+            scrollPosition: 0,
+            // 标记是否正在处理回车事件
+            isHandlingMaterialCodeEnter: false,
+            isHandlingInnerKeyEnter: false
         }
     },
     computed: {
@@ -175,68 +173,48 @@ export default {
                     this.setMaterialInBill(material);
                 }
                 else {
-                    this.$dialog.alert({
-                        title: '提示',
+                    // this.$dialog.alert({
+                    //     title: '提示',
+                    //     message: `该单据的物料无法找到`,
+                    // })
+                    this.$toast({
                         message: `该单据的物料无法找到`,
+                        position: 'bottom',
+                        duration: 2000
                     })
                 }
             },
         },
-        'vm.billData.data.MaterialCode': {
-            async handler(newVal,) {
-                if (newVal == null) return;
-                if (newVal == '') return;
-                let query = new Query();
-                query.TableName = "Material";
-                query.ShortName = "m";
-                query.Select = 'm.id';
-                query.AddWhere(`m.DeletedTag=0`);
-                query.AddWhere(`m.Code='${newVal}'`);
-                let pack = await generalapi.getDataEx(query);
-                if (pack.Status == 200) {
-                    /**@type {any[]} */
-                    var materials = pack.Data;
-                    if (materials.length > 0) {
-                        let material = pack.Data[0];
-                        this.vm.billData.setValue('Materialid', material.id);
-                    }
-                    else {
-                        this.setMaterialInBill(null);
-                    }
-                }
-                else {
-                    this.$dialog.alert({
-                        title: '提示',
-                        message: `该单据的物料无法找到`,
-                    })
-                }
-            },
-        },
-        'vm.billData.data.InnerKey': {
-            async handler(newVal, oldVal) {
-                // 输入验证与边界条件处理
-                if (newVal == null || newVal === '') return;
+        // 'vm.billData.data.MaterialCode': {
+        //     async handler(newVal, oldVal) {
+        //         // 跳过空值或与输入事件相同的值
+        //         if (newVal == null || newVal == '' || this.isHandlingMaterialCodeEnter) {
+        //             this.isHandlingMaterialCodeEnter = false;
+        //             return;
+        //         }
+        //         // 避免重复处理相同值
+        //         if (newVal === oldVal) return;
+                
+        //         await this.handleMaterialCodeQuery(newVal);
+        //     },
+        // },
+        // 'vm.billData.data.InnerKey': {
+        //     async handler(newVal, oldVal) {
+        //         // 输入验证与边界条件处理
+        //         if (newVal == null || newVal === '' || this.isHandlingInnerKeyEnter) {
+        //             this.isHandlingInnerKeyEnter = false;
+        //             return;
+        //         }
 
-                // 避免重复处理同一个值
-                if (newVal === oldVal) return;
+        //         // 避免重复处理同一个值
+        //         if (newVal === oldVal) return;
 
-                // 如果正在打开单据或正在恢复状态，则不执行查询
-                if (this.vm.isOpeningBill || this.isRestoringState) return;
+        //         // 如果正在打开单据或正在恢复状态，则不执行查询
+        //         if (this.vm.isOpeningBill || this.isRestoringState) return;
 
-                try {
-                    console.log('扫码或输入单号:', newVal);
-
-                    // 使用processScanByDailyPlanDetail方法处理扫码结果
-                    await this.processScanByDailyPlanDetail(newVal);
-                } catch (error) {
-                    console.error('扫码处理失败:', error);
-                    this.$dialog.alert({
-                        title: '提示',
-                        message: `扫码查询失败: ${error.message || '未知错误'}`,
-                    });
-                }
-            },
-        },
+        //         await this.handleInnerKeyQuery(newVal);
+        //     },
+        // },
         // 监听对话框数据变化
         dialogDataContext: {
             handler(newVal) {
@@ -885,16 +863,24 @@ export default {
                         if (data && data.ProcessAssemblyFlowDocument && data.ProcessAssemblyFlowDocument.id) {
                             await this.processScanResult(data.ProcessAssemblyFlowDocument.id);
                         } else {
+                            // 清理输入框内容
+                            this.vm.billData.setValue('InnerKey', '');
                             throw new Error('未找到有效的流程卡单据');
                         }
                     } else {
+                        // 清理输入框内容
+                        this.vm.billData.setValue('InnerKey', '');
                         throw new Error(pack.Message || '准备流程卡接收失败,未知错误');
                     }
                 } else {
+                    // 清理输入框内容
+                    this.vm.billData.setValue('InnerKey', '');
                     // 未找到对应的日计划明细记录，尝试直接通过单号查询
                     await this.processScanByInnerKey(code);
                 }
             } catch (error) {
+                // 清理输入框内容
+                this.vm.billData.setValue('InnerKey', '');
                 console.error('通过日计划处理扫码结果失败:', error);
                 this.$dialog.alert({
                     title: '提示',
@@ -935,6 +921,138 @@ export default {
             } catch (error) {
                 console.error('通过内部编号处理扫码结果失败:', error);
                 throw error; // 将错误向上传递
+            }
+        },
+        /**
+         * 处理物料编码回车事件
+         * @param {string} value 物料编码
+         */
+        async handleMaterialCodeEnter(value) {
+            // 标记正在处理回车事件
+            this.isHandlingMaterialCodeEnter = true;
+            await this.handleMaterialCodeQuery(value);
+        },
+
+        /**
+         * 处理物料编码查询
+         * @param {string} newVal 物料编码
+         */
+        async handleMaterialCodeQuery(newVal) {
+            if (newVal == null || newVal == '') return;
+            
+            try {
+                // 显示加载状态
+                this.$toast.loading({
+                    message: '正在查询物料...',
+                    forbidClick: true,
+                    duration: 0
+                });
+                
+                let query = new Query();
+                query.TableName = "Material";
+                query.ShortName = "m";
+                query.Select = 'm.id';
+                query.AddWhere(`m.DeletedTag=0`);
+                query.AddWhere(`m.Code='${newVal}'`);
+                let pack = await generalapi.getDataEx(query);
+                
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                if (pack.Status == 200) {
+                    /**@type {any[]} */
+                    var materials = pack.Data;
+                    if (materials.length > 0) {
+                        let material = pack.Data[0];
+                        this.vm.billData.setValue('Materialid', material.id);
+                    }
+                    else {
+                        // 清理输入框内容
+                        this.vm.billData.setValue('MaterialCode', '');
+                        this.setMaterialInBill(null);
+                        this.$toast({
+                            message: `未找到编码为 ${newVal} 的物料`,
+                            position: 'bottom',
+                            duration: 2000
+                        });
+                    }
+                }
+                else {
+                    // 清理输入框内容
+                    this.vm.billData.setValue('MaterialCode', '');
+                    this.$toast({
+                        message: `查询物料失败: ${pack.Message || '未知错误'}`,
+                        position: 'bottom',
+                        duration: 2000
+                    });
+                }
+            } catch (error) {
+                // 清理标记
+                this.isHandlingMaterialCodeEnter = false;
+                // 清理输入框内容
+                this.vm.billData.setValue('MaterialCode', '');
+
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                console.error('查询物料失败:', error);
+                this.$toast({
+                    message: `查询物料失败: ${error.message || '未知错误'}`,
+                    position: 'bottom',
+                    duration: 2000
+                });
+            }
+        },
+
+        /**
+         * 处理制令单号回车事件
+         * @param {string} value 制令单号
+         */
+        async handleInnerKeyEnter(value) {
+            console.log(value);
+            // 标记正在处理回车事件
+            this.isHandlingInnerKeyEnter = true;
+            await this.handleInnerKeyQuery(this.vm.billData.data.InnerKey);
+        },
+
+        /**
+         * 处理制令单号查询
+         * @param {string} newVal 制令单号
+         */
+        async handleInnerKeyQuery(newVal) {
+            // 输入验证与边界条件处理
+            if (newVal == null || newVal === '') return;
+
+            try {
+                console.log('扫码或输入单号:', newVal);
+                
+                // 显示加载状态
+                this.$toast.loading({
+                    message: '正在查询...',
+                    forbidClick: true,
+                    duration: 0
+                });
+
+                // 使用processScanByDailyPlanDetail方法处理扫码结果
+                await this.processScanByDailyPlanDetail(newVal);
+                
+                // 关闭加载状态
+                this.$toast.clear();
+            } catch (error) {
+                // 清理标记
+                this.isHandlingInnerKeyEnter = false;
+                // 清理输入框内容
+                this.vm.billData.setValue('InnerKey', '');
+
+                // 关闭加载状态
+                this.$toast.clear();
+                
+                console.error('扫码处理失败:', error);
+                this.$toast({
+                    message: `扫码查询失败: ${error.message || '未知错误'}`,
+                    position: 'bottom',
+                    duration: 2000
+                });
             }
         },
     }
@@ -1120,5 +1238,60 @@ body .van-dialog__footer {
 /* 对话框遮罩层 */
 .van-overlay.van-dialog__overlay {
     z-index: var(--z-index-overlay);
+}
+
+/* 窄屏下的对话框样式调整 */
+@media screen and (max-width: 799px) {
+    .assembly-flow-popup {
+        margin: 0 !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        
+        /* 确保内容可以滚动 */
+        .van-dialog__content {
+            max-height: calc(90vh - 108px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* 优化对话框标题栏 */
+        .dialog-title {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 1;
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* 调整内容区域的padding */
+        .van-dialog__content {
+            padding: 10px;
+        }
+        
+        /* 确保对话框内的label宽度足够显示2个汉字 */
+        .van-field__label {
+            min-width: 70px !important;
+            width: auto !important;
+            flex: 0 0 70px !important;
+        }
+        
+        /* 对van-field应用紧凑布局 */
+        .van-field {
+            padding: 8px 10px !important;
+        }
+    }
+    
+    /* 确保对话框不会超出屏幕 */
+    .van-dialog {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        margin: 0 !important;
+        max-height: 90vh !important;
+    }
 }
 </style>

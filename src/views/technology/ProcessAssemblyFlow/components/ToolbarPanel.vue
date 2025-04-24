@@ -8,8 +8,7 @@
         <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('SaveBill')" plain>保存</van-button>
         <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('DeleteBill')" plain>删除单据</van-button>
         <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('ApprovalBill')" plain>审批</van-button>
-        <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('ReverseApprovalBill')"
-            plain>反审批</van-button>
+        <van-button class="toolbar-btn toolbar__btn" @click="handleCommand('ReverseApprovalBill')" plain>反审批</van-button>
 
         <!-- 触发按钮 -->
         <!-- <van-button class="btn" @click="showMenu = true" plain>单据操作</van-button> -->
@@ -97,7 +96,7 @@ export default {
             /* 12px -> 1.56vh (12/768*100) */
             padding: 0 1.56vw;
             /* 修改内边距，从0.78vw增加到1.56vw */
-            min-width: 12vw;
+            // min-width: 12vw;
             /* 添加最小宽度，确保4个字的按钮有足够空间 */
             overflow: hidden;
             /* 防止文本溢出 */

@@ -1,10 +1,8 @@
 <template>
   <div>
     <div class="container">
-      <van-field type="textarea" label="规格型号" v-model="data.MaterialSpecType" rows="2" autosize autofocus maxlength="50"
-        show-word-limit class="message" readonly v-click-tooltip="data.MaterialSpecType" />
-      <van-field type="textarea" label="规格型号说明" v-model="data.MaterialSpecTypeExplain" rows="2" autosize autofocus
-        maxlength="50" show-word-limit class="message" readonly v-click-tooltip="data.MaterialSpecTypeExplain" />
+      <van-field label="规格型号" v-model="data.MaterialSpecType" rows="2" readonly v-click-tooltip="data.MaterialSpecType" />
+      <van-field label="规格型号说明" v-model="data.MaterialSpecTypeExplain" rows="2" readonly v-click-tooltip="data.MaterialSpecTypeExplain" />
 
       <!-- 两列布局 -->
       <div class="field-container">
@@ -20,37 +18,43 @@
 
         <!-- 将计件人员改为下拉框 -->
         <div class="employee-select-wrapper">
-          <van-field
-            v-model="data.ReceiveEmployeeName"
-            label="计件人员"
-            readonly
-            clickable
-            required
-            :disabled="data?.Status > 0"
-            right-icon="arrow-down"
-            @click="handleEmployeeFieldClick"
-            v-click-tooltip="data.ReceiveEmployeeName"
-          />
+          <van-field v-model="data.ReceiveEmployeeName" label="计件人员" required
+            :disabled="data?.Status > 0" right-icon="arrow-down" @click-right-icon="handleScanEmployee"
+            @input="handleEmployeeInput" @keyup.enter.native="handleEmployeeInputEnter" 
+            @click="handleEmployeeFieldClick" @focus="selectAllText($event)"
+            v-click-tooltip="data.ReceiveEmployeeName" />
           <van-popup v-model="showEmployeeSelector" position="bottom" round get-container="body">
             <div class="employee-search">
               <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
             </div>
-            <van-picker
-              show-toolbar
-              :columns="filteredEmployeeList"
-              @confirm="onEmployeeSelected"
-              @cancel="showEmployeeSelector = false"
-              value-key="Name"
-            />
+            <van-picker show-toolbar :columns="filteredEmployeeList" @confirm="onEmployeeSelected"
+              @cancel="showEmployeeSelector = false" value-key="Name" />
           </van-popup>
         </div>
-        <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode" />
-        <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" :disabled="data?.Status > 0" />
+        <!-- 三列布局行 -->
+        <div class="three-column-row">
+          <van-field v-model="data.MaterialCode" label="物料编码" readonly v-click-tooltip="data.MaterialCode" />
+
+          <div class="qualification-wrapper">
+            <van-field label="判定" readonly required>
+              <template #input>
+                <el-select v-model="qualificationValue" size="small" class="qualification-dropdown" popper-append-to-body
+                  popper-class="high-priority-dropdown" :popper-options="{ gpuAcceleration: false }"
+                  @visible-change="handleSelectVisibleChange" :disabled="data?.Status > 0">
+                  <el-option v-for="item in qualificationOptions" :key="item.value" :label="item.text"
+                    :value="item.value"></el-option>
+                </el-select>
+              </template>
+            </van-field>
+          </div>
+
+          <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" required :disabled="data?.Status > 0" />
+        </div>
       </div>
 
       <!-- 新增的对话框底部组件 -->
       <div class="dialog-footer">
-        <div class="qualification-wrapper">
+        <div class="qualification-wrapper" style="visibility: hidden;">
           <el-select v-model="qualificationValue" size="small" class="qualification-dropdown" popper-append-to-body
             popper-class="high-priority-dropdown" :popper-options="{ gpuAcceleration: false }"
             @visible-change="handleSelectVisibleChange" :disabled="data?.Status > 0">
@@ -99,12 +103,24 @@ export default {
         { text: '让步接收', value: 2 },
         { text: '不合格', value: 4 }
       ],
+      showQualificationSelector: false,
+      qualificationOptionsList: [
+        { text: '合格', value: 1 },
+        { text: '让步接收', value: 2 },
+        { text: '不合格', value: 4 }
+      ],
+      employeeInputText: '', // 用于员工输入框
+      isHandlingEmployeeInput: false, // 是否正在处理员工输入
     };
   },
   computed: {
     // 计算属性，返回格式化的接收日期
     formattedApprovalTime() {
       return formatDate(this.data?.ApprovalTime || '');
+    },
+    qualificationText() {
+      const selectedOption = this.qualificationOptions.find(option => option.value === this.qualificationValue);
+      return selectedOption ? selectedOption.text : '';
     }
   },
   watch: {
@@ -116,17 +132,24 @@ export default {
           this.data = JSON.parse(JSON.stringify(newVal));
           // 初始化后立即加载数据，但不再触发更多循环
           await this.refreshData();
-          
+
+          // 如果没有设置接收日期，则设置为当前日期
+          if (!this.data.ApprovalTime) {
+            this.data.ApprovalTime = formatDate(new Date());
+          }
+
           // 加载员工列表
           await this.loadEmployeeList();
 
-          // 设置合格性值
-          if (this.data && typeof this.data.CheckResult !== 'undefined') {
-            this.qualificationValue = this.data.CheckResult;
-          } else {
-            // 默认设置为合格
-            this.qualificationValue = 1;
-          }
+          // 默认设置为合格
+          this.qualificationValue = 1;
+          // // 设置合格性值
+          // if (this.data && typeof this.data.CheckResult !== 'undefined') {
+          //   this.qualificationValue = this.data.CheckResult;
+          // } else {
+          //   // 默认设置为合格
+          //   this.qualificationValue = 1;
+          // }
         }
       }
     },
@@ -149,16 +172,20 @@ export default {
         this.filteredEmployeeList = [...this.employeeList];
         return;
       }
-      
+
       const searchText = this.employeeSearchText.toLowerCase();
       this.filteredEmployeeList = this.employeeList.filter(employee => {
         return (
-          (employee.Name && employee.Name.toLowerCase().includes(searchText)) || 
+          (employee.Name && employee.Name.toLowerCase().includes(searchText)) ||
           (employee.CodeForScan && employee.CodeForScan.toLowerCase().includes(searchText))
         );
       });
+
+      if (this.filteredEmployeeList.length == 1) {
+        this.onEmployeeSelected(this.filteredEmployeeList[0]);
+      }
     },
-    
+
     // 加载所有员工列表
     async loadEmployeeList() {
       try {
@@ -169,9 +196,9 @@ export default {
         query.AddWhere(`e.DeletedTag=0`);
         query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
         query.Order = 'e.Name ASC'; // 按姓名排序
-        
+
         const pack = await generalapi.getDataEx(query);
-        
+
         if (pack.Status == 200) {
           this.employeeList = pack.Data || [];
           // 初始设置过滤后的列表为完整列表
@@ -192,16 +219,16 @@ export default {
         });
       }
     },
-    
+
     // 处理员工字段点击
     handleEmployeeFieldClick() {
       // 如果已审批，不允许修改
       if (this.data?.Status > 0) {
         return;
       }
-      this.showEmployeeSelector = true;
+      // 不再打开选择器，交由focus事件处理选中文本
     },
-    
+
     // 处理员工选择
     onEmployeeSelected(employee) {
       if (employee && employee.id) {
@@ -216,7 +243,7 @@ export default {
       // 重置过滤的员工列表
       this.filteredEmployeeList = [...this.employeeList];
     },
-    
+
     // 处理日期字段点击
     handleDateFieldClick() {
       // 如果已审批，不允许修改
@@ -225,7 +252,7 @@ export default {
       }
       this.showCalendar = true;
     },
-    
+
     onSelectDate(date) {
       this.showCalendar = false;
       // 已审批状态下不允许修改日期
@@ -332,6 +359,15 @@ export default {
         });
         return false;
       }
+      
+      // 检查合格性判定
+      if (!this.qualificationValue || this.qualificationValue === 0) {
+        this.$dialog.alert({
+          title: '提示',
+          message: '请选择判定结果',
+        });
+        return false;
+      }
 
       // 所有必填项都已填写
       return true;
@@ -344,15 +380,6 @@ export default {
 
         // 在审批前更新合格性状态（如果未审批状态）
         if (!isApproved) {
-          // 检查合格性是否已选择（审批时必选）
-          if (this.qualificationValue === 0) {
-            this.$dialog.alert({
-              title: '提示',
-              message: '请选择左下角是否合格',
-            });
-            return;
-          }
-
           // 检查必填项
           if (!this.validateRequiredFields()) {
             return;
@@ -468,6 +495,134 @@ export default {
         // 用户点击取消，不做任何操作
       });
     },
+    handleQualificationClick() {
+      if (this.data?.Status > 0) {
+        return;
+      }
+      this.showQualificationSelector = true;
+    },
+    onQualificationSelected(option) {
+      if (option && option.value) {
+        this.qualificationValue = option.value;
+      }
+      this.showQualificationSelector = false;
+    },
+    // 处理员工扫码
+    handleScanEmployee() {
+      // 如果已审批，不允许修改
+      if (this.data?.Status > 0) {
+        return;
+      }
+      // 这里可以调用扫码API或组件，示例仅打开选择器
+      this.showEmployeeSelector = true;
+    },
+    
+    // 处理员工输入变化
+    handleEmployeeInput(value) {
+      // 如果已审批，不允许修改
+      if (this.data?.Status > 0) {
+        return;
+      }
+      this.employeeInputText = value;
+    },
+    
+    // 处理员工输入回车事件
+    async handleEmployeeInputEnter() {
+      if (this.data?.Status > 0 || !this.employeeInputText) {
+        return;
+      }
+      this.isHandlingEmployeeInput = true;
+      await this.searchEmployeeByInput(this.employeeInputText);
+      this.isHandlingEmployeeInput = false;
+    },
+    
+    // 根据输入搜索员工
+    async searchEmployeeByInput(inputText) {
+      try {
+        // 显示加载状态
+        this.$toast.loading({
+          message: '正在查询员工...',
+          forbidClick: true,
+          duration: 0
+        });
+        
+        let query = new Query();
+        query.TableName = "Employee";
+        query.ShortName = "e";
+        query.Select = 'e.id, e.Name, e.CodeForScan';
+        query.AddWhere(`e.DeletedTag=0`);
+        query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
+        query.AddWhere(`(e.Name LIKE '%${inputText}%' OR e.CodeForScan LIKE '%${inputText}%')`);
+        query.Order = 'e.Name ASC';
+        
+        const pack = await generalapi.getDataEx(query);
+        
+        // 关闭加载状态
+        this.$toast.clear();
+        
+        if (pack.Status == 200) {
+          const employees = pack.Data || [];
+          
+          if (employees.length === 0) {
+            this.$toast({
+              message: `未找到匹配 "${inputText}" 的员工`,
+              position: 'bottom',
+              duration: 2000
+            });
+            // 清空输入
+            this.$set(this.data, 'ReceiveEmployeeName', '');
+            this.$set(this.data, 'Employeeid', null);
+          } 
+          else if (employees.length === 1) {
+            // 直接选择唯一匹配的员工
+            const employee = employees[0];
+            this.$set(this.data, 'Employeeid', employee.id);
+            this.$set(this.data, 'ReceiveEmployeeName', employee.Name);
+            this.$toast({
+              message: `已选择员工: ${employee.Name}`,
+              position: 'bottom',
+              duration: 1000
+            });
+          } 
+          else {
+            // 多个匹配结果，显示选择器
+            this.filteredEmployeeList = employees;
+            this.showEmployeeSelector = true;
+          }
+        } else {
+          console.error("查询员工失败:", pack.Message);
+          this.$toast({
+            message: `查询员工失败: ${pack.Message || '未知错误'}`,
+            position: 'bottom',
+            duration: 2000
+          });
+        }
+      } catch (error) {
+        // 关闭加载状态
+        this.$toast.clear();
+        
+        console.error("查询员工出错:", error);
+        this.$toast({
+          message: `查询员工出错: ${error.message || '未知错误'}`,
+          position: 'bottom',
+          duration: 2000
+        });
+      }
+    },
+    // 选择输入框中的所有文本
+    selectAllText(event) {
+      // 如果已审批，不允许修改
+      if (this.data?.Status > 0) {
+        return;
+      }
+      
+      if (event && event.target) {
+        // 选择所有文本
+        setTimeout(() => {
+          event.target.select();
+        }, 10);
+      }
+    },
   },
 };
 </script>
@@ -475,7 +630,8 @@ export default {
 <style lang="scss" scoped>
 .container {
   background-color: rgb(245, 247, 250);
-  padding-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+  padding-bottom: 2.6vh;
+  /* 20px -> 2.6vh (20/768*100) */
 }
 
 /* 两列布局 */
@@ -487,17 +643,22 @@ export default {
 
 /* 让每个输入框占 50% 宽度 */
 .van-field {
-  flex: 1 1 calc(50% - 0.6vw); /* 6px -> 0.6vw (6/1024*100) */
+  flex: 1 1 calc(50% - 0.6vw);
+  /* 6px -> 0.6vw (6/1024*100) */
 }
 
 .van-cell {
-  padding: 0.4vh 1.56vw; /* 3px 16px -> 0.4vh 1.56vw (3/768*100, 16/1024*100) */
+  padding: 0.4vh 1.56vw;
+  /* 3px 16px -> 0.4vh 1.56vw (3/768*100, 16/1024*100) */
   background-color: transparent;
 }
 
 ::v-deep .van-field__body {
-  border: 0.13vh solid #000; /* 1px -> 0.13vh (1/768*100) */
-  border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+  border: 0.13vh solid #000;
+  /* 1px -> 0.13vh (1/768*100) */
+  border-radius: 0.52vh;
+  /* 4px -> 0.52vh (4/768*100) */
+  height: 3.5vh;
 }
 
 /* 对话框底部样式 */
@@ -505,20 +666,31 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1.04vh 0; /* 8px 0 -> 1.04vh 0 (8/768*100) */
-  border-top: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
-  margin-top: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+  padding: 1vh 0;
+  /* 调整内边距 */
+  border-top: 0.13vh solid #ebedf0;
+  margin-top: 1vh;
+  /* 适当增加顶部边距 */
   position: relative;
 
   /* 审批按钮样式 */
   .approve-button {
-    min-width: 11.7vw; /* 120px -> 11.7vw (120/1024*100) */
-    border-radius: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    min-width: 9vw;
+    height: 3.8vh;
+    /* 增加按钮高度 */
+    line-height: 3.8vh;
+    /* 确保文本垂直居中 */
+    border-radius: 1.8vh;
+    /* 增加圆角 */
+    font-size: 1.5vh;
+    /* 增加字体 */
     font-weight: 500;
     transition: all 0.3s ease;
     border: none;
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    box-shadow: 0 0.2vh 0.5vh rgba(0, 0, 0, 0.1);
+    /* 调整阴影 */
+    padding: 0 1.5vh;
+    /* 增加左右内边距 */
 
     /* 非反审批状态样式 */
     &:not(.reverse-approve) {
@@ -528,8 +700,8 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #45a049, #3d8b40);
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
+        transform: translateY(-0.13vh);
+        box-shadow: 0 0.26vh 0.78vh rgba(0, 0, 0, 0.15);
       }
     }
 
@@ -541,8 +713,8 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #F57C00, #EF6C00);
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.15); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
+        transform: translateY(-0.13vh);
+        box-shadow: 0 0.26vh 0.78vh rgba(0, 0, 0, 0.15);
       }
     }
   }
@@ -550,9 +722,11 @@ export default {
   /* 删除按钮样式 */
   .delete-button {
     position: absolute;
-    right: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
-    width: 5.2vh; /* 40px -> 5.2vh (40/768*100) */
-    height: 5.2vh; /* 40px -> 5.2vh (40/768*100) */
+    right: 1.95vw;
+    width: 3.8vh;
+    /* 增加宽度 */
+    height: 3.8vh;
+    /* 增加高度 */
     border-radius: 50%;
     padding: 0;
     display: flex;
@@ -561,37 +735,45 @@ export default {
     background: linear-gradient(135deg, #ff4d4d, #e33333);
     color: white;
     border: none;
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.1); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    box-shadow: 0 0.2vh 0.5vh rgba(0, 0, 0, 0.1);
+    /* 调整阴影 */
     transition: all 0.3s ease;
-
-    // /* 悬停状态样式 */
-    // &:hover {
-    //   background: linear-gradient(135deg, #e33333, #cc0000);
-    //   transform: translateY(-1px);
-    //   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    // }
 
     /* 图标样式 */
     .van-icon {
-      font-size: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+      font-size: 1.8vh;
+      /* 增加图标 */
     }
   }
 
   /* 合格性下拉框样式 */
   .qualification-wrapper {
     position: absolute;
-    left: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
-    width: 9.77vw; /* 100px -> 9.77vw (100/1024*100) */
+    left: 1.95vw;
+    width: 10vw;
   }
 
   .qualification-dropdown {
+    width: 100%;
+
     ::v-deep .el-input__inner {
-      border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
-      height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
-      border: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+      border-radius: 1.8vh;
+      /* 增加圆角 */
+      height: 3.8vh;
+      /* 增加高度 */
+      line-height: 3.8vh;
+      /* 确保文本垂直居中 */
+      border: 0.13vh solid #ebedf0;
       background: #f7f8fa;
       color: #323233;
       transition: all 0.3s ease;
+      padding: 0 1.2vh;
+      /* 调整左右内边距 */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 1.5vh;
+      /* 增加字体大小 */
     }
 
     ::v-deep .el-input__inner:hover {
@@ -600,12 +782,27 @@ export default {
     }
 
     ::v-deep .el-input__suffix {
-      right: 0.78vw; /* 8px -> 0.78vw (8/1024*100) */
+      right: 0.6vw;
+      /* 调整右侧图标间距 */
     }
 
     ::v-deep .el-select__caret {
       color: #969799;
+      font-size: 1.5vh;
+      /* 增加图标大小 */
     }
+  }
+
+  /* 添加必填标志 */
+  .qualification-wrapper::before {
+    content: "*";
+    color: #f56c6c;
+    margin-right: 4px;
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.8vh;
   }
 }
 
@@ -628,11 +825,14 @@ export default {
 
 /* 员工选择器样式 */
 .employee-select-wrapper {
-  flex: 1 1 calc(50% - 0.6vw); /* 6px -> 0.6vw (6/1024*100) */
-  
+  flex: 1 1 calc(50% - 0.6vw);
+  /* 6px -> 0.6vw (6/1024*100) */
+
   ::v-deep .van-field__body {
-    border: 0.13vh solid #000; /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh; /* 4px -> 0.52vh (4/768*100) */
+    border: 0.13vh solid #000;
+    /* 1px -> 0.13vh (1/768*100) */
+    border-radius: 0.52vh;
+    /* 4px -> 0.52vh (4/768*100) */
   }
 }
 
@@ -647,16 +847,87 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 2.08vh; /* 16px -> 2.08vh (16/768*100) */
+  font-size: 2.08vh;
+  /* 16px -> 2.08vh (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  border-bottom: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 1.04vh 1.56vw; /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
-  border-bottom: 0.13vh solid #ebedf0; /* 1px -> 0.13vh (1/768*100) */
+  padding: 1.04vh 1.56vw;
+  /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
+  border-bottom: 0.13vh solid #ebedf0;
+  /* 1px -> 0.13vh (1/768*100) */
+}
+
+/* 三列布局行 */
+.three-column-row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 0.5vh;
+
+  .van-field {
+    flex: 1 1 31%;
+    margin-right: 1%;
+  }
+
+  .qualification-wrapper {
+    flex: 1 1 31%;
+    position: relative;
+    margin-right: 1%;
+
+    .van-field {
+      width: 100%;
+      margin-right: 0;
+
+      ::v-deep .van-field__label {
+        width: 6vw;
+        flex: none;
+      }
+
+      ::v-deep .van-field__value {
+        flex: 1;
+      }
+    }
+    
+    ::v-deep .qualification-dropdown {
+      width: 100%;
+    }
+    
+    ::v-deep .el-input__inner {
+      border: none;
+      background: transparent;
+      padding: 0;
+      height: 3.5vh;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+/* 全局样式 */
+.high-priority-dropdown {
+  z-index: 9999 !important;
+
+  .el-select-dropdown__item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 2vw;
+  }
+
+  /* 窄屏适配 */
+  @media screen and (max-width: 480px) {
+    min-width: 20vw !important;
+    width: auto !important;
+
+    .el-select-dropdown__item {
+      font-size: 1.8vh;
+    }
+  }
 }
 </style>

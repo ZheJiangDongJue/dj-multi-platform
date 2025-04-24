@@ -20,6 +20,14 @@
                             <input type="password" v-model="password" placeholder="密码" />
                         </div>
                     </div>
+                    <div class="login-options">
+                        <div class="option-item">
+                            <el-checkbox v-model="rememberPassword">保存密码</el-checkbox>
+                        </div>
+                        <div class="option-item">
+                            <el-checkbox v-model="autoLogin">自动登录</el-checkbox>
+                        </div>
+                    </div>
                     <button type="submit" class="login-btn">登录系统</button>
                 </form>
                 <div class="login-footer">
@@ -54,15 +62,81 @@ export default {
             dbNames: [],
             dialogVisible: false,
             selectedDbName: '',
+            rememberPassword: false,
+            autoLogin: false,
+            autoLoginDuration: 7 * 24 * 60 * 60 * 1000, // 一周的毫秒数
+            enableAutoLoginExpiry: false, // 控制自动登录有效期逻辑是否生效
         }
     },
     created() {
-        let username = localStorage.getItem('username');
-        if (username !== null) {
-            this.username = username;
-        }
+        // 检查是否有已保存的用户信息
+        this.loadUserInfo();
+
+        // 检查是否可以自动登录
+        this.checkAutoLogin();
     },
     methods: {
+        loadUserInfo() {
+            // 加载用户名
+            let username = localStorage.getItem('username');
+            if (username !== null) {
+                this.username = username;
+            }
+            
+            // 加载记住密码状态
+            let rememberPassword = localStorage.getItem('rememberPassword');
+            if (rememberPassword !== null) {
+                this.rememberPassword = JSON.parse(rememberPassword);
+            }
+            
+            // 如果记住密码，加载保存的密码
+            if (this.rememberPassword) {
+                let password = localStorage.getItem('password');
+                if (password !== null) {
+                    this.password = password;
+                }
+            }
+            
+            // 加载自动登录状态
+            let autoLogin = localStorage.getItem('autoLogin');
+            if (autoLogin !== null) {
+                this.autoLogin = JSON.parse(autoLogin);
+            }
+        },
+        
+        checkAutoLogin() {
+            // 检查是否启用了自动登录
+            if (!this.autoLogin) {
+                return;
+            }
+            
+            // 检查登录时间是否在有效期内
+            let loginTime = localStorage.getItem('loginTime');
+            if (loginTime === null) {
+                return;
+            }
+            
+            // 如果启用了有效期检查，则验证是否过期
+            if (this.enableAutoLoginExpiry) {
+                const currentTime = new Date().getTime();
+                const loginTimeVal = parseInt(loginTime);
+                
+                // 计算剩余有效时间
+                const timeElapsed = currentTime - loginTimeVal;
+                if (timeElapsed > this.autoLoginDuration) {
+                    // 超出有效期，重置自动登录
+                    this.autoLogin = false;
+                    localStorage.setItem('autoLogin', 'false');
+                    return;
+                }
+            }
+            
+            // 在有效期内或禁用有效期检查，自动登录
+            if (this.username && this.password) {
+                this.handleLogin();
+            }
+        },
+        
         async handleLogin() {
             console.log('Login attempt:', this.username, this.password)
             try {
@@ -96,21 +170,72 @@ export default {
                 }
             }
         },
+        
         async confirmSelection() {
             var data = await LoginAPI.login(this.selectedDbName, this.username, this.password);
             if (data.IsSuccess) {
                 this.$commitUserInfo(data.UserInfo)
                 this.$commitDbName(this.selectedDbName);
-                //登陆成功后存用户名
-                localStorage.setItem('username', this.username)
+                
+                // 保存用户登录信息
+                this.saveUserInfo();
+                
                 // 设置登录时间，用于会话管理
-                localStorage.setItem('loginTime', new Date().getTime().toString())
-                this.$router.push('/home')
+                localStorage.setItem('loginTime', new Date().getTime().toString());
+                
+                // 导航到主页
+                this.$router.replace('/home');
+                
+                // // 如果是自动登录，显示提示信息
+                // if (this.autoLogin) {
+                //     this.showAutoLoginNotification();
+                // }
             }
             else {
                 console.log(data.ErrorMessage)
                 this.$message.error(data.ErrorMessage);
             }
+        },
+        
+        saveUserInfo() {
+            // 保存用户名
+            localStorage.setItem('username', this.username);
+            
+            // 保存记住密码选项状态
+            localStorage.setItem('rememberPassword', this.rememberPassword);
+            
+            // 如果选择了记住密码，保存密码
+            if (this.rememberPassword) {
+                localStorage.setItem('password', this.password);
+            } else {
+                localStorage.removeItem('password');
+            }
+            
+            // 保存自动登录选项状态
+            localStorage.setItem('autoLogin', this.autoLogin);
+        },
+        
+        showAutoLoginNotification() {
+            // 计算自动登录剩余时间
+            const loginTime = parseInt(localStorage.getItem('loginTime'));
+            const currentTime = new Date().getTime();
+            const timeRemaining = this.autoLoginDuration - (currentTime - loginTime);
+            
+            // 将毫秒转换为更可读的格式
+            const daysRemaining = Math.floor(timeRemaining / (24 * 60 * 60 * 1000));
+            const hoursRemaining = Math.floor((timeRemaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+            
+            // 显示通知
+            let message = this.enableAutoLoginExpiry 
+                ? `您已通过自动登录进入系统，自动登录还有 ${daysRemaining} 天 ${hoursRemaining} 小时有效` 
+                : '您已通过自动登录进入系统，自动登录将一直有效';
+                
+            this.$notify({
+                title: '自动登录',
+                message: message,
+                type: 'info',
+                duration: 5000
+            });
         }
     }
 }
@@ -221,6 +346,17 @@ input:focus {
     outline: none;
     border-color: #1c3d5a;
     box-shadow: 0 0 0 0.26vh rgba(28, 61, 90, 0.2); /* 2px -> 0.26vh (2/768*100) */
+}
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
+}
+
+.option-item {
+    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    color: #666;
 }
 
 .login-btn {
