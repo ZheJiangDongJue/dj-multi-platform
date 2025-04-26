@@ -46,6 +46,7 @@
                         @update:field="handleUpdateField"
                         @material-code-enter="handleMaterialCodeEnter"
                         @inner-key-enter="handleInnerKeyEnter"
+                        ref="headerPanel"
                         :class="isWideScreen() ? 'fixed-header-panel' : 'scrollable-header-panel'" />
                 </div>
             </template>
@@ -296,7 +297,6 @@ export default {
 
         &:hover {
             color: var(--warning-color);
-            transform: rotate(90deg);
         }
     }
 }

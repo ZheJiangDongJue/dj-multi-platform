@@ -587,11 +587,16 @@ export default {
             const currentScrollPosition = this.scrollPosition;
             console.log('操作完成前记录滚动位置:', currentScrollPosition);
 
-            // 关闭对话框
+            // 关闭对话框 - 强制关闭对话框并清理状态
             this.showReceiveDialog = false;
             this.showCompleteDialog = false;
             // 重置表名
             this.dialogDataContextTableName = '';
+            // 重置对话框数据上下文，避免残留数据
+            this.dialogDataContext = {};
+
+            // 确保DOM更新后再进行后续操作
+            await this.$nextTick();
 
             try {
                 // 刷新数据
@@ -624,9 +629,10 @@ export default {
                 }
 
                 // 显示错误提示
-                this.$dialog.alert({
-                    title: '提示',
+                this.$toast({
                     message: `刷新数据时出错: ${error.message || '未知错误'}`,
+                    position: 'bottom',
+                    duration: 2000
                 });
             }
         },
@@ -725,9 +731,11 @@ export default {
                 // 清理输入框内容
                 this.vm.billData.setValue('InnerKey', '');
                 console.error('通过日计划处理扫码结果失败:', error);
-                this.$dialog.alert({
-                    title: '提示',
+
+                this.$toast({
                     message: `处理扫码结果失败: ${error.message || '未知错误'}`,
+                    position: 'bottom',
+                    duration: 2000
                 });
             }
         },
@@ -759,6 +767,8 @@ export default {
                     this.$dialog.alert({
                         title: '提示',
                         message: `未找到对应的流程卡单据，请检查扫描的编码是否正确`,
+                    }).then(() => {
+                        this.$refs.headerPanel.$refs.innerKeyInput.focus();
                     });
                 }
             } catch (error) {
@@ -818,6 +828,8 @@ export default {
                             position: 'bottom',
                             duration: 2000
                         });
+
+                        this.$refs.headerPanel.$refs.MaterialCodeInput.focus();
                     }
                 }
                 else {

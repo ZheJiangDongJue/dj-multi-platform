@@ -9,7 +9,8 @@
                         :readonly="isReadOnly" v-click-tooltip="billData.data.MaterialCode"
                         @input="updateField('MaterialCode', $event)" 
                         @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" 
-                        v-close-keyboard />
+                        v-close-keyboard 
+                        ref="materialCodeInput" />
                 </div>
                 <div class="field-column">
                     <van-field :value="billData.data.MaterialName" label="物料名称" :readonly="true"
@@ -70,7 +71,8 @@
                 <van-field :value="billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码" :readonly="isReadOnly"
                     v-click-tooltip="billData.data.MaterialCode" @input="updateField('MaterialCode', $event)" 
                     @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" 
-                    v-close-keyboard />
+                    v-close-keyboard
+                    ref="materialCodeInput" />
                 <van-field :value="billData.data.MaterialName" label="物料名称" :readonly="true"
                     v-click-tooltip="billData.data.MaterialName" @input="updateField('MaterialName', $event)" />
                 <van-field :value="billData.data.MaterialTuHao" label="物料图号" :readonly="true"
@@ -80,9 +82,10 @@
                 <van-field :value="billData.data.MaterialSpecTypeExplain" label="规格型号说明" :readonly="true"
                     v-click-tooltip="billData.data.MaterialSpecTypeExplain"
                     @input="updateField('MaterialSpecTypeExplain', $event)" />
-                <van-field :value="billData.data.InnerKey" label="制令单号" :readonly="true"
+                <van-field :value="billData.data.InnerKey" label="制令单号" :readonly="isReadOnly"
                     v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" 
                     @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" 
+                    ref="innerKeyInput"
                     v-close-keyboard />
                 <van-field :value="billData.data.BQty" label="计划数" :readonly="isReadOnly"
                     v-click-tooltip="billData.data.BQty" @input="updateField('BQty', $event)" />
@@ -118,6 +121,19 @@ export default {
             type: Number,
             default: 0,
         },
+    },
+    mounted() {
+        /* 组件挂载后，自动聚焦制令单号输入框 */
+        this.$nextTick(() => {
+            /* 直接使用统一的引用名 */
+            console.log('this.$refs.innerKeyInput', this.$refs.innerKeyInput);
+            if (this.$refs.innerKeyInput && !this.isReadOnly) {
+                /* 使用setTimeout确保DOM完全渲染后进行聚焦 */
+                setTimeout(() => {
+                    this.$refs.innerKeyInput.focus();
+                }, 300);
+            }
+        });
     },
     computed: {
         isWideScreen() {
@@ -247,61 +263,53 @@ export default {
         }
 
         /* 确保输入值充分利用可用空间 */
+        ::v-deep .van-field__body,
+        ::v-deep .van-cell__value,
         ::v-deep .van-field__control {
             width: 100%;
+            min-width: 0;
             text-overflow: ellipsis;
         }
 
-        /* 悬停状态样式 */
+        /* 悬停和活动状态 */
         &:hover {
-            background: transparent;
+            box-shadow: 0 vh(0.13) vh(0.52) rgba(74, 144, 226, 0.15);
+            transform: translateY(-1px);
         }
 
-        /* 只读状态样式 */
-        &.van-field--readonly {
-            background: transparent;
+        &:focus-within {
+            box-shadow: 0 vh(0.13) vh(0.65) rgba(74, 144, 226, 0.25);
+            transform: translateY(-2px);
         }
+    }
+}
 
-        /* 规格型号说明专用更宽标签 */
-        &.long-label-field {
+/* 移动版布局特定样式 */
+.mobile-header-content {
+    padding: 0;
+
+    .mobile-header-section {
+        display: flex;
+        flex-direction: column;
+        gap: vh(0.65);
+
+        /* 移动版中字段宽度调整 */
+        .van-field {
             ::v-deep .van-field__label {
-                width: 10vw;
-                min-width: 10vw;
-                flex: 0 0 10vw;
+                width: 12vw;
+                min-width: 12vw;
+                flex: 0 0 12vw;
             }
         }
     }
 }
 
-/* 移动端头部部分样式 */
-.mobile-header-section {
-    display: flex;
-    flex-direction: column;
-    gap: vh(0.8);
-
-    /* 移动端输入框样式 */
-    .van-field {
-        width: 100%;
-        margin-bottom: 0;
-        padding: vh(0.3) 0;
-
-        /* 确保标签宽度固定，不会导致输入框变高 */
-        ::v-deep .van-field__label {
-            width: 25vw;
-            min-width: 25vw;
-            flex: 0 0 25vw;
-            justify-content: flex-start;
-            text-align: left;
-            white-space: nowrap;
-        }
-    }
-}
-
-/* 媒体查询 - 小屏幕样式 */
-@include ps {
-    .header-panel {
-        padding: vh(0.8);
-        margin-bottom: vh(1);
+/* 标签长的字段样式调整 */
+.long-label-field {
+    ::v-deep .van-field__label {
+        width: 10.5vw !important;
+        min-width: 10.5vw !important;
+        flex: 0 0 10.5vw !important;
     }
 }
 </style>
