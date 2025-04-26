@@ -14,7 +14,7 @@
         </div>
 
         <!-- 手机端弹出侧边栏 -->
-        <van-popup v-if="deviceType === 'mobile'" v-model="sidebarVisible" position="left" :style="{ 
+        <van-popup v-if="deviceType === 'mobile'" v-model="sidebarVisible" position="left" :style="{
             width: '30%', minWidth: '200px',
          height: '100%' }" :overlay="true"
             :overlay-class="'sidebar-overlay'" class="mobile-sidebar-popup" :duration="0.3">
@@ -199,7 +199,7 @@ export default {
             const path = this.$route.path;
             const isHomePath = path === '/home';
             const isModulePath = /^\/home\/[^/]+$/.test(path); // 匹配/home/模块名 格式
-            
+
             // 如果是/home或/home/模块名，则显示聚合页面
             return !(isHomePath || isModulePath);
         }
@@ -264,13 +264,9 @@ export default {
                     Name: '组装批量完工',
                     PageName: "BatchCompleteProcessAssemblyFlow",
                 },
-                {
-                    Name: '输入法高度挤压测试',
-                    PageName: "ViewportDemo",
-                },
             ]
         })
-        
+
         // 添加示例模块
         this.navigatorItems.push({
             Name: '示例',
@@ -283,9 +279,13 @@ export default {
                     Name: '输入法高度挤压测试',
                     PageName: "ViewportDemo",
                 },
+                {
+                    Name: '设备检测测试',
+                    PageName: "DeviceDetectionTest",
+                },
             ]
         })
-        
+
         for (let i = 0; i < this.navigatorItems.length; i++) {
             const element = this.navigatorItems[i];
             element.id = i + 1;
@@ -308,10 +308,10 @@ export default {
         handleResize() {
             // 判断设备类型
             this.deviceType = detectDeviceHelper.detectDeviceType();
-            
+
             // 判断是否为移动设备（小于768px视为移动设备）
             this.isMobile = window.innerWidth < 768;
-            
+
             // 根据设备类型设置侧边栏默认状态
             if (this.deviceType === 'mobile') {
                 this.sidebarVisible = false; // 手机上默认隐藏侧边栏
@@ -394,7 +394,7 @@ export default {
                 '示例': 'example'
                 // 可以添加更多模块...
             };
-            return item && item.Name ? { 
+            return item && item.Name ? {
                 moduleName: item.Name,
                 moduleRoute: moduleNameToRoute[item.Name] || item.Name.toLowerCase()
             } : null;
@@ -409,11 +409,11 @@ export default {
                         if (nestedRouter === undefined) {
                             return;
                         }
-                        
+
                         // 构建目标路径
                         const targetPath = '/home/' + nestedRouter;
                         console.log('页面名称:"' + data.PageName + '" ->转换为-> 子路由:"' + targetPath + '"');
-                        
+
                         // 检查当前路径，避免重复导航
                         if (this.$route.path !== targetPath) {
                             this.$router.push(targetPath).catch(err => {
@@ -429,7 +429,7 @@ export default {
         },
         handleNodeClick(data) {
             this.onCardClick(data);
-            
+
             // 只在移动设备上关闭侧边栏
             if (this.deviceType === 'mobile') {
                 this.sidebarVisible = false;
@@ -484,9 +484,9 @@ export default {
             // 尝试从路径中提取功能名称
             const matches = path.match(/\/([^/]+)$/);
             if (!matches || !matches[1]) return '功能页面';
-            
+
             const funcPathName = matches[1];
-            
+
             // 遍历所有模块下的功能，寻找匹配的路由
             for (const module of this.navigatorItems) {
                 for (const func of module.Children) {
@@ -498,7 +498,7 @@ export default {
                     }
                 }
             }
-            
+
             return '功能页面';
         }
     }
@@ -599,14 +599,14 @@ export default {
     transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
     z-index: 900;
-    
+
     &.sidebar-collapsed {
         width: vh(6);
     }
-    
+
     @media (max-width: 768px) {
         width: 30%;
-        
+
         &.sidebar-collapsed {
             width: vh(6);
         }
@@ -619,7 +619,7 @@ export default {
     padding: vh(2.08) vw(1.46);
     border-bottom: vh(0.13) solid #f0f0f0;
     margin-bottom: vh(2.08);
-    
+
     .company-logo {
         min-width: vh(5.21);
         height: vh(5.21);
@@ -659,17 +659,17 @@ export default {
     display: flex;
     border-top: vh(0.13) solid #f0f0f0;
     box-shadow: 0 vh(-0.26) vh(1.04) rgba(0, 0, 0, 0.05);
-    
+
     .el-dropdown-link {
         display: flex;
         align-items: center;
         cursor: pointer;
-        
+
         i {
             font-size: vh(2.08);
             color: #666;
         }
-        
+
         span {
             margin-left: vw(0.98);
             font-size: vh(1.56);
@@ -920,7 +920,7 @@ export default {
 .dashboard-container {
     max-width: 100%;
     margin: 0 auto;
-    
+
     /* 在手机上居中显示内容 */
     @media (max-width: 480px) {
         text-align: center;
@@ -953,7 +953,7 @@ export default {
     grid-template-columns: repeat(auto-fill, minmax(vh(13), 1fr));
     gap: vh(2.6) vw(1.95);
     padding: vh(1.3) 0;
-    
+
     /* 平板和手机通用的居中样式 */
     @media (max-width: 768px) {
         justify-content: center;
@@ -968,7 +968,7 @@ export default {
         margin: 0 auto;
         justify-content: center;
     }
-    
+
     /* 平板特有样式 */
     @media (min-width: 481px) and (max-width: 768px) {
         grid-template-columns: repeat(3, minmax(vh(11.72), 1fr));
@@ -1255,17 +1255,17 @@ export default {
     border-radius: vh(0.52);
     transition: background-color 0.2s ease;
     margin-right: vw(1.46);
-    
+
     &:hover {
         background-color: rgba(30, 60, 114, 0.05);
     }
-    
+
     i {
         font-size: vh(1.82);
         color: #1e3c72;
         margin-right: vw(0.49);
     }
-    
+
     span {
         font-size: vh(1.56);
         color: #1e3c72;
@@ -1296,16 +1296,16 @@ export default {
 /* 移动端适配 */
 @media (max-width: 768px) {
     .function-page-container {
-        // margin: vh(6.5) auto vh(0.65) auto; 
+        // margin: vh(6.5) auto vh(0.65) auto;
         // width: 98%;
-        // height: calc(100vh - vh(7.5)); 
+        // height: calc(100vh - vh(7.5));
         border-radius: 0;
     }
-    
+
     .nested-router-view {
         // padding: vh(1.3) vw(0.98);
     }
-    
+
     .function-page-header {
         padding: vh(1) vw(1);
     }

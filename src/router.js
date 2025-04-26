@@ -13,6 +13,7 @@ import CanvasDemo from './views/demo/CanvasDemo.vue'
 import TableSelectDemo from './views/demo/TableSelectDemo.vue'
 import ViewportDemo from './components/ViewportDemo.vue'
 import BillPageTemplateDemo from './components/page/demo/BillPageTemplateDemo.vue'
+import DeviceDetectionTest from './components/DeviceDetectionTest.vue'
 
 //页面
 import Login from './views/login/Login.vue'
@@ -121,6 +122,7 @@ const routes = [
                 children: [
                     { path: 'viewport-demo', component: ViewportDemo, meta: { requiresAuth: true } },
                     { path: 'bill-template-demo', component: BillPageTemplateDemo, meta: { requiresAuth: true } },
+                    { path: 'device-detection-test', component: DeviceDetectionTest, meta: { requiresAuth: true } },
                 ]
             },
             // 子路由定义，可以添加更多的子路由（兼容原有路由）
@@ -134,6 +136,8 @@ const routes = [
             { path: 'viewport-demo', component: ViewportDemo, meta: { requiresAuth: true } },
             // BillPageTemplateDemo路由
             { path: 'bill-template-demo', component: BillPageTemplateDemo, meta: { requiresAuth: true } },
+            // DeviceDetectionTest路由
+            { path: 'device-detection-test', component: DeviceDetectionTest, meta: { requiresAuth: true } },
         ]
     },
     // 保留原有的直接路由以兼容现有代码
@@ -156,6 +160,7 @@ const routes = [
     { path: '/demo/grid', component: GridDemo },
     { path: '/demo/canvas', component: CanvasDemo },
     { path: '/demo/tableselect', component: TableSelectDemo },
+    { path: '/device-detection-test', component: DeviceDetectionTest },
 ]
 
 // 创建路由实例
