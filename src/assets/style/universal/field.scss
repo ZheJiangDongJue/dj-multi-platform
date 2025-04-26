@@ -1,7 +1,9 @@
+@import '@/assets/style/custom-viewport.scss';
+
 /* 优化输入框全局样式 */
 ::v-deep .van-field {
     background: transparent;
-    border-radius: 1.04vh; /* 8px -> 1.04vh (8/768*100) */
+    border-radius: vh(1.04); /* 8px -> 1.04vh (8/768*100) */
     transition: all 0.3s ease;
     display: flex; /* 添加flex布局 */
     align-items: center; /* 垂直居中对齐 */
@@ -10,14 +12,14 @@
     .van-field__control {
         padding-left: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
         // padding-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
-        line-height: 2.60vh; /* 20px -> 2.60vh (20/768*100) */
+        font-size: vh(1.82); /* 14px -> 1.82vh (14/768*100) */
+        line-height: vh(2.60); /* 20px -> 2.60vh (20/768*100) */
     }
 
     /* 标签样式 */
     .van-field__label {
-        font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
-        line-height: 2.60vh; /* 20px -> 2.60vh (20/768*100) */
+        font-size: vh(1.82); /* 14px -> 1.82vh (14/768*100) */
+        line-height: vh(2.60); /* 20px -> 2.60vh (20/768*100) */
         // padding-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
         color: #333;
         width: 7.81vw; /* 80px -> 7.81vw (80/1024*100) */
@@ -40,8 +42,8 @@
 
 /* 输入框主体部分样式 */
 ::v-deep .van-field__body {
-    border: 0.13vh solid rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.78vh; /* 6px -> 0.78vh (6/768*100) */
+    border: vh(0.13) solid rgba(0, 0, 0, 0.1); /* 1px -> 0.13vh (1/768*100) */
+    border-radius: vh(0.78); /* 6px -> 0.78vh (6/768*100) */
     background: transparent;
     transition: all 0.3s ease;
 
@@ -54,6 +56,6 @@
     /* 获得焦点状态样式 */
     &:focus-within {
         border-color: #409EFF;
-        box-shadow: 0 0 0 0.26vh rgba(64, 158, 255, 0.1); /* 2px -> 0.26vh (2/768*100) */
+        box-shadow: 0 0 0 vh(0.26) rgba(64, 158, 255, 0.1); /* 2px -> 0.26vh (2/768*100) */
     }
 }

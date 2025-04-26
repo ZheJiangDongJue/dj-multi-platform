@@ -1,117 +1,18 @@
-<template>
-    <div class="assembly-flow__container">
-        <DockPanel>
-            <DockItem dock="top">
-                <DockPanel>
-                    <DockItem dock="left">
-                        <div class="back-button" @click="goBack">
-                            <van-icon name="arrow-left" />
-                            <span>返回</span>
-                        </div>
-                    </DockItem>
-                    <DockItem>
-                        <ToolbarPanel @command="raiseCommand" />
-                    </DockItem>
-                </DockPanel>
-            </DockItem>
-
-            <!-- 宽屏状态下，头部面板放在滚动区域外部 -->
-            <DockItem v-if="vm.isReady && isWideScreen()" dock="top" class="header-panel-container">
-                <HeaderPanel :billData="vm.billData" :isReadOnly="isBillApproved()" :screenWidth="screenWidth"
-                    @update:field="handleUpdateField" @material-code-enter="handleMaterialCodeEnter" 
-                    @inner-key-enter="handleInnerKeyEnter" class="fixed-header-panel" />
-            </DockItem>
-
-            <DockItem dock="fill">
-                <div class="assembly-flow__page-content" ref="pageContent" @scroll="handlePageScroll">
-                    <div v-if="vm.isReady" class="assembly-flow__full-content">
-                        <!-- 固定顶部区域 - 仅在窄屏时显示 -->
-                        <div class="assembly-flow__sticky-header" v-if="!isWideScreen()">
-                            <div class="mobile-header-section">
-                                <van-field :value="vm.billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码"
-                                    :readonly="isBillApproved()" label-width="70px"
-                                    v-click-tooltip="vm.billData.data.MaterialCode"
-                                    @input="value => vm.billData.setValue('MaterialCode', value)" />
-                                <van-field :value="vm.billData.data.BQty" label="计划数" label-width="70px"
-                                    :readonly="isBillApproved()" v-click-tooltip="vm.billData.data.BQty"
-                                    @input="value => vm.billData.setValue('BQty', value)" />
-                            </div>
-                        </div>
-
-                        <!-- 全部内容区域 -->
-                        <div class="assembly-flow__content-wrapper">
-                            <!-- 头部面板区域 - 仅在窄屏时显示 -->
-                            <HeaderPanel v-if="!isWideScreen()" :billData="vm.billData" :isReadOnly="isBillApproved()"
-                                :screenWidth="screenWidth" @update:field="handleUpdateField"
-                                @material-code-enter="handleMaterialCodeEnter"
-                                @inner-key-enter="handleInnerKeyEnter"
-                                class="scrollable-header-panel" />
-
-                            <!-- 卡片列表区域 -->
-                            <CardList :details="vm.detail_vm.details" :isReadOnly="isBillApproved()"
-                                :screenWidth="screenWidth" :fontSize="fontSize" @receive="handleReceive"
-                                @complete="handleComplete" />
-                        </div>
-                    </div>
-
-                    <!-- 回到顶部按钮 -->
-                    <div v-if="showBackToTop" class="back-to-top" @click="scrollToTop">
-                        <van-icon name="arrow-up" />
-                    </div>
-                </div>
-            </DockItem>
-        </DockPanel>
-
-        <!-- 接收对话框 -->
-        <van-dialog v-model="showReceiveDialog" title="组装工序接收" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
-            @closed="handleDialogClosed">
-            <template #title>
-                <div class="dialog-title">
-                    <span>组装工序接收</span>
-                    <van-icon name="cross" class="close-icon" @click="showReceiveDialog = false" />
-                </div>
-            </template>
-            <AssemblyProcessReceivePanel :dataContext="showReceiveDialog ? dialogDataContext : {}"
-                @operation-complete="handleOperationComplete" />
-        </van-dialog>
-
-        <!-- 完工对话框 -->
-        <van-dialog v-model="showCompleteDialog" title="组装工序完工" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
-            @closed="handleDialogClosed">
-            <template #title>
-                <div class="dialog-title">
-                    <span>组装工序完工</span>
-                    <van-icon name="cross" class="close-icon" @click="showCompleteDialog = false" />
-                </div>
-            </template>
-            <AssemblyProcessCompletionPanel :dataContext="showCompleteDialog ? dialogDataContext : {}"
-                @operation-complete="handleOperationComplete" />
-        </van-dialog>
-    </div>
-</template>
-
-<script>
 import generalapi from '@/api/general';
-import DockItem from '@/components/dock/DockItem.vue';
-import DockPanel from '@/components/dock/DockPanel.vue';
 import { BillPageViewModel } from '@/core/temporary/bill-page-vm';
 import { Query } from '@/core/query';
-import AssemblyProcessReceivePanel from './AssemblyProcessReceivePanel.vue';
-import AssemblyProcessCompletionPanel from './AssemblyProcessCompletionPanel.vue';
 import craftapi from '@/api/craft';
 import { pageStateMixin } from '@/mixins';
 
 // 引入拆分后的组件
-import HeaderPanel from './components/HeaderPanel.vue';
-import ToolbarPanel from './components/ToolbarPanel.vue';
-import CardList from './components/CardList.vue';
+import HeaderPanel from '@/views/tablet/technology/components/HeaderPanel.vue';
+import ToolbarPanel from '@/views/tablet/technology/components/ToolbarPanel.vue';
+import CardList from '@/views/tablet/technology/components/CardList.vue';
+import AssemblyProcessReceivePanel from '@/views/tablet/technology/ProcessAssemblyFlow/AssemblyProcessReceivePanel.vue';
+import AssemblyProcessCompletionPanel from '@/views/tablet/technology/ProcessAssemblyFlow/AssemblyProcessCompletionPanel.vue';
 
 export default {
     components: {
-        DockPanel,
-        DockItem,
         AssemblyProcessReceivePanel,
         AssemblyProcessCompletionPanel,
         HeaderPanel,
@@ -123,7 +24,7 @@ export default {
     // 定义常量
     STORAGE_KEY: 'assemblyFlowPageState',
     // 路由离开前钩子不再需要保存状态
-    beforeRouteLeave(to, from, next) {
+    beforeRouteLeave(_, __, next) {
         next();
     },
     data() {
@@ -173,10 +74,6 @@ export default {
                     this.setMaterialInBill(material);
                 }
                 else {
-                    // this.$dialog.alert({
-                    //     title: '提示',
-                    //     message: `该单据的物料无法找到`,
-                    // })
                     this.$toast({
                         message: `该单据的物料无法找到`,
                         position: 'bottom',
@@ -185,36 +82,6 @@ export default {
                 }
             },
         },
-        // 'vm.billData.data.MaterialCode': {
-        //     async handler(newVal, oldVal) {
-        //         // 跳过空值或与输入事件相同的值
-        //         if (newVal == null || newVal == '' || this.isHandlingMaterialCodeEnter) {
-        //             this.isHandlingMaterialCodeEnter = false;
-        //             return;
-        //         }
-        //         // 避免重复处理相同值
-        //         if (newVal === oldVal) return;
-                
-        //         await this.handleMaterialCodeQuery(newVal);
-        //     },
-        // },
-        // 'vm.billData.data.InnerKey': {
-        //     async handler(newVal, oldVal) {
-        //         // 输入验证与边界条件处理
-        //         if (newVal == null || newVal === '' || this.isHandlingInnerKeyEnter) {
-        //             this.isHandlingInnerKeyEnter = false;
-        //             return;
-        //         }
-
-        //         // 避免重复处理同一个值
-        //         if (newVal === oldVal) return;
-
-        //         // 如果正在打开单据或正在恢复状态，则不执行查询
-        //         if (this.vm.isOpeningBill || this.isRestoringState) return;
-
-        //         await this.handleInnerKeyQuery(newVal);
-        //     },
-        // },
         // 监听对话框数据变化
         dialogDataContext: {
             handler(newVal) {
@@ -257,12 +124,6 @@ export default {
         if (!(await this.tryRestorePageState())) {
             await this.vm.tryRaiseCommandAsync('NewBill');
         }
-    },
-    updated() {
-        // 在更新后重新确保Element下拉框正确显示
-        this.$nextTick(() => {
-            // this.fixElementDropdownStyle();
-        });
     },
     beforeDestroy() {
         // 移除监听（避免内存泄漏）
@@ -344,7 +205,7 @@ export default {
             if (this.vm.billData?.data?.id) {
                 return {
                     billId: this.vm.billData.data.id, // 当前单据ID
-                    scrollPosition: this.$refs.pageContent ? this.$refs.pageContent.scrollTop : 0, // 滚动位置
+                    scrollPosition: this.scrollPosition, // 使用保存的滚动位置
                     timestamp: new Date().getTime() // 添加时间戳方便判断状态是否过期
                 };
             }
@@ -365,15 +226,11 @@ export default {
 
                     // 恢复滚动位置（在下一个事件循环中执行，确保DOM已更新）
                     this.$nextTick(() => {
-                        if (this.$refs.pageContent && storedState.scrollPosition) {
-                            this.$refs.pageContent.scrollTop = storedState.scrollPosition;
+                        if (this.$refs.billPageTemplate && storedState.scrollPosition) {
+                            this.$refs.billPageTemplate.scrollTo(storedState.scrollPosition);
                             this.scrollPosition = storedState.scrollPosition;
                         }
                     });
-
-                    // 在恢复状态后，也检查是否需要自动审批
-                    // 这里不是通过扫码打开的，所以我们不进行自动审批
-                    // this.checkAndAutoApprove();
 
                     return true;
                 }
@@ -384,10 +241,7 @@ export default {
                 return false;
             }
         },
-        // 添加返回按钮处理函数
-        goBack() {
-            this.$router.go(-1); // 返回上一页
-        },
+
         // 添加全局样式修复Element UI下拉框在对话框中的层级问题
         addGlobalDropdownFix() {
             // 创建一个新的样式元素
@@ -449,7 +303,6 @@ export default {
         },
         async raiseCommand(command) {
             await this.vm.tryRaiseCommandAsync(command);
-            // 不再需要在命令执行后保存状态
         },
         refreshScreenResolution() {
             this.screenWidth = window.innerWidth;
@@ -490,7 +343,7 @@ export default {
         /**
          * 处理接收按钮点击
          * 接收工序前进行多重检查，确保操作的有效性和安全性
-         * 
+         *
          * @param {Object} item - 工序对象
          * @param {number} item.id - 工序ID
          * @param {number} item.ReceiveStatus - 接收状态(0:未开始, 1:进行中, 2:已接收, 3:禁用)
@@ -502,7 +355,7 @@ export default {
                 console.error('handleReceive方法接收到无效参数');
                 return;
             }
-            
+
             // 健壮性检查：确保工序状态属性存在
             if (typeof item.ReceiveStatus === 'undefined') {
                 console.error('工序缺少ReceiveStatus属性');
@@ -513,16 +366,16 @@ export default {
                 });
                 return;
             }
-            
+
             // 检查工序状态，如果是未开始(0)或禁用(3)，则不允许点击
             if (item.ReceiveStatus === 0 || item.ReceiveStatus === 3) {
                 console.log('当前工序状态不允许接收操作', item.ReceiveStatus);
-                
+
                 // 根据状态显示不同的提示信息
-                let message = item.ReceiveStatus === 0 
-                    ? "该工序尚未开始，无法进行接收操作" 
+                let message = item.ReceiveStatus === 0
+                    ? "该工序尚未开始，无法进行接收操作"
                     : "该工序已被禁用，无法进行接收操作";
-                
+
                 this.$toast({
                     message: message,
                     position: 'bottom',
@@ -530,7 +383,7 @@ export default {
                 });
                 return;
             }
-            
+
             // 健壮性检查：确保工序ID存在
             if (!item.id) {
                 console.error('工序缺少ID');
@@ -541,7 +394,7 @@ export default {
                 });
                 return;
             }
-            
+
             try {
                 // 显示加载状态
                 this.$toast.loading({
@@ -549,13 +402,13 @@ export default {
                     forbidClick: true,
                     duration: 0
                 });
-                
+
                 // 调用API处理接收操作
                 var pack = await craftapi.receiveProcessAssemblyFlowDocument(item.id);
-                
+
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 if (pack.Status == 200) {
                     // 处理成功响应
                     var tableName = pack.Data.Objects["OpenDocumentTableName"] ?? pack.Data.Objects["TemporaryDocumentTableName"];
@@ -585,7 +438,7 @@ export default {
             } catch (error) {
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 // 错误处理和日志记录
                 console.error('接收工序操作失败:', error);
                 this.$dialog.alert({
@@ -594,11 +447,11 @@ export default {
                 });
             }
         },
-        
+
         /**
          * 处理完工按钮点击
          * 完工工序前进行多重检查，确保操作的有效性和安全性
-         * 
+         *
          * @param {Object} item - 工序对象
          * @param {number} item.id - 工序ID
          * @param {number} item.CompleteStatus - 完工状态(0:未开始, 1:进行中, 2:已完工, 3:禁用)
@@ -611,7 +464,7 @@ export default {
                 console.error('handleComplete方法接收到无效参数');
                 return;
             }
-            
+
             // 健壮性检查：确保工序状态属性存在
             if (typeof item.CompleteStatus === 'undefined') {
                 console.error('工序缺少CompleteStatus属性');
@@ -622,16 +475,16 @@ export default {
                 });
                 return;
             }
-            
+
             // 检查工序状态，如果是未开始(0)或禁用(3)，则不允许点击
             if (item.CompleteStatus === 0 || item.CompleteStatus === 3) {
                 console.log('当前工序状态不允许完工操作', item.CompleteStatus);
-                
+
                 // 根据状态显示不同的提示信息
-                let message = item.CompleteStatus === 0 
-                    ? "该工序尚未开始，无法进行完工操作" 
+                let message = item.CompleteStatus === 0
+                    ? "该工序尚未开始，无法进行完工操作"
                     : "该工序已被禁用，无法进行完工操作";
-                
+
                 this.$toast({
                     message: message,
                     position: 'bottom',
@@ -639,7 +492,7 @@ export default {
                 });
                 return;
             }
-            
+
             // 健壮性检查：确保工序ID存在
             if (!item.id) {
                 console.error('工序缺少ID');
@@ -650,7 +503,7 @@ export default {
                 });
                 return;
             }
-            
+
             try {
                 // 显示加载状态
                 this.$toast.loading({
@@ -658,13 +511,13 @@ export default {
                     forbidClick: true,
                     duration: 0
                 });
-                
+
                 // 调用API处理完工操作
                 var pack = await craftapi.completeProcessAssemblyFlowDocument(item.id);
-                
+
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 if (pack.Status == 200) {
                     // 处理成功响应
                     var tableName = pack.Data.Objects["OpenDocumentTableName"] ?? pack.Data.Objects["TemporaryDocumentTableName"];
@@ -694,7 +547,7 @@ export default {
             } catch (error) {
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 // 错误处理和日志记录
                 console.error('完工工序操作失败:', error);
                 this.$dialog.alert({
@@ -704,29 +557,22 @@ export default {
             }
         },
         // 处理页面滚动并保存滚动位置
-        handlePageScroll(e) {
-            // 如果滚动距离超过50px，显示回到顶部按钮
-            if (e.target.scrollTop > 100) {
+        handlePageScroll(scrollPosition) {
+            // 保存当前滚动位置
+            this.scrollPosition = scrollPosition;
+
+            // 如果滚动距离超过100px，显示回到顶部按钮
+            if (scrollPosition > 100) {
                 this.showBackToTop = true;
             } else {
                 this.showBackToTop = false;
             }
-
-            // 保存当前滚动位置
-            this.scrollPosition = e.target.scrollTop;
-
-            // 不再需要在滚动时保存状态
         },
 
-        // 滚动到顶部
+        // 滚动到顶部 - 使用BillPageTemplate的方法
         scrollToTop() {
-            const pageContent = this.$refs.pageContent;
-            if (pageContent) {
-                // 使用平滑滚动效果
-                pageContent.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
+            if (this.$refs.billPageTemplate) {
+                this.$refs.billPageTemplate.scrollToTop();
             }
         },
 
@@ -738,7 +584,7 @@ export default {
         // 处理子组件操作完成事件
         async handleOperationComplete(options = { preserveScroll: true }) {
             // 记录当前滚动位置
-            const currentScrollPosition = this.$refs.pageContent ? this.$refs.pageContent.scrollTop : 0;
+            const currentScrollPosition = this.scrollPosition;
             console.log('操作完成前记录滚动位置:', currentScrollPosition);
 
             // 关闭对话框
@@ -756,17 +602,15 @@ export default {
                     // 使用多个nextTick和setTimeout组合，确保在DOM完全更新后设置滚动位置
                     this.$nextTick(() => {
                         setTimeout(() => {
-                            if (this.$refs.pageContent) {
-                                this.$refs.pageContent.scrollTop = currentScrollPosition;
+                            if (this.$refs.billPageTemplate) {
+                                this.$refs.billPageTemplate.scrollTo(currentScrollPosition);
                                 console.log('刷新后恢复滚动位置:', currentScrollPosition);
 
                                 // 再次检查滚动位置是否设置成功
                                 setTimeout(() => {
-                                    if (this.$refs.pageContent &&
-                                        Math.abs(this.$refs.pageContent.scrollTop - currentScrollPosition) > 5) {
-                                        console.log('滚动位置设置可能未成功，再次尝试:', this.$refs.pageContent.scrollTop);
-                                        this.$refs.pageContent.scrollTop = currentScrollPosition;
-                                    }
+                                    // 由于无法直接访问内部滚动位置，我们只记录尝试
+                                    console.log('再次尝试设置滚动位置:', currentScrollPosition);
+                                    this.$refs.billPageTemplate.scrollTo(currentScrollPosition);
                                 }, 100);
                             }
                         }, 50);
@@ -775,8 +619,8 @@ export default {
             } catch (error) {
                 console.error('刷新数据时出错:', error);
                 // 即使刷新失败，也尝试恢复滚动位置
-                if (options.preserveScroll && this.$refs.pageContent) {
-                    this.$refs.pageContent.scrollTop = currentScrollPosition;
+                if (options.preserveScroll && this.$refs.billPageTemplate) {
+                    this.$refs.billPageTemplate.scrollTo(currentScrollPosition);
                 }
 
                 // 显示错误提示
@@ -789,7 +633,6 @@ export default {
         handleUpdateField({ field, value }) {
             // 处理子组件发出的字段更新事件
             this.vm.billData.setValue(field, value);
-            // 不再需要在字段更新后保存状态
         },
         /**
          * 处理扫码查询结果
@@ -939,7 +782,7 @@ export default {
          */
         async handleMaterialCodeQuery(newVal) {
             if (newVal == null || newVal == '') return;
-            
+
             try {
                 // 显示加载状态
                 this.$toast.loading({
@@ -947,7 +790,7 @@ export default {
                     forbidClick: true,
                     duration: 0
                 });
-                
+
                 let query = new Query();
                 query.TableName = "Material";
                 query.ShortName = "m";
@@ -955,10 +798,10 @@ export default {
                 query.AddWhere(`m.DeletedTag=0`);
                 query.AddWhere(`m.Code='${newVal}'`);
                 let pack = await generalapi.getDataEx(query);
-                
+
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 if (pack.Status == 200) {
                     /**@type {any[]} */
                     var materials = pack.Data;
@@ -994,7 +837,7 @@ export default {
 
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 console.error('查询物料失败:', error);
                 this.$toast({
                     message: `查询物料失败: ${error.message || '未知错误'}`,
@@ -1025,7 +868,7 @@ export default {
 
             try {
                 console.log('扫码或输入单号:', newVal);
-                
+
                 // 显示加载状态
                 this.$toast.loading({
                     message: '正在查询...',
@@ -1035,7 +878,7 @@ export default {
 
                 // 使用processScanByDailyPlanDetail方法处理扫码结果
                 await this.processScanByDailyPlanDetail(newVal);
-                
+
                 // 关闭加载状态
                 this.$toast.clear();
             } catch (error) {
@@ -1046,7 +889,7 @@ export default {
 
                 // 关闭加载状态
                 this.$toast.clear();
-                
+
                 console.error('扫码处理失败:', error);
                 this.$toast({
                     message: `扫码查询失败: ${error.message || '未知错误'}`,
@@ -1057,241 +900,3 @@ export default {
         },
     }
 }
-</script>
-
-<style lang="scss" scoped>
-@import "~@/views/technology/ProcessAssemblyFlow/styles/assembly-flow-module.scss";
-
-/* 返回按钮样式 */
-.back-button {
-    display: flex;
-    align-items: center;
-    padding: 0 1.46vw;
-    /* 15px -> 1.46vw (15/1024*100) */
-    cursor: pointer;
-    height: 100%;
-    transition: all 0.2s ease;
-    user-select: none;
-
-    &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    .van-icon {
-        font-size: 2.08vh;
-        /* 16px -> 2.08vh (16/768*100) */
-        margin-right: 0.49vw;
-        /* 5px -> 0.49vw (5/1024*100) */
-    }
-
-    span {
-        font-size: 1.82vh;
-        /* 14px -> 1.82vh (14/768*100) */
-    }
-}
-
-/* 固定头部面板容器样式 */
-.header-panel-container {
-    background-color: #f9f9f9;
-    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.1);
-    /* 1px -> 0.13vh (1/768*100) */
-    box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.05);
-    /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
-    z-index: 10;
-}
-
-/* 固定头部面板样式 */
-.fixed-header-panel {
-    margin-bottom: 0 !important;
-    border-bottom: none !important;
-    box-shadow: none !important;
-}
-
-/* 滚动区域内头部面板样式 */
-.scrollable-header-panel {
-    /* 特定针对滚动区域内的样式，如有需要 */
-}
-
-/* 窄屏下固定顶部区域样式 */
-.assembly-flow__sticky-header {
-    .mobile-header-section {
-        .van-field {
-            padding: 0.65vh 0.98vw;  /* 减少padding，5px -> 0.65vh (5/768*100), 10px -> 0.98vw (10/1024*100) */
-            margin-bottom: 0.26vh;   /* 减少间距，2px -> 0.26vh (2/768*100) */
-
-            .van-cell__title {
-                margin-right: 0.49vw;  /* 减少标签右边距，5px -> 0.49vw (5/1024*100) */
-            }
-
-            .van-field__control {
-                height: 2.60vh;  /* 减少输入框高度，20px -> 2.60vh (20/768*100) */
-                min-height: 2.60vh;  /* 确保最小高度一致 */
-                line-height: 2.60vh;  /* 行高与高度一致 */
-            }
-        }
-
-        /* 移除最后一个字段的底部间距 */
-        .van-field:last-child {
-            margin-bottom: 0;
-        }
-    }
-}
-
-/* 宽屏模式下内容区域调整 */
-@media screen and (min-width: 800px) {
-    .assembly-flow__page-content {
-        padding-top: 1.04vh;
-        /* 8px -> 1.04vh (8/768*100) */
-    }
-}
-</style>
-
-<!-- 使用CSS变量管理z-index层级 -->
-<style>
-:root {
-    /* z-index层级管理 */
-    --z-index-base: 1000;
-    --z-index-overlay: 9960;
-    --z-index-dialog: 9970;
-    --z-index-dropdown: 9990;
-    --z-index-popup: 9980;
-    --z-index-confirm: 10000;
-    /* 确认对话框层级 */
-    --z-index-toast: 10010;
-}
-
-/* 下拉菜单相关样式 */
-.assembly-flow-dropdown {
-    /* 使用CSS变量控制z-index，避免硬编码 */
-    z-index: var(--z-index-dropdown);
-    position: absolute;
-}
-
-/* 弹出层样式 */
-.assembly-flow-popup {
-    overflow: visible;
-    z-index: var(--z-index-popup);
-}
-
-/* 对话框样式 */
-.van-dialog {
-    overflow: visible;
-    z-index: var(--z-index-dialog);
-    border-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-    /* 确保四个角都有相同的圆角 */
-}
-
-.van-overlay {
-    overflow: visible;
-    z-index: var(--z-index-overlay);
-}
-
-/* 复写第三方UI库样式时添加注释说明原因 */
-
-/* 
- * 以下样式是为了解决Vant Dialog与Element UI下拉框的层级冲突
- * 我们通过设置统一的z-index变量来管理层级关系
- */
-.el-select-dropdown,
-.el-popper,
-.el-scrollbar {
-    z-index: var(--z-index-dropdown);
-}
-
-/* 确保alert/confirm对话框显示在最上层，并且四个角都有统一的圆角 */
-.van-dialog--confirm,
-.van-dialog--alert {
-    z-index: var(--z-index-toast);
-    border-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-    /* 确保四个角都有相同的圆角 */
-}
-
-/* 修复Vant对话框底部圆角丢失问题 */
-.van-dialog__content,
-.van-dialog__footer {
-    border-bottom-left-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-    border-bottom-right-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-    overflow: hidden;
-}
-
-/* 修复系统对话框圆角问题 */
-body .van-dialog,
-body .van-popup {
-    border-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-}
-
-/* 确保对话框内内容和底部都有圆角 */
-body .van-dialog__content,
-body .van-dialog__footer {
-    border-bottom-left-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-    border-bottom-right-radius: 1.04vh !important;
-    /* 8px -> 1.04vh (8/768*100) */
-    overflow: hidden;
-}
-
-/* 对话框遮罩层 */
-.van-overlay.van-dialog__overlay {
-    z-index: var(--z-index-overlay);
-}
-
-/* 窄屏下的对话框样式调整 */
-@media screen and (max-width: 799px) {
-    .assembly-flow-popup {
-        margin: 0 !important;
-        max-height: 90vh !important;
-        overflow-y: auto !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        
-        /* 确保内容可以滚动 */
-        .van-dialog__content {
-            max-height: calc(90vh - 108px);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        /* 优化对话框标题栏 */
-        .dialog-title {
-            position: sticky;
-            top: 0;
-            background: #fff;
-            z-index: 1;
-            padding: 16px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        /* 调整内容区域的padding */
-        .van-dialog__content {
-            padding: 10px;
-        }
-        
-        /* 确保对话框内的label宽度足够显示2个汉字 */
-        .van-field__label {
-            min-width: 70px !important;
-            width: auto !important;
-            flex: 0 0 70px !important;
-        }
-        
-        /* 对van-field应用紧凑布局 */
-        .van-field {
-            padding: 8px 10px !important;
-        }
-    }
-    
-    /* 确保对话框不会超出屏幕 */
-    .van-dialog {
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        margin: 0 !important;
-        max-height: 90vh !important;
-    }
-}
-</style>

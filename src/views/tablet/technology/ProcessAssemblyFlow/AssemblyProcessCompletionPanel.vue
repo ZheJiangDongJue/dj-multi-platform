@@ -25,10 +25,11 @@
             v-click-tooltip="data.ReceiveEmployeeName" />
           <van-popup v-model="showEmployeeSelector" position="bottom" round get-container="body">
             <div class="employee-search">
-              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
+              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees"
+                ref="employeeSearch" :disabled="searchDisabled" />
             </div>
             <van-picker show-toolbar :columns="filteredEmployeeList" @confirm="onEmployeeSelected"
-              @cancel="showEmployeeSelector = false" value-key="Name" />
+              @cancel="showEmployeeSelector = false" value-key="Name" @change="handlePickerChange" />
           </van-popup>
         </div>
         <!-- 三列布局行 -->
@@ -111,6 +112,7 @@ export default {
       ],
       employeeInputText: '', // 用于员工输入框
       isHandlingEmployeeInput: false, // 是否正在处理员工输入
+      searchDisabled: false, // 是否禁用搜索功能
     };
   },
   computed: {
@@ -623,14 +625,32 @@ export default {
         }, 10);
       }
     },
+    // 处理选择器值变化
+    handlePickerChange(picker, values) {
+      // 暂时禁用搜索功能
+      this.searchDisabled = true;
+      
+      // 获取当前选中的员工并更新搜索框文本
+      if (values && values.Name) {
+        this.employeeSearchText = values.Name;
+      }
+      
+      // 使用setTimeout等待当前事件循环结束后恢复搜索功能
+      setTimeout(() => {
+        // 恢复搜索功能，但不触发搜索
+        this.searchDisabled = false;
+      }, 100);
+    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
+@import '@/assets/style/custom-viewport.scss';
+
 .container {
   background-color: rgb(245, 247, 250);
-  padding-bottom: 2.6vh;
+  padding-bottom: vh(2.6);
   /* 20px -> 2.6vh (20/768*100) */
 }
 
@@ -643,22 +663,22 @@ export default {
 
 /* 让每个输入框占 50% 宽度 */
 .van-field {
-  flex: 1 1 calc(50% - 0.6vw);
+  flex: 1 1 calc(50% - vw(0.6));
   /* 6px -> 0.6vw (6/1024*100) */
 }
 
 .van-cell {
-  padding: 0.4vh 1.56vw;
+  padding: vh(0.4) vw(1.56);
   /* 3px 16px -> 0.4vh 1.56vw (3/768*100, 16/1024*100) */
   background-color: transparent;
 }
 
 ::v-deep .van-field__body {
-  border: 0.13vh solid #000;
+  border: vh(0.13) solid #000;
   /* 1px -> 0.13vh (1/768*100) */
-  border-radius: 0.52vh;
+  border-radius: vh(0.52);
   /* 4px -> 0.52vh (4/768*100) */
-  height: 3.5vh;
+  height: vh(3.5);
 }
 
 /* 对话框底部样式 */
@@ -666,30 +686,30 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1vh 0;
+  padding: vh(1) 0;
   /* 调整内边距 */
-  border-top: 0.13vh solid #ebedf0;
-  margin-top: 1vh;
+  border-top: vh(0.13) solid #ebedf0;
+  margin-top: vh(1);
   /* 适当增加顶部边距 */
   position: relative;
 
   /* 审批按钮样式 */
   .approve-button {
-    min-width: 9vw;
-    height: 3.8vh;
+    min-width: vw(9);
+    height: vh(3.8);
     /* 增加按钮高度 */
-    line-height: 3.8vh;
+    line-height: vh(3.8);
     /* 确保文本垂直居中 */
-    border-radius: 1.8vh;
+    border-radius: vh(1.8);
     /* 增加圆角 */
-    font-size: 1.5vh;
+    font-size: vh(1.5);
     /* 增加字体 */
     font-weight: 500;
     transition: all 0.3s ease;
     border: none;
-    box-shadow: 0 0.2vh 0.5vh rgba(0, 0, 0, 0.1);
+    box-shadow: 0 vh(0.2) vh(0.5) rgba(0, 0, 0, 0.1);
     /* 调整阴影 */
-    padding: 0 1.5vh;
+    padding: 0 vh(1.5);
     /* 增加左右内边距 */
 
     /* 非反审批状态样式 */
@@ -700,8 +720,8 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #45a049, #3d8b40);
-        transform: translateY(-0.13vh);
-        box-shadow: 0 0.26vh 0.78vh rgba(0, 0, 0, 0.15);
+        transform: translateY(vh(-0.13));
+        box-shadow: 0 vh(0.26) vh(0.78) rgba(0, 0, 0, 0.15);
       }
     }
 
@@ -713,8 +733,8 @@ export default {
       /* 悬停状态样式 */
       &:hover {
         background: linear-gradient(135deg, #F57C00, #EF6C00);
-        transform: translateY(-0.13vh);
-        box-shadow: 0 0.26vh 0.78vh rgba(0, 0, 0, 0.15);
+        transform: translateY(vh(-0.13));
+        box-shadow: 0 vh(0.26) vh(0.78) rgba(0, 0, 0, 0.15);
       }
     }
   }
@@ -722,10 +742,10 @@ export default {
   /* 删除按钮样式 */
   .delete-button {
     position: absolute;
-    right: 1.95vw;
-    width: 3.8vh;
+    right: vw(1.95);
+    width: vh(3.8);
     /* 增加宽度 */
-    height: 3.8vh;
+    height: vh(3.8);
     /* 增加高度 */
     border-radius: 50%;
     padding: 0;
@@ -735,13 +755,13 @@ export default {
     background: linear-gradient(135deg, #ff4d4d, #e33333);
     color: white;
     border: none;
-    box-shadow: 0 0.2vh 0.5vh rgba(0, 0, 0, 0.1);
+    box-shadow: 0 vh(0.2) vh(0.5) rgba(0, 0, 0, 0.1);
     /* 调整阴影 */
     transition: all 0.3s ease;
 
     /* 图标样式 */
     .van-icon {
-      font-size: 1.8vh;
+      font-size: vh(1.8);
       /* 增加图标 */
     }
   }
@@ -749,30 +769,30 @@ export default {
   /* 合格性下拉框样式 */
   .qualification-wrapper {
     position: absolute;
-    left: 1.95vw;
-    width: 10vw;
+    left: vw(1.95);
+    width: vw(10);
   }
 
   .qualification-dropdown {
     width: 100%;
 
     ::v-deep .el-input__inner {
-      border-radius: 1.8vh;
+      border-radius: vh(1.8);
       /* 增加圆角 */
-      height: 3.8vh;
+      height: vh(3.8);
       /* 增加高度 */
-      line-height: 3.8vh;
+      line-height: vh(3.8);
       /* 确保文本垂直居中 */
-      border: 0.13vh solid #ebedf0;
+      border: vh(0.13) solid #ebedf0;
       background: #f7f8fa;
       color: #323233;
       transition: all 0.3s ease;
-      padding: 0 1.2vh;
+      padding: 0 vh(1.2);
       /* 调整左右内边距 */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-size: 1.5vh;
+      font-size: vh(1.5);
       /* 增加字体大小 */
     }
 
@@ -782,13 +802,13 @@ export default {
     }
 
     ::v-deep .el-input__suffix {
-      right: 0.6vw;
+      right: vw(0.6);
       /* 调整右侧图标间距 */
     }
 
     ::v-deep .el-select__caret {
       color: #969799;
-      font-size: 1.5vh;
+      font-size: vh(1.5);
       /* 增加图标大小 */
     }
   }
@@ -802,7 +822,7 @@ export default {
     left: -10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.8vh;
+    font-size: vh(1.8);
   }
 }
 
@@ -825,13 +845,13 @@ export default {
 
 /* 员工选择器样式 */
 .employee-select-wrapper {
-  flex: 1 1 calc(50% - 0.6vw);
+  flex: 1 1 calc(50% - vw(0.6));
   /* 6px -> 0.6vw (6/1024*100) */
 
   ::v-deep .van-field__body {
-    border: 0.13vh solid #000;
+    border: vh(0.13) solid #000;
     /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh;
+    border-radius: vh(0.52);
     /* 4px -> 0.52vh (4/768*100) */
   }
 }
@@ -847,20 +867,20 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 2.08vh;
+  font-size: vh(2.08);
   /* 16px -> 2.08vh (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 0.13vh solid #ebedf0;
+  border-bottom: vh(0.13) solid #ebedf0;
   /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 1.04vh 1.56vw;
+  padding: vh(1.04) vw(1.56);
   /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
-  border-bottom: 0.13vh solid #ebedf0;
+  border-bottom: vh(0.13) solid #ebedf0;
   /* 1px -> 0.13vh (1/768*100) */
 }
 
@@ -868,7 +888,7 @@ export default {
 .three-column-row {
   display: flex;
   width: 100%;
-  margin-bottom: 0.5vh;
+  margin-bottom: vh(0.5);
 
   .van-field {
     flex: 1 1 31%;
@@ -885,7 +905,7 @@ export default {
       margin-right: 0;
 
       ::v-deep .van-field__label {
-        width: 6vw;
+        width: vw(6);
         flex: none;
       }
 
@@ -902,13 +922,15 @@ export default {
       border: none;
       background: transparent;
       padding: 0;
-      height: 3.5vh;
+      height: vh(3.5);
     }
   }
 }
 </style>
 
 <style lang="scss">
+@import '@/assets/style/custom-viewport.scss';
+
 /* 全局样式 */
 .high-priority-dropdown {
   z-index: 9999 !important;
@@ -917,16 +939,16 @@ export default {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 2vw;
+    padding: 0 vw(2);
   }
 
   /* 窄屏适配 */
   @media screen and (max-width: 480px) {
-    min-width: 20vw !important;
+    min-width: vw(20) !important;
     width: auto !important;
 
     .el-select-dropdown__item {
-      font-size: 1.8vh;
+      font-size: vh(1.8);
     }
   }
 }

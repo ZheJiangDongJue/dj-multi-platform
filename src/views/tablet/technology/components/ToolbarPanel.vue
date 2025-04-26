@@ -52,8 +52,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/assets/style/function.scss";
-@import "~@/views/technology/ProcessAssemblyFlow/styles/assembly-flow-module.scss";
+@import "~@/assets/style/function";
+@import "~@/views/tablet/technology/styles/assembly-flow-module";
 
 /* 工具栏组件样式 - 使用BEM命名法 */
 .toolbar {
@@ -63,7 +63,7 @@ export default {
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 0.65vh 0;
+    padding: vh(0.65) 0;
     /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
     align-items: center;
 
@@ -74,7 +74,7 @@ export default {
     }
 
     &__menu-item {
-        padding: 1.56vh 1.46vw;
+        padding: vh(1.56) 1.46vw;
         /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
         transition: all 0.3s ease;
 
@@ -88,13 +88,13 @@ export default {
 /* 媒体查询 - 小屏幕样式调整 */
 @include ps {
     .toolbar {
-        padding: 0.39vh 0;
+        padding: vh(0.39) 0;
         /* 3px 0 -> 0.39vh 0 (3/768*100, 0) */
 
         &__btn {
-            font-size: 1.56vh;
+            font-size: vh(1.56);
             /* 12px -> 1.56vh (12/768*100) */
-            padding: 0 1.56vw;
+            padding: 0 vh(1.56);
             /* 修改内边距，从0.78vw增加到1.56vw */
             // min-width: 12vw;
             /* 添加最小宽度，确保4个字的按钮有足够空间 */

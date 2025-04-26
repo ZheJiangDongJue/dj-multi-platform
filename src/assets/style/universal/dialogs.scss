@@ -1,6 +1,8 @@
+@import '@/assets/style/custom-viewport.scss';
+
 /* 对话框边框样式 */
 .van-dialog {
-    border: 0.13vh solid #000;
+    border: vh(0.13) solid #000;
 }
 
 /* 覆盖层背景透明 */
@@ -17,7 +19,7 @@
     width: 100%;
     height: 100%;
     padding: 0 1.95vw;
-    font-size: 2.08vh;
+    font-size: vh(2.08);
     font-weight: 500;
 
     /* 关闭图标样式 */
@@ -26,11 +28,11 @@
         right: 4.88vw;
         top: 50%;
         transform: translateY(-50%);
-        font-size: 2.6vh;
+        font-size: vh(2.6);
         color: #969799;
         cursor: pointer;
         transition: all 0.3s ease;
-        padding: 0.52vh;
+        padding: vh(0.52);
         border-radius: 50%;
 
         /* 悬停状态样式 */
@@ -43,8 +45,8 @@
 
 /* 对话框头部样式 */
 ::v-deep .van-dialog__header {
-    padding: 2.08vh 0;
-    border-bottom: 0.13vh solid #ebedf0;
+    padding: vh(2.08) 0;
+    border-bottom: vh(0.13) solid #ebedf0;
 }
 
 /* 对话框底部基础样式 */
@@ -52,14 +54,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2.08vh 0;
-    border-top: 0.13vh solid #ebedf0;
+    padding: vh(2.08) 0;
+    border-top: vh(0.13) solid #ebedf0;
     position: relative;
 }
 
 /* 弹出层样式 */
 ::v-deep .van-popup {
-    border-radius: 1.04vh;
-    box-shadow: 0 0.26vh 1.56vh 0 rgba(0, 0, 0, 0.1);
+    border-radius: vh(1.04);
+    box-shadow: 0 vh(0.26) vh(1.56) 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
 } 

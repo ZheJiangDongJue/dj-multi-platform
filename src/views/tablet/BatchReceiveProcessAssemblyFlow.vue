@@ -822,7 +822,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/style/universal/cards.scss";
+@import "@/assets/style/universal/cards";
 
 .batch-receive {
   padding: 2.08vh 1.56vw;

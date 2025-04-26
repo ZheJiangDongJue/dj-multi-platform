@@ -6,6 +6,7 @@
  *
  * 当应用于 van-field 元素时，只有在元素为只读状态 (readonly) 时才会显示 tooltip
  * 日期选择器和职员选择器不会显示 tooltip
+ * 绑定内容为空时不会显示 tooltip
  */
 
 // 全局变量，用于存储tooltip状态
@@ -196,6 +197,11 @@ export default {
     } else if (typeof binding.value === "object") {
       options = { ...options, ...binding.value };
     }
+    
+    // 若绑定的内容是空字符串，则明确设置为null
+    if (options.content === "") {
+      options.content = null;
+    }
 
     // 存储元素相关的状态
     el._clickTooltip = {
@@ -219,12 +225,18 @@ export default {
         return;
       }
 
-      // 如果内容为空，使用元素的绑定值或文本内容
-      let content =
-        el._clickTooltip.options.content ||
-        (el.value || el.textContent || "").trim();
+      // 获取内容，优先使用绑定的content
+      let content = el._clickTooltip.options.content;
+      
+      // 如果绑定的content为null或undefined，尝试使用元素的值或文本内容
+      if (content === null || content === undefined) {
+        content = (el.value || el.textContent || "").trim();
+      }
 
-      if (!content) return;
+      // 如果内容为空，不显示tooltip
+      if (!content) {
+        return;
+      }
 
       // 显示tooltip
       showTooltip(
@@ -251,12 +263,22 @@ export default {
   update(el, binding) {
     // 更新选项
     if (typeof binding.value === "string") {
-      el._clickTooltip.options.content = binding.value;
+      // 若绑定的内容是空字符串，则明确设置为null
+      el._clickTooltip.options.content = binding.value === "" ? null : binding.value;
     } else if (typeof binding.value === "object") {
+      // 处理对象形式的绑定，确保空字符串转为null
+      const updatedOptions = { ...binding.value };
+      if (updatedOptions.content === "") {
+        updatedOptions.content = null;
+      }
+      
       el._clickTooltip.options = {
         ...el._clickTooltip.options,
-        ...binding.value,
+        ...updatedOptions,
       };
+    } else if (binding.value === undefined || binding.value === null) {
+      // 处理绑定值为undefined或null的情况
+      el._clickTooltip.options.content = null;
     }
   },
 

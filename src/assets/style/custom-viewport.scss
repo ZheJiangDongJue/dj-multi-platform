@@ -1,0 +1,14 @@
+/**
+ * custom-viewport.scss
+ * 固定viewport单位的SCSS函数
+ * 使用CSS变量实现恒定的vh和vw计算，不随窗口大小变化
+ */
+
+/* 核心函数：将百分比转换为固定viewport单位 */
+@function vw($percent) {
+  @return calc(($percent / 100) * var(--viewport-width, 100vw));
+}
+
+@function vh($percent) {
+  @return calc(($percent / 100) * var(--viewport-height, 100vh));
+} 

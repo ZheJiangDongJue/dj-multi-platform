@@ -1,14 +1,16 @@
+@import '@/assets/style/custom-viewport.scss';
+
 /* 工具栏按钮样式 */
 .toolbar-btn {
     // min-width: 8.79vw; /* 90px -> 8.79vw (90/1024*100) */
     // margin-right: 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-    height: 4.4vh; /* 36px -> 4.69vh (36/768*100) */
-    border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
-    font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
+    height: vh(4.4); /* 36px -> 4.69vh (36/768*100) */
+    border-radius: vh(2.34); /* 18px -> 2.34vh (18/768*100) */
+    font-size: vh(1.82); /* 14px -> 1.82vh (14/768*100) */
     color: #606266;
     background-color: #ffffff;
-    border: 0.13vh solid #e8e9eb; /* 1px -> 0.13vh (1/768*100) */
-    box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.05); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
+    border: vh(0.13) solid #e8e9eb; /* 1px -> 0.13vh (1/768*100) */
+    box-shadow: 0 vh(0.26) vh(0.52) rgba(0, 0, 0, 0.05); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
     transition: all 0.3s ease;
 
     /* 悬停状态样式 */
@@ -16,8 +18,8 @@
         color: #409EFF;
         border-color: #c6e2ff;
         background-color: #ecf5ff;
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.52vh 1.04vh rgba(0, 0, 0, 0.08); /* 4px 8px -> 0.52vh 1.04vh (4/768*100, 8/768*100) */
+        transform: translateY(vh(-0.13)); /* -1px -> -0.13vh (1/768*100) */
+        box-shadow: 0 vh(0.52) vh(1.04) rgba(0, 0, 0, 0.08); /* 4px 8px -> 0.52vh 1.04vh (4/768*100, 8/768*100) */
     }
 
     /* 激活状态样式 */
@@ -26,63 +28,63 @@
         border-color: #3a8ee6;
         background-color: #e6f2ff;
         transform: translateY(0);
-        box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.05); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
+        box-shadow: 0 vh(0.26) vh(0.52) rgba(0, 0, 0, 0.05); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
     }
 }
 
 .back-to-top {
     position: fixed;
     right: 1.95vw; /* 20px -> 1.95vw (20/1024*100) */
-    bottom: 2.6vh; /* 20px -> 2.6vh (20/768*100) */
-    width: 5.21vh; /* 40px -> 5.21vh (40/768*100) */
-    height: 5.21vh; /* 40px -> 5.21vh (40/768*100) */
+    bottom: vh(2.6); /* 20px -> 2.6vh (20/768*100) */
+    width: vh(5.21); /* 40px -> 5.21vh (40/768*100) */
+    height: vh(5.21); /* 40px -> 5.21vh (40/768*100) */
     border-radius: 50%;
     background: rgba(64, 158, 255, 0.9);
     color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.2); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+    box-shadow: 0 vh(0.26) vh(1.04) rgba(0, 0, 0, 0.2); /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
     z-index: 999;
     cursor: pointer;
     transition: all 0.3s ease;
 
     &:hover {
       background: rgba(64, 158, 255, 1);
-      transform: translateY(-0.26vh); /* -2px -> -0.26vh (2/768*100) */
-      box-shadow: 0 0.52vh 1.56vh rgba(0, 0, 0, 0.25); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
+      transform: translateY(vh(-0.26)); /* -2px -> -0.26vh (2/768*100) */
+      box-shadow: 0 vh(0.52) vh(1.56) rgba(0, 0, 0, 0.25); /* 4px 12px -> 0.52vh 1.56vh (4/768*100, 12/768*100) */
     }
 
     &:active {
       transform: translateY(0);
-      box-shadow: 0 0.26vh 0.52vh rgba(0, 0, 0, 0.2); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
+      box-shadow: 0 vh(0.26) vh(0.52) rgba(0, 0, 0, 0.2); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
     }
   }
 
 /* 卡片按钮样式 */
 .card-button {
-    border: 0.13vh solid rgba(232, 233, 235, 0.8); /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
+    border: vh(0.13) solid rgba(232, 233, 235, 0.8); /* 1px -> 0.13vh (1/768*100) */
+    border-radius: vh(2.34); /* 18px -> 2.34vh (18/768*100) */
     background: rgba(255, 255, 255, 0.9);
     box-shadow:
-        0 0.26vh 0.52vh rgba(0, 0, 0, 0.05), /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
-        0 0.13vh 0.26vh rgba(0, 0, 0, 0.1); /* 1px 2px -> 0.13vh 0.26vh (1/768*100, 2/768*100) */
+        0 vh(0.26) vh(0.52) rgba(0, 0, 0, 0.05), /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
+        0 vh(0.13) vh(0.26) rgba(0, 0, 0, 0.1); /* 1px 2px -> 0.13vh 0.26vh (1/768*100, 2/768*100) */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(0.65vh); /* 5px -> 0.65vh (5/768*100) */
+    backdrop-filter: blur(vh(0.65)); /* 5px -> 0.65vh (5/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
-        transform: translateY(-0.13vh); /* -1px -> -0.13vh (1/768*100) */
+        transform: translateY(vh(-0.13)); /* -1px -> -0.13vh (1/768*100) */
         box-shadow:
-            0 0.52vh 1.04vh rgba(0, 0, 0, 0.08), /* 4px 8px -> 0.52vh 1.04vh (4/768*100, 8/768*100) */
-            0 0.26vh 0.52vh rgba(0, 0, 0, 0.12); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
+            0 vh(0.52) vh(1.04) rgba(0, 0, 0, 0.08), /* 4px 8px -> 0.52vh 1.04vh (4/768*100, 8/768*100) */
+            0 vh(0.26) vh(0.52) rgba(0, 0, 0, 0.12); /* 2px 4px -> 0.26vh 0.52vh (2/768*100, 4/768*100) */
     }
 
     /* 激活状态样式 */
     &:active {
         transform: translateY(0);
         box-shadow:
-            0 0.13vh 0.26vh rgba(0, 0, 0, 0.05), /* 1px 2px -> 0.13vh 0.26vh (1/768*100, 2/768*100) */
-            0 0.13vh 0.13vh rgba(0, 0, 0, 0.1); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
+            0 vh(0.13) vh(0.26) rgba(0, 0, 0, 0.05), /* 1px 2px -> 0.13vh 0.26vh (1/768*100, 2/768*100) */
+            0 vh(0.13) vh(0.13) rgba(0, 0, 0, 0.1); /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
     }
 } 

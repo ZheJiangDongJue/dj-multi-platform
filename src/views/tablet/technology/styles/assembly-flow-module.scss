@@ -1,5 +1,5 @@
-@import "@/assets/style/function.scss";
-@import "@/assets/style/universal/style.scss";
+@import "@/assets/style/function";
+@import "@/assets/style/universal/style";
 
 /* 使用BEM命名方法，避免样式污染 */
 
@@ -11,6 +11,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative; /* 确保定位正确 */
   }
 
   &__page-content {
@@ -20,6 +21,7 @@
     overflow-x: hidden;
     position: relative;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain; /* 防止滚动穿透 */
   }
 
   &__full-content {
@@ -65,12 +67,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 0 0.98vw; /* 10px -> 0.98vw (10/1024*100) */
-    
+
     .close-icon {
       cursor: pointer;
       font-size: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
       color: #999;
-      
+
       &:hover {
         color: #666;
       }
@@ -92,8 +94,10 @@
   .assembly-flow {
     &__page-content {
       overscroll-behavior: contain;
+      height: auto; /* 允许内容自然扩展 */
+      min-height: 100%; /* 确保至少填满容器 */
     }
-    
+
     &__content-wrapper {
       height: calc(100% - 6.51vh); /* 50px -> 6.51vh (50/768*100) */
     }
@@ -113,23 +117,23 @@
     height: 4.43vh; /* 34px -> 4.43vh (34/768*100) */
     line-height: 4.43vh; /* 34px -> 4.43vh (34/768*100) */
     font-size: 1.82vh; /* 14px -> 1.82vh (14/768*100) */
-    
+
     &--selected {
       color: #409EFF;
       font-weight: bold;
     }
-    
+
     &:hover {
       background-color: #f5f7fa;
     }
   }
-  
+
   &__input--small {
     height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
     line-height: 4.69vh; /* 36px -> 4.69vh (36/768*100) */
     border-radius: 2.34vh; /* 18px -> 2.34vh (18/768*100) */
   }
-  
+
   &__button--disabled {
     background: linear-gradient(135deg, #cccccc, #999999);
     cursor: not-allowed;
@@ -137,11 +141,11 @@
     box-shadow: none;
     opacity: 0.6;
   }
-  
+
   &__select--disabled {
     background-color: #f5f5f5;
     border-color: #e4e7ed;
     color: #999;
     cursor: not-allowed;
   }
-} 
+}

@@ -10,6 +10,7 @@
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
 import loading from '@/components/Loading.vue'
+import { initViewportUnits } from '@/utils/viewport-units'
 
 export default {
   name: 'App',
@@ -19,12 +20,18 @@ export default {
   },
   mounted() {
     console.log('App mounted');
+    
+    // 初始化固定的viewport单位
+    initViewportUnits();
+    
     this.commitIsLoading(false);
   }
 }
 </script>
 
 <style>
+@import '@/assets/style/custom-viewport.scss';
+
 #app_root {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -36,5 +43,14 @@ export default {
 
 body {
   overflow: hidden;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  height: 100%;
 }
 </style>

@@ -274,16 +274,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/style/function.scss";
-@import "@/views/technology/ProcessAssemblyFlow/styles/assembly-flow-module.scss";
+@import "@/assets/style/function";
+@import "@/views/tablet/technology/styles/assembly-flow-module";
+@import "@/assets/style/custom-viewport.scss";
 
 /* 卡片列表区域 */
 .card-list {
-    padding: 0 1.46vw 3.91vh;
+    // padding: 0 1.46vw vh(3.91);
     /* 15px 30px -> 1.46vw 3.91vh (15/1024*100, 30/768*100) */
     display: flex;
     flex-direction: column;
-    gap: 1.56vh;
+    gap: vh(1.56);
     /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
     overflow-y: auto;
     flex: 1;
@@ -292,36 +293,36 @@ export default {
 /* 卡片项目默认样式 */
 .card-item {
     background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    border-radius: 1.3vh;
+    border-radius: vh(1.3);
     /* 10px -> 1.3vh (10/768*100) */
-    box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.05);
+    box-shadow: 0 vh(0.26) vh(1.04) rgba(0, 0, 0, 0.05);
     /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
-    border: 0.13vh solid rgba(0, 0, 0, 0.05);
+    border: vh(0.13) solid rgba(0, 0, 0, 0.05);
     /* 1px -> 0.13vh (1/768*100) */
-    padding: 1.3vh;
+    padding: vh(1.3);
     /* 10px -> 1.3vh (10/768*100) - 缩小内边距 */
-    margin-bottom: 1.56vh;
+    margin-bottom: vh(1.56);
     /* 12px -> 1.56vh (12/768*100) - 缩小间距 */
     transition: all 0.3s ease;
 
     /* 悬停状态样式 */
     &:hover {
-        box-shadow: 0 0.52vh 1.95vh rgba(0, 0, 0, 0.1);
+        box-shadow: 0 vh(0.52) vh(1.95) rgba(0, 0, 0, 0.1);
         /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
-        transform: translateY(-0.26vh);
+        transform: translateY(vh(-0.26));
         /* -2px -> -0.26vh (2/768*100) */
     }
 }
 
 /* 减小行内元素间的间距 */
 :deep(.van-grid-item) {
-    padding: 0.65vh 0.49vw;
+    padding: vh(0.65) 0.49vw;
     /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
 }
 
 /* 减小表单域的内边距 */
 :deep(.van-field) {
-    padding: 0.65vh 0.49vw;
+    padding: vh(0.65) 0.49vw;
     /* 5px 5px -> 0.65vh 0.49vw (5/768*100, 5/1024*100) */
 }
 
@@ -380,7 +381,7 @@ export default {
 @media screen and (max-width: 799px) {
     .mobile-row {
         :deep(.van-field) {
-            padding: 0.39vh 0.49vw !important;
+            padding: vh(0.39) 0.49vw !important;
             /* 3px 5px -> 0.39vh 0.49vw (3/768*100, 5/1024*100) */
         }
 
@@ -389,7 +390,7 @@ export default {
             /* 移动端下不设置最小宽度 */
             margin-right: 0.49vw !important;
             /* 5px -> 0.49vw (5/1024*100) - 减小右侧间距 */
-            font-size: 1.69vh !important;
+            font-size: vh(1.69) !important;
             /* 13px -> 1.69vh (13/768*100) - 稍微缩小字体 */
         }
     }
@@ -419,14 +420,14 @@ export default {
     /* 100px -> 9.77vw (100/1024*100) */
     max-width: 13.67vw;
     /* 140px -> 13.67vw (140/1024*100) */
-    height: 4.17vh;
+    height: vh(4.17);
     /* 32px -> 4.17vh (32/768*100) */
     padding: 0 0.98vw;
     /* 0 10px -> 0 0.98vw (0, 10/1024*100) */
-    font-size: 1.56vh;
+    font-size: vh(1.56);
     /* 12px -> 1.56vh (12/768*100) */
     line-height: 1;
-    border-radius: 0.65vh;
+    border-radius: vh(0.65);
     /* 5px -> 0.65vh (5/768*100) */
     white-space: nowrap;
     /* 防止文字换行 */
@@ -439,15 +440,15 @@ export default {
 /* 紧凑型表单样式 */
 .compact-form {
     :deep(.van-cell) {
-        padding: 0.65vh 0.98vw;
+        padding: vh(0.65) 0.98vw;
         /* 5px 10px -> 0.65vh 0.98vw (5/768*100, 10/1024*100) */
     }
     
     :deep(.van-cell-group__title) {
-        margin-top: 0.052vh;
-        padding-top: 0.039vh;
+        margin-top: vh(0.052);
+        padding-top: vh(0.039);
         /* 减小窄屏模式下序号的上边距 */
-        font-size: 1.82vh;
+        font-size: vh(1.82);
         line-height: 0.3;
     }
 }
@@ -456,9 +457,9 @@ export default {
 .mobile-row {
     display: flex;
     align-items: center;
-    margin-bottom: 0.65vh;
+    margin-bottom: vh(0.65);
     /* 5px -> 0.65vh (5/768*100) */
-    gap: 0.65vh;
+    gap: vh(0.65);
     /* 5px -> 0.65vh (5/768*100) */
 }
 
@@ -489,24 +490,24 @@ export default {
 /* 已完成卡片项目样式 */
 .card-item-finished {
     background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
-    border: 0.13vh solid rgba(76, 175, 80, 0.2);
+    border: vh(0.13) solid rgba(76, 175, 80, 0.2);
     /* 1px -> 0.13vh (1/768*100) */
     box-shadow:
-        0 0.52vh 1.95vh rgba(76, 175, 80, 0.1),
+        0 vh(0.52) vh(1.95) rgba(76, 175, 80, 0.1),
         /* 4px 15px -> 0.52vh 1.95vh (4/768*100, 15/768*100) */
-        0 0.13vh 0.39vh rgba(76, 175, 80, 0.2),
+        0 vh(0.13) vh(0.39) rgba(76, 175, 80, 0.2),
         /* 1px 3px -> 0.13vh 0.39vh (1/768*100, 3/768*100) */
-        inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9);
+        inset 0 vh(0.13) vh(0.13) rgba(255, 255, 255, 0.9);
     /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
 
     /* 悬停状态样式 */
     &:hover {
         box-shadow:
-            0 1.04vh 3.26vh rgba(76, 175, 80, 0.15),
+            0 vh(1.04) vh(3.26) rgba(76, 175, 80, 0.15),
             /* 8px 25px -> 1.04vh 3.26vh (8/768*100, 25/768*100) */
-            0 0.26vh 0.65vh rgba(76, 175, 80, 0.25),
+            0 vh(0.26) vh(0.65) rgba(76, 175, 80, 0.25),
             /* 2px 5px -> 0.26vh 0.65vh (2/768*100, 5/768*100) */
-            inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9);
+            inset 0 vh(0.13) vh(0.13) rgba(255, 255, 255, 0.9);
         /* 1px 1px -> 0.13vh 0.13vh (1/768*100, 1/768*100) */
     }
 }
@@ -515,7 +516,7 @@ export default {
 .status-not-started {
     background: linear-gradient(145deg, #ffffff, #f5f5f5);
     color: #909399;
-    border: 0.13vh solid rgba(144, 147, 153, 0.2);
+    border: vh(0.13) solid rgba(144, 147, 153, 0.2);
     /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
@@ -529,7 +530,7 @@ export default {
 .status-in-progress {
     background: linear-gradient(145deg, #e1f3ff, #d0ecff);
     color: #1989fa;
-    border: 0.13vh solid rgba(25, 137, 250, 0.2);
+    border: vh(0.13) solid rgba(25, 137, 250, 0.2);
     /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
@@ -543,7 +544,7 @@ export default {
 .status-completed {
     background: linear-gradient(145deg, #e1f3ea, #d0f0e0);
     color: #19be6b;
-    border: 0.13vh solid rgba(25, 190, 107, 0.2);
+    border: vh(0.13) solid rgba(25, 190, 107, 0.2);
     /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
@@ -557,7 +558,7 @@ export default {
 .status-disabled {
     background: linear-gradient(145deg, #fde2e2, #fad1d1);
     color: #fa5555;
-    border: 0.13vh solid rgba(250, 85, 85, 0.2);
+    border: vh(0.13) solid rgba(250, 85, 85, 0.2);
     /* 1px -> 0.13vh (1/768*100) */
 
     /* 悬停状态样式 */
@@ -567,28 +568,19 @@ export default {
     }
 }
 
-/* 媒体查询 - 小屏幕样式 */
-@include ps {
-    .card-list {
-        padding: 0 0.49vw 6.51vh;
-        /* 5px 50px -> 0.49vw 6.51vh (5/1024*100, 50/768*100) */
-        /* 增加底部padding，确保内容完全可滚动 */
-    }
-}
-
 /* 行号容器样式 */
 .row-number-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-right: 0.13vh dashed rgba(0, 0, 0, 0.1);
+    border-right: vh(0.13) dashed rgba(0, 0, 0, 0.1);
     /* 1px -> 0.13vh (1/768*100) */
     background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* 行号样式 */
 .row-number {
-    font-size: 2.08vh;
+    font-size: vh(2.08);
     /* 16px -> 2.08vh (16/768*100) */
     font-weight: bold;
     color: #909399;
@@ -610,38 +602,38 @@ export default {
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
-    padding-top: 0.65vh;
+    padding-top: vh(0.65);
     /* 5px -> 0.65vh (5/768*100) */
 }
 
 /* 位置索引样式 */
 .location-index {
-    font-size: 1.56vh;
+    font-size: vh(1.56);
     /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
-    padding: 0.26vh 0.78vw;
+    padding: vh(0.26) 0.78vw;
     /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
-    border-radius: 1.3vh;
+    border-radius: vh(1.3);
     /* 10px -> 1.3vh (10/768*100) */
-    border: 0.13vh solid rgba(0, 0, 0, 0.05);
+    border: vh(0.13) solid rgba(0, 0, 0, 0.05);
     /* 1px -> 0.13vh (1/768*100) */
 }
 
 /* 移动端位置索引样式 */
 .location-index-mobile {
-    font-size: 1.56vh;
+    font-size: vh(1.56);
     /* 12px -> 1.56vh (12/768*100) - 缩小字体 */
     color: #606266;
     background-color: rgba(0, 0, 0, 0.03);
-    padding: 0.26vh 0.78vw;
+    padding: vh(0.26) 0.78vw;
     /* 2px 8px -> 0.26vh 0.78vw (2/768*100, 8/1024*100) */
-    border-radius: 1.3vh;
+    border-radius: vh(1.3);
     /* 10px -> 1.3vh (10/768*100) */
-    border: 0.13vh solid rgba(0, 0, 0, 0.05);
+    border: vh(0.13) solid rgba(0, 0, 0, 0.05);
     /* 1px -> 0.13vh (1/768*100) */
     display: inline-block;
-    margin: 0.65vh 0 0.65vh auto;
+    margin: vh(0.65) 0 vh(0.65) auto;
     /* 5px 0 5px auto -> 0.65vh 0 0.65vh auto (5/768*100, 0, 5/768*100, auto) */
     float: right;
 }
@@ -651,7 +643,7 @@ export default {
 .card-item-finished .location-index-mobile {
     color: #19be6b;
     background-color: rgba(25, 190, 107, 0.05);
-    border: 0.13vh solid rgba(25, 190, 107, 0.1);
+    border: vh(0.13) solid rgba(25, 190, 107, 0.1);
     /* 1px -> 0.13vh (1/768*100) */
 }
 
@@ -660,9 +652,9 @@ export default {
     display: flex;
     width: 100%;
     justify-content: space-between;
-    padding: 0.39vh 0;
+    padding: vh(0.39) 0;
     /* 3px 0 -> 0.39vh 0 (3/768*100, 0) - 减小内边距 */
-    gap: 0.98vh;
+    gap: vh(0.98);
     /* 7.5px -> 0.98vh (7.5/768*100) - 减小间距 */
 }
 </style>
