@@ -1,32 +1,32 @@
 <template>
   <div>
     <div class="container">
-      <van-field label="规格型号" v-model="data.MaterialSpecType" rows="2" readonly v-click-tooltip="data.MaterialSpecType" />
-      <van-field label="规格型号说明" v-model="data.MaterialSpecTypeExplain" rows="2" readonly v-click-tooltip="data.MaterialSpecTypeExplain" />
+      <van-field label="规格型号" v-model="data.MaterialSpecType" rows="2" readonly
+        v-click-tooltip="data.MaterialSpecType" />
+      <van-field label="规格型号说明" v-model="data.MaterialSpecTypeExplain" rows="2" readonly
+        v-click-tooltip="data.MaterialSpecTypeExplain" />
 
       <!-- 两列布局 -->
       <div class="field-container">
         <van-field v-model="data.InnerKey" label="制令单号" readonly v-click-tooltip="data.InnerKey" />
         <van-field v-model="formattedApprovalTime" label="接收日期" readonly clickable required right-icon="calendar-o"
           @click="handleDateFieldClick" v-click-tooltip="formattedApprovalTime" :disabled="data?.Status > 0" />
-        <van-popup v-model="showCalendar" get-container="body" position="bottom" :style="{ height: 'auto' }">
-          <van-calendar v-model="showCalendar" :show-confirm="false" @confirm="onSelectDate" />
-        </van-popup>
+        <van-calendar v-model="showCalendar" get-container="body" :show-confirm="false" @confirm="onSelectDate" />
         <van-field v-model="data.Code" label="单据编号" readonly v-click-tooltip="data.Code" />
         <van-field v-model="data.ClientName" label="客户名称" readonly v-click-tooltip="data.ClientName" />
         <van-field v-model="data.MaterialTuHao" label="图号" readonly v-click-tooltip="data.MaterialTuHao" />
 
         <!-- 将计件人员改为下拉框 -->
         <div class="employee-select-wrapper">
-          <van-field v-model="data.ReceiveEmployeeName" label="计件人员" required
-            :disabled="data?.Status > 0" right-icon="arrow-down" @click-right-icon="handleScanEmployee"
-            @input="handleEmployeeInput" @keyup.enter.native="handleEmployeeInputEnter" 
-            @click="handleEmployeeFieldClick" @focus="selectAllText($event)"
-            v-click-tooltip="data.ReceiveEmployeeName" />
+          <van-field v-model="data.ReceiveEmployeeName" label="计件人员" required :disabled="data?.Status > 0"
+            right-icon="arrow-down" @click-right-icon="handleScanEmployee" @input="handleEmployeeInput"
+            @keyup.enter.native="handleEmployeeInputEnter" @click="handleEmployeeFieldClick"
+            @focus="selectAllText($event)" v-click-tooltip="data.ReceiveEmployeeName"
+            v-close-keyboard />
           <van-popup v-model="showEmployeeSelector" position="bottom" round get-container="body">
             <div class="employee-search">
-              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees"
-                ref="employeeSearch" :disabled="searchDisabled" />
+              <van-search v-model="employeeSearchText" placeholder="请输入或扫描员工条码" @input="filterEmployees"
+                ref="employeeSearch" :disabled="searchDisabled" v-focus-no-keyboard="showEmployeeSelector" @focus="selectAllText($event)" @click="selectAllInSearch" />
             </div>
             <van-picker show-toolbar :columns="filteredEmployeeList" @confirm="onEmployeeSelected"
               @cancel="showEmployeeSelector = false" value-key="Name" @change="handlePickerChange" />
@@ -39,9 +39,10 @@
           <div class="qualification-wrapper">
             <van-field label="判定" readonly required>
               <template #input>
-                <el-select v-model="qualificationValue" size="small" class="qualification-dropdown" popper-append-to-body
-                  popper-class="high-priority-dropdown" :popper-options="{ gpuAcceleration: false }"
-                  @visible-change="handleSelectVisibleChange" :disabled="data?.Status > 0">
+                <el-select v-model="qualificationValue" size="small" class="qualification-dropdown"
+                  popper-append-to-body popper-class="high-priority-dropdown"
+                  :popper-options="{ gpuAcceleration: false }" @visible-change="handleSelectVisibleChange"
+                  :disabled="data?.Status > 0">
                   <el-option v-for="item in qualificationOptions" :key="item.value" :label="item.text"
                     :value="item.value"></el-option>
                 </el-select>
@@ -49,7 +50,8 @@
             </van-field>
           </div>
 
-          <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" required :disabled="data?.Status > 0" />
+          <van-field v-model="data.PassBQty" label="接收数量" v-click-tooltip="data.PassBQty" required
+            :disabled="data?.Status > 0" type="number" />
         </div>
       </div>
 
@@ -80,6 +82,7 @@ import billapi from '@/api/bill';
 import Vue from 'vue';
 import { Query } from '@/core/query';
 import { formatDate } from '@/utils/date-utils';
+import { initScanListener, removeScanListener, onScanResult } from '@/utils/scan-code-handler';
 
 export default {
   name: "AssemblyProcessCompletionPanel",
@@ -113,7 +116,27 @@ export default {
       employeeInputText: '', // 用于员工输入框
       isHandlingEmployeeInput: false, // 是否正在处理员工输入
       searchDisabled: false, // 是否禁用搜索功能
+      unsubscribe: null, // 扫码取消订阅函数
     };
+  },
+  mounted() {
+    // 为van-search添加自动选中文本的功能
+    this.setupSearchBoxSelectAll();
+    
+    // 初始化扫码监听
+    initScanListener();
+
+    // 注册扫码结果回调
+    this.unsubscribe = onScanResult(this.handleScanResult);
+  },
+  beforeDestroy() {
+    // 取消扫码结果回调
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
+
+    // 移除扫码监听
+    removeScanListener();
   },
   computed: {
     // 计算属性，返回格式化的接收日期
@@ -162,12 +185,34 @@ export default {
           const searchInput = document.querySelector('.van-popup--bottom .employee-search .van-field__control');
           if (searchInput) {
             searchInput.focus();
+            // 增加选中所有文本的功能
+            setTimeout(() => {
+              if (searchInput.select) {
+                searchInput.select();
+              }
+            }, 50);
           }
         }, 300);
       }
     },
   },
   methods: {
+    // 为van-search组件设置自动选中文本的功能
+    setupSearchBoxSelectAll() {
+      this.$nextTick(() => {
+        const searchBox = this.$refs.employeeSearch;
+        if (searchBox && searchBox.$el) {
+          const inputEl = searchBox.$el.querySelector('input');
+          if (inputEl) {
+            inputEl.addEventListener('focus', function() {
+              setTimeout(() => {
+                this.select();
+              }, 10);
+            });
+          }
+        }
+      });
+    },
     // 过滤员工列表
     filterEmployees() {
       if (!this.employeeSearchText) {
@@ -361,7 +406,7 @@ export default {
         });
         return false;
       }
-      
+
       // 检查合格性判定
       if (!this.qualificationValue || this.qualificationValue === 0) {
         this.$dialog.alert({
@@ -445,8 +490,13 @@ export default {
             message: `${action}成功`,
           });
 
-          // 触发父组件的刷新，并设置需要保持滚动位置
-          this.$emit('operation-complete', { preserveScroll: true });
+          if (isApproved) {
+            // 反审批成功后，只更新当前状态，不关闭对话框
+            this.$set(this.data, 'Status', 0);
+          } else {
+            // 审批成功后关闭对话框
+            this.$emit('operation-complete', { preserveScroll: true });
+          }
         } else {
           this.$dialog.alert({
             title: '提示',
@@ -518,7 +568,7 @@ export default {
       // 这里可以调用扫码API或组件，示例仅打开选择器
       this.showEmployeeSelector = true;
     },
-    
+
     // 处理员工输入变化
     handleEmployeeInput(value) {
       // 如果已审批，不允许修改
@@ -527,7 +577,7 @@ export default {
       }
       this.employeeInputText = value;
     },
-    
+
     // 处理员工输入回车事件
     async handleEmployeeInputEnter() {
       if (this.data?.Status > 0 || !this.employeeInputText) {
@@ -537,7 +587,7 @@ export default {
       await this.searchEmployeeByInput(this.employeeInputText);
       this.isHandlingEmployeeInput = false;
     },
-    
+
     // 根据输入搜索员工
     async searchEmployeeByInput(inputText) {
       try {
@@ -547,7 +597,7 @@ export default {
           forbidClick: true,
           duration: 0
         });
-        
+
         let query = new Query();
         query.TableName = "Employee";
         query.ShortName = "e";
@@ -556,15 +606,15 @@ export default {
         query.AddWhere(`(e.EmployeeState = '合同期' or e.EmployeeState = '试用期' or e.EmployeeState = '离职期')`);
         query.AddWhere(`(e.Name LIKE '%${inputText}%' OR e.CodeForScan LIKE '%${inputText}%')`);
         query.Order = 'e.Name ASC';
-        
+
         const pack = await generalapi.getDataEx(query);
-        
+
         // 关闭加载状态
         this.$toast.clear();
-        
+
         if (pack.Status == 200) {
           const employees = pack.Data || [];
-          
+
           if (employees.length === 0) {
             this.$toast({
               message: `未找到匹配 "${inputText}" 的员工`,
@@ -574,7 +624,7 @@ export default {
             // 清空输入
             this.$set(this.data, 'ReceiveEmployeeName', '');
             this.$set(this.data, 'Employeeid', null);
-          } 
+          }
           else if (employees.length === 1) {
             // 直接选择唯一匹配的员工
             const employee = employees[0];
@@ -585,7 +635,7 @@ export default {
               position: 'bottom',
               duration: 1000
             });
-          } 
+          }
           else {
             // 多个匹配结果，显示选择器
             this.filteredEmployeeList = employees;
@@ -602,7 +652,7 @@ export default {
       } catch (error) {
         // 关闭加载状态
         this.$toast.clear();
-        
+
         console.error("查询员工出错:", error);
         this.$toast({
           message: `查询员工出错: ${error.message || '未知错误'}`,
@@ -617,29 +667,67 @@ export default {
       if (this.data?.Status > 0) {
         return;
       }
-      
+
       if (event && event.target) {
         // 选择所有文本
         setTimeout(() => {
-          event.target.select();
+          // 处理van-search组件
+          if (event.target.classList.contains('van-search__field') || 
+              event.target.classList.contains('van-search')) {
+            const inputEl = event.target.querySelector('input') || 
+                            event.target.closest('.van-search').querySelector('input');
+            if (inputEl) {
+              inputEl.select();
+            }
+          } else {
+            // 处理普通输入框
+            event.target.select();
+          }
         }, 10);
       }
+    },
+    // 专门处理van-search点击时的全选
+    selectAllInSearch() {
+      this.$nextTick(() => {
+        const inputEl = this.$refs.employeeSearch?.$el.querySelector('input');
+        if (inputEl) {
+          inputEl.select();
+        }
+      });
     },
     // 处理选择器值变化
     handlePickerChange(picker, values) {
       // 暂时禁用搜索功能
       this.searchDisabled = true;
-      
+
       // 获取当前选中的员工并更新搜索框文本
       if (values && values.Name) {
         this.employeeSearchText = values.Name;
       }
-      
+
       // 使用setTimeout等待当前事件循环结束后恢复搜索功能
       setTimeout(() => {
         // 恢复搜索功能，但不触发搜索
         this.searchDisabled = false;
       }, 100);
+    },
+    // 处理扫码结果
+    handleScanResult(barcode) {
+      console.log('收到扫码结果:', barcode);
+
+      // 检查是否符合ZY-开头的格式
+      const ZY_CODE_REGEX = /^ZY-.*$/;
+      if (ZY_CODE_REGEX.test(barcode)) {
+        this.searchEmployeeByInput(barcode);
+      } else {
+        // 对于不支持的条码格式，提供友好提示
+        this.$toast({
+          message: `未识别的条码格式: ${barcode}`,
+          position: 'bottom',
+          duration: 2000
+        });
+        console.log('不支持的条码格式:', barcode);
+      }
     },
   },
 };
@@ -665,6 +753,13 @@ export default {
 .van-field {
   flex: 1 1 calc(50% - vw(0.6));
   /* 6px -> 0.6vw (6/1024*100) */
+
+  ::v-deep .van-field__body {
+    border: vh(0.13) solid #000;
+    /* 1px -> 0.13vh (1/768*100) */
+    border-radius: vh(0.52);
+    /* 4px -> 0.52vh (4/768*100) */
+  }
 }
 
 .van-cell {
@@ -905,19 +1000,19 @@ export default {
       margin-right: 0;
 
       ::v-deep .van-field__label {
-        width: vw(6);
-        flex: none;
+        width: 2em;
+        flex: 0 0 2em;
       }
 
       ::v-deep .van-field__value {
         flex: 1;
       }
     }
-    
+
     ::v-deep .qualification-dropdown {
       width: 100%;
     }
-    
+
     ::v-deep .el-input__inner {
       border: none;
       background: transparent;
@@ -951,5 +1046,53 @@ export default {
       font-size: vh(1.8);
     }
   }
+}
+
+/* 修复移动设备上picker框架位置偏移问题 */
+.van-hairline-unset--top-bottom.van-picker__frame {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 100%;
+}
+
+/* 调整picker在移动设备上的适配 */
+@media screen and (max-width: 480px) {
+  .van-picker {
+    height: auto;
+    max-height: 40vh;
+  }
+
+  .van-picker-column {
+    height: auto;
+  }
+
+  .van-picker__columns {
+    height: auto !important;
+    min-height: 20vh;
+  }
+}
+
+/* 修复下拉箭头展开收起动画中心点问题 */
+.el-select__caret {
+  transform-origin: center center !important;
+  transition: transform 0.3s !important;
+}
+
+/* 下拉框文字样式 */
+.el-select .el-input__inner {
+  font-size: vh(1.8) !important;
+  height: vh(3.5) !important;
+  line-height: vh(3.5) !important;
+}
+
+/* 下拉图标 */
+.el-select .el-input__icon {
+  line-height: vh(3.5) !important;
+  font-size: vh(1.8) !important;
 }
 </style>

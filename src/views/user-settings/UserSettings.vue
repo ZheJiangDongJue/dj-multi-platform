@@ -11,7 +11,7 @@
         <div class="settings-list">
             <div class="settings-item">
                 <div class="item-label">当前账号</div>
-                <div class="item-value" v-if="userInfo">{{ userInfo.Name || userInfo.Username }}</div>
+                <div class="item-value" v-if="userInfo">{{ userInfo.Name || userInfo.UserName }}</div>
             </div>
 
             <div class="settings-item" @click="showChangePasswordDialog">
@@ -56,8 +56,8 @@
 </template>
 
 <script>
-import { logout } from '@/utils/session-manager';
 import loginAPI from '@/api/login';
+import { mapGetters } from 'vuex';
 
 export default {
     name: 'UserSettings',
@@ -91,9 +91,11 @@ export default {
             }
         }
     },
+    computed: {
+        ...mapGetters(['userInfo', 'dbName'])
+    },
     created() {
         // 从session或vuex获取用户信息
-        // this.userInfo = userInfo;
         console.log(this.userInfo);
         console.log(this.dbName)
     },
@@ -130,11 +132,7 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                logout();
-                this.$message({
-                    type: 'success',
-                    message: '已安全退出登录'
-                });
+                this.$router.push('/logout');
             }).catch(() => { });
         }
     }

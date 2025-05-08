@@ -27,8 +27,8 @@ const detectDeviceHelper = {
         const isExplicitMobile = /mobile|iphone|ipod/i.test(userAgent);
 
         // 基于屏幕尺寸的平板判断（7英寸以上通常被视为平板）
-        // 使用最小边长 >= 600px 作为平板的判断标准
-        const isTabletBySize = screenSize >= 600;
+        // 使用最小边长 >= 500px 作为平板的判断标准
+        const isTabletBySize = screenSize >= 500;
 
         // 判断逻辑
         if (isExplicitTablet) {

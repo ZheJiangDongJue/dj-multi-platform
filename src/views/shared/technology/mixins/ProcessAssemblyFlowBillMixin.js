@@ -4,12 +4,18 @@ import { Query } from '@/core/query';
 import craftapi from '@/api/craft';
 import { pageStateMixin } from '@/mixins';
 
+// 日期流水号格式正则表达式 (yyyymmdd+4位流水号)
+// 严格校验年月日格式和4位流水号
+const DATE_SERIAL_REGEX = /^(\d{4})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(\d{4})$/;
+
 // 引入拆分后的组件
 import HeaderPanel from '@/views/tablet/technology/components/HeaderPanel.vue';
 import ToolbarPanel from '@/views/tablet/technology/components/ToolbarPanel.vue';
 import CardList from '@/views/tablet/technology/components/CardList.vue';
 import AssemblyProcessReceivePanel from '@/views/tablet/technology/ProcessAssemblyFlow/AssemblyProcessReceivePanel.vue';
 import AssemblyProcessCompletionPanel from '@/views/tablet/technology/ProcessAssemblyFlow/AssemblyProcessCompletionPanel.vue';
+
+import { initScanListener, removeScanListener, onScanResult } from '@/utils/scan-code-handler';
 
 export default {
     components: {
@@ -42,7 +48,12 @@ export default {
             scrollPosition: 0,
             // 标记是否正在处理回车事件
             isHandlingMaterialCodeEnter: false,
-            isHandlingInnerKeyEnter: false
+            isHandlingInnerKeyEnter: false,
+            unsubscribe: null,
+            // 存储临时封存的扫码回调
+            temporarilySuspendedScanCallback: null,
+            // 标记内容是否被修改
+            isContentModified: false,
         }
     },
     computed: {
@@ -82,6 +93,33 @@ export default {
                 }
             },
         },
+        // // 监听bill数据变化
+        // 'vm.billData.data': {
+        //     handler() {
+        //         // 不在单据打开时设置修改标记
+        //         if (!this.vm.isOpeningBill && !this.vm.isNewingBill) {
+        //             // 设置内容已修改标记
+        //             this.isContentModified = true;
+        //         }
+        //     },
+        //     deep: true
+        // },
+        // // 监听明细数据变化
+        // 'vm.detail_vm.details': {
+        //     handler() {
+        //         // 不在单据打开时设置修改标记
+        //         if (!this.vm.isOpeningBill && !this.vm.isNewingBill) {
+        //             // 设置内容已修改标记
+        //             this.isContentModified = true;
+        //         }
+        //     },
+        //     deep: true
+        // },
+        isContentModified: {
+            handler(newVal) {
+                console.log(newVal);
+            }
+        },
         // 监听对话框数据变化
         dialogDataContext: {
             handler(newVal) {
@@ -115,19 +153,50 @@ export default {
         this.vm.billData.tryAddColumn("MaterialSpecType", true);
         this.vm.billData.tryAddColumn("MaterialSpecTypeExplain", true);
         this.vm.billData.tryAddColumn("MaterialTuHao", true);
-        this.vm.registerEvent('BeforeOpenBill', (vm) => {
+        this.vm.registerEvent('BeforeOpenBill', async (vm) => {
             console.log('BeforeOpenBill', vm);
+            const canContinue = await this.checkContentModified();
+            if (!canContinue) {
+                return;
+            }
         });
+        // this.vm.registerEvent('AfterNewBill', async (vm) => {
+        //     console.log('AfterNewBill', vm);
+        //     const canContinue = await this.checkContentModified();
+        //     if (!canContinue) {
+        //         return;
+        //     }
+        // });
         this.vm.isReady = true;
 
         // 尝试恢复页面状态，如果没有恢复成功则创建新单据
         if (!(await this.tryRestorePageState())) {
             await this.vm.tryRaiseCommandAsync('NewBill');
         }
+
+        setTimeout(() => {
+            this.$nextTick(() => {
+                this.isContentModified = false;
+            });
+        }, 300);
+
+        // 初始化扫码监听
+        initScanListener();
+
+        // 注册扫码结果回调
+        this.unsubscribe = onScanResult(this.handleScanResult);
     },
     beforeDestroy() {
         // 移除监听（避免内存泄漏）
         window.removeEventListener("resize", this.refreshScreenResolution);
+
+        // 取消扫码结果回调
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+
+        // 移除扫码监听
+        removeScanListener();
     },
     methods: {
         /**
@@ -222,7 +291,7 @@ export default {
                 // 如果有保存的单据ID，则打开该单据
                 if (storedState.billId) {
                     // 打开单据
-                    await this.vm.openBill(storedState.billId);
+                    await this.vm.openBillNotEvent(storedState.billId);
 
                     // 恢复滚动位置（在下一个事件循环中执行，确保DOM已更新）
                     this.$nextTick(() => {
@@ -318,6 +387,28 @@ export default {
             }
             return false;
         },
+        handleScanResult(barcode, data) {
+            console.log('扫码结果:', barcode, data);
+
+            // 检查是否符合日期+流水号格式 (yyyymmdd+4位流水号)
+            const match = barcode.match(DATE_SERIAL_REGEX);
+            if (match) {
+                // const [fullMatch, year, month, day, serialNumber] = match;
+                // console.log(`扫码解析: 年份=${year}, 月份=${month}, 日期=${day}, 流水号=${serialNumber}`);
+
+                // 根据业务需求处理日期流水号编码
+                // 可以直接使用解析后的年月日和流水号进行后续处理
+                this.processScanByDailyPlanDetail(barcode);
+            } else {
+                // 对于不支持的条码格式，提供友好提示
+                this.$toast({
+                    message: `未识别的条码格式: ${barcode}`,
+                    position: 'bottom',
+                    duration: 2000
+                });
+                console.log('不支持的条码格式:', barcode);
+            }
+        },
         setMaterialInBill(material) {
             if (material != null) {
                 this.vm.billData.setValue('MaterialCode', material?.Code);
@@ -396,12 +487,8 @@ export default {
             }
 
             try {
-                // 显示加载状态
-                this.$toast.loading({
-                    message: '加载中...',
-                    forbidClick: true,
-                    duration: 0
-                });
+                // 在打开对话框前暂时封存扫码回调
+                this.suspendScanCallback();
 
                 // 调用API处理接收操作
                 var pack = await craftapi.receiveProcessAssemblyFlowDocument(item.id);
@@ -424,8 +511,13 @@ export default {
                             this.$dialog.alert({
                                 title: '提示',
                                 message: "该接收工序是特殊单据,暂时没有支持特殊单据",
-                            })
+                            });
+                            // 如果不显示对话框，立即恢复扫码回调
+                            this.restoreScanCallback();
                         }
+                    } else {
+                        // 如果不显示对话框，立即恢复扫码回调
+                        this.restoreScanCallback();
                     }
                 }
                 else {
@@ -433,7 +525,9 @@ export default {
                     this.$dialog.alert({
                         title: '提示',
                         message: pack.Message,
-                    })
+                    });
+                    // 如果不显示对话框，立即恢复扫码回调
+                    this.restoreScanCallback();
                 }
             } catch (error) {
                 // 关闭加载状态
@@ -445,6 +539,9 @@ export default {
                     title: '提示',
                     message: `接收工序失败: ${error.message || '未知错误'}`,
                 });
+
+                // 发生错误时恢复扫码回调
+                this.restoreScanCallback();
             }
         },
 
@@ -505,12 +602,8 @@ export default {
             }
 
             try {
-                // 显示加载状态
-                this.$toast.loading({
-                    message: '加载中...',
-                    forbidClick: true,
-                    duration: 0
-                });
+                // 在打开对话框前暂时封存扫码回调
+                this.suspendScanCallback();
 
                 // 调用API处理完工操作
                 var pack = await craftapi.completeProcessAssemblyFlowDocument(item.id);
@@ -533,8 +626,13 @@ export default {
                             this.$dialog.alert({
                                 title: '提示',
                                 message: "该完工工序是特殊单据,暂时没有支持特殊单据",
-                            })
+                            });
+                            // 如果不显示对话框，立即恢复扫码回调
+                            this.restoreScanCallback();
                         }
+                    } else {
+                        // 如果不显示对话框，立即恢复扫码回调
+                        this.restoreScanCallback();
                     }
                 }
                 else {
@@ -542,7 +640,9 @@ export default {
                     this.$dialog.alert({
                         title: '提示',
                         message: pack.Message,
-                    })
+                    });
+                    // 如果不显示对话框，立即恢复扫码回调
+                    this.restoreScanCallback();
                 }
             } catch (error) {
                 // 关闭加载状态
@@ -554,6 +654,9 @@ export default {
                     title: '提示',
                     message: `完工工序失败: ${error.message || '未知错误'}`,
                 });
+
+                // 发生错误时恢复扫码回调
+                this.restoreScanCallback();
             }
         },
         // 处理页面滚动并保存滚动位置
@@ -580,6 +683,9 @@ export default {
         handleDialogClosed() {
             // 在对话框关闭时重置相关数据
             this.dialogDataContextTableName = '';
+
+            // 在对话框关闭后恢复扫码回调
+            this.restoreScanCallback();
         },
         // 处理子组件操作完成事件
         async handleOperationComplete(options = { preserveScroll: true }) {
@@ -639,6 +745,65 @@ export default {
         handleUpdateField({ field, value }) {
             // 处理子组件发出的字段更新事件
             this.vm.billData.setValue(field, value);
+            // 不在单据打开时设置修改标记
+            if (!this.vm.isOpeningBill && !this.vm.isNewingBill) {
+                // 设置内容已修改标记
+                this.isContentModified = true;
+            }
+        },
+        handleUpdateCardField({ field, value, item, index }) {
+            console.log(field, value, item, index);
+            this.vm.detail_vm.details[index][field] = value;
+            // 不在单据打开时设置修改标记
+            if (!this.vm.isOpeningBill && !this.vm.isNewingBill) {
+                // 设置内容已修改标记
+                this.isContentModified = true;
+            }
+        },
+        /**
+         * 检查内容是否被修改，如果是则提示保存
+         * @returns {Promise<boolean>} 是否可以继续执行下一步操作
+         */
+        async checkContentModified() {
+            // 如果内容未修改，直接返回true
+            if (!this.isContentModified) {
+                return true;
+            }
+
+            // 显示确认对话框
+            try {
+                const action = await this.$dialog.confirm({
+                    title: '提示',
+                    message: '当前内容已被改动，是否保存?',
+                    showCancelButton: true,
+                    cancelButtonText: '否',
+                    confirmButtonText: '是',
+                }).catch(() => 'cancel'); // 用户点击右上角关闭按钮时视为取消
+
+                if (action === 'confirm') {
+                    // 用户选择"是"，保存内容
+                    const result = await this.vm.saveBill();
+                    if (result.success) {
+                        // 保存成功，重置修改标记
+                        this.isContentModified = false;
+                        return true;
+                    } else {
+                        // 保存失败
+                        return false;
+                    }
+                } else if (action === 'cancel') {
+                    // 用户选择"否"，不保存，继续操作
+                    // 重置修改标记
+                    this.isContentModified = false;
+                    return true;
+                } else {
+                    // 用户取消操作
+                    return false;
+                }
+            } catch (error) {
+                console.error('对话框操作失败:', error);
+                return false;
+            }
         },
         /**
          * 处理扫码查询结果
@@ -693,7 +858,7 @@ export default {
                 query.TableName = 'DailyPlanDetail';
                 query.ShortName = 'dpd';
                 query.Select = 'dpd.id';
-                query.AddWhere(`dpd.CodeForScan = '${code}'`);
+                query.AddWhere(`dpd.CodeForScan = '${code}' or dpd.InnerKey = '${code}'`);
                 query.AddWhere('dpd.DeletedTag = 0');
 
                 // 执行查询
@@ -732,10 +897,14 @@ export default {
                 this.vm.billData.setValue('InnerKey', '');
                 console.error('通过日计划处理扫码结果失败:', error);
 
-                this.$toast({
+                if (error.message.includes('Timeout')) {
+                    let err = error.message;
+                    error.message = "处理扫码结果失败,扫码请求超时(" + err + ")";
+                }
+
+                this.$dialog.alert({
+                    title: '提示',
                     message: `处理扫码结果失败: ${error.message || '未知错误'}`,
-                    position: 'bottom',
-                    duration: 2000
                 });
             }
         },
@@ -908,6 +1077,39 @@ export default {
                     position: 'bottom',
                     duration: 2000
                 });
+            }
+        },
+        /**
+         * 暂时封存扫码回调
+         * 在打开对话框前调用，防止对话框打开期间扫码触发不必要的操作
+         */
+        suspendScanCallback() {
+            console.log('暂时封存扫码回调');
+            // 只有当有活跃的扫码回调时才需要封存
+            if (this.unsubscribe && typeof this.unsubscribe === 'function') {
+                // 保存当前的扫码回调
+                this.temporarilySuspendedScanCallback = this.unsubscribe;
+                // 取消当前的扫码回调
+                this.unsubscribe();
+                // 清空当前回调引用
+                this.unsubscribe = null;
+            }
+        },
+
+        /**
+         * 恢复扫码回调
+         * 在对话框关闭后调用，重新启用扫码功能
+         */
+        restoreScanCallback() {
+            console.log('恢复扫码回调');
+            // 只有当有封存的回调且当前没有活跃回调时才需要恢复
+            if (this.temporarilySuspendedScanCallback && !this.unsubscribe) {
+                // 重新初始化扫码监听（以防监听被移除）
+                initScanListener();
+                // 注册保存的扫码回调
+                this.unsubscribe = onScanResult(this.handleScanResult);
+                // 清空临时保存的回调
+                this.temporarilySuspendedScanCallback = null;
             }
         },
     }

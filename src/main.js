@@ -4,11 +4,16 @@ import router from './router'
 import store from './store'
 import '@/utils/api_helper/extension';
 import { initSessionManager } from '@/utils/session-manager';
+// 引入Android桥接模块
+import AndroidBridge from '@/utils/android-bridge';
 
 // 初始化会话管理
 if (localStorage.getItem('loginTime')) {
   initSessionManager();
 }
+
+// 将Android桥接模块挂载到Vue原型，以便在所有组件中使用
+Vue.prototype.$android = AndroidBridge;
 
 // 浏览器调试避免(...)
 // console.log_ = console.log;
@@ -91,6 +96,21 @@ import networkHelper from '@/utils/network-helper';
 // 将网络帮助工具挂载到Vue原型，以便在所有组件中使用
 Vue.prototype.$networkHelper = networkHelper;
 
+// 添加Android通知事件监听
+window.addEventListener('android-notification', (event) => {
+  const { type, data } = event.detail;
+  // 分发到Vuex或EventBus
+  eventBus.$emit('android-notification', { type, data });
+  
+  // 特殊处理网络变化事件
+  if (type === 'networkChanged' && data && data.isConnected === false) {
+    router.push({
+      path: '/network-error', 
+      query: { from: router.currentRoute.fullPath }
+    });
+  }
+});
+
 new Vue({
   store,
   router,
@@ -114,3 +134,6 @@ new Vue({
 //     });
 //   }
 // });
+window.addEventListener('refresh-data', () => {
+  location.reload();
+});

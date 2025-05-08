@@ -1,13 +1,14 @@
 <template>
     <div class="app-container">
         <div class="navbar">
-            <div v-if="deviceType === 'mobile'" class="menu-button" @click="toggleSidebar" :class="{ 'active': !sidebarVisible }">
+            <div v-if="deviceType === 'mobile'" class="menu-button" @click="toggleSidebar"
+                :class="{ 'active': !sidebarVisible }">
                 <i class="el-icon-menu"></i>
                 <div class="menu-ripple" v-show="menuRipple"></div>
             </div>
             <div class="title">东爵ERP系统</div>
             <div class="user-info" @click="showUserDropdown = !showUserDropdown" ref="userInfo">
-                <span v-if="userInfo">{{ userInfo.name || userInfo.username }}</span>
+                <span v-if="userInfo">{{ userInfo.Name || userInfo.UserName }}</span>
                 <span v-else>未登录</span>
                 <i class="el-icon-caret-bottom ml-5" :class="{ 'dropdown-active': showUserDropdown }"></i>
             </div>
@@ -16,8 +17,8 @@
         <!-- 手机端弹出侧边栏 -->
         <van-popup v-if="deviceType === 'mobile'" v-model="sidebarVisible" position="left" :style="{
             width: '30%', minWidth: '200px',
-         height: '100%' }" :overlay="true"
-            :overlay-class="'sidebar-overlay'" class="mobile-sidebar-popup" :duration="0.3">
+            height: '100%'
+        }" :overlay="true" :overlay-class="'sidebar-overlay'" class="mobile-sidebar-popup" :duration="0.3">
             <div class="sidebar-content">
                 <div class="sidebar-header">
                     <div class="company-logo">DJ</div>
@@ -60,8 +61,8 @@
                                 <van-collapse-item :title="item.Name" :name="item.Name" v-for="item in navigatorItems"
                                     :key="item.id" :is-link="item.Children.length > 0" class="custom-collapse-item">
                                     <div class="tree-container" v-if="item.Children.length > 0">
-                                        <el-tree :data="item.Children" :props="defaultProps" @node-click="handleNodeClick"
-                                            :highlight-current="true" node-key="id">
+                                        <el-tree :data="item.Children" :props="defaultProps"
+                                            @node-click="handleNodeClick" :highlight-current="true" node-key="id">
                                         </el-tree>
                                     </div>
                                 </van-collapse-item>
@@ -121,18 +122,18 @@
                 <div class="dropdown-arrow"></div>
                 <div class="dropdown-content">
                     <div class="user-avatar">
-                        <div class="avatar-circle">{{ userInfo && (userInfo.name || userInfo.username) ? (userInfo.name
+                        <div class="avatar-circle">{{ userInfo && (userInfo.Name || userInfo.UserName) ? (userInfo.Name
                             ||
-                            userInfo.username).charAt(0) : 'U' }}</div>
+                            userInfo.UserName).charAt(0) : 'U' }}</div>
                         <div class="user-details">
-                            <div class="user-name">{{ userInfo && (userInfo.name || userInfo.username) ? (userInfo.name
+                            <div class="user-name">{{ userInfo && (userInfo.Name || userInfo.UserName) ? (userInfo.Name
                                 ||
-                                userInfo.username) : '游客' }}</div>
+                                userInfo.UserName) : '游客' }}</div>
                             <div class="user-role">{{ userInfo && userInfo.role ? userInfo.role : '普通用户' }}</div>
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
-                    <div class="dropdown-item" @click="$router.push('/home/user-settings')">
+                    <div class="dropdown-item" @click="handleUserSettings">
                         <i class="el-icon-user"></i>
                         <span>个人设置</span>
                     </div>
@@ -157,7 +158,6 @@
 import Card from '@/components/CardComponent.vue';
 // 页面名称和路由的对应关系在这里配置
 import PageNameToRouterConverter from '@/converter/PageNameToRouterConverter';
-import { logout } from '@/utils/session-manager';
 import detectDeviceHelper from '@/utils/multi-platform';
 
 export default {
@@ -180,11 +180,11 @@ export default {
             },
             menuRipple: false,
             showUserDropdown: false,
-            userInfo: {
-                name: '测试用户',
-                username: 'testuser',
-                role: '用户'
-            },
+            // userInfo: {
+            //     name: '测试用户',
+            //     Username: 'testuser',
+            //     role: '用户'
+            // },
             notificationCount: 3,
             dropdownPosition: {
                 top: 0,
@@ -198,9 +198,19 @@ export default {
             // 检查当前路由是否为home的直接子路由（不包含模块子路由）
             const path = this.$route.path;
             const isHomePath = path === '/home';
-            const isModulePath = /^\/home\/[^/]+$/.test(path); // 匹配/home/模块名 格式
 
-            // 如果是/home或/home/模块名，则显示聚合页面
+            // 特殊功能页面路径列表 - 这些不是模块而是功能页面
+            const specialFunctionPages = ['user-settings'];
+
+            // 检查是否是特殊功能页面
+            const isSpecialFunctionPage = specialFunctionPages.some(page =>
+                path === `/home/${page}`
+            );
+
+            // 检查是否是模块路径（排除特殊功能页面）
+            const isModulePath = !isSpecialFunctionPage && /^\/home\/[^/]+$/.test(path);
+
+            // 如果是/home或/home/模块名(不包括特殊功能页面)，则显示聚合页面
             return !(isHomePath || isModulePath);
         }
     },
@@ -217,7 +227,7 @@ export default {
             }
         },
         $route: {
-            handler: function(to) {
+            handler: function (to) {
                 // 当路由发生变化时，更新显示的模块
                 const path = to.path;
                 // 如果路径是/home/模块名格式
@@ -249,50 +259,100 @@ export default {
         window.removeEventListener('resize', this.handleResize);
     },
     async created() {
-        this.navigatorItems.push({
-            Name: '工艺系统',
-            Children: [
-                {
-                    Name: '组装流程卡',
-                    PageName: "ProcessAssemblyFlowBill",
-                },
-                {
-                    Name: '组装批量接收',
-                    PageName: "BatchReceiveProcessAssemblyFlow",
-                },
-                {
-                    Name: '组装批量完工',
-                    PageName: "BatchCompleteProcessAssemblyFlow",
-                },
-            ]
-        })
-
-        // 添加示例模块
-        this.navigatorItems.push({
-            Name: '示例',
-            Children: [
-                {
-                    Name: '单据页面模板',
-                    PageName: "BillPageTemplateDemo",
-                },
-                {
-                    Name: '输入法高度挤压测试',
-                    PageName: "ViewportDemo",
-                },
-                {
-                    Name: '设备检测测试',
-                    PageName: "DeviceDetectionTest",
-                },
-            ]
-        })
-
-        for (let i = 0; i < this.navigatorItems.length; i++) {
-            const element = this.navigatorItems[i];
-            element.id = i + 1;
-        }
+        await this.init();
         this.refreshCurrentModule();
     },
     methods: {
+        async init() {
+            try {
+                // 初始化导航数据
+                this.navigatorItems = [];
+
+                // 添加工艺模块
+                this.navigatorItems.push({
+                    id: "technology",
+                    Name: '工艺系统',
+                    Children: [
+                        {
+                            id: "zzlck",
+                            Name: '组装流程卡',
+                            PageName: "ProcessAssemblyFlowBill",
+                            Path: "Home.technology.zzlck"
+                        },
+                        // {
+                        //     id: "pljszzlck",
+                        //     Name: '组装批量接收',
+                        //     PageName: "BatchReceiveProcessAssemblyFlow",
+                        //     Path: "Home.technology.pljszzlck"
+                        // },
+                        // {
+                        //     id: "plwgzzlck",
+                        //     Name: '组装批量完工',
+                        //     PageName: "BatchCompleteProcessAssemblyFlow",
+                        //     Path: "Home.technology.plwgzzlck"
+                        // },
+                    ]
+                });
+
+                // 添加示例模块
+                this.navigatorItems.push({
+                    id: "example",
+                    Name: '示例',
+                    Children: [
+                        {
+                            id: "bill-template-demo",
+                            Name: '单据页面模板',
+                            PageName: "BillPageTemplateDemo",
+                            Path: "Home.example.bill-template-demo"
+                        },
+                        {
+                            id: "viewport-demo",
+                            Name: '输入法高度挤压测试',
+                            PageName: "ViewportDemo",
+                            Path: "Home.example.viewport-demo"
+                        },
+                        {
+                            id: "device-detection-test",
+                            Name: '设备检测测试',
+                            PageName: "DeviceDetectionTest",
+                            Path: "Home.example.device-detection-test"
+                        },
+                        {
+                            id: "android-bridge-demo",
+                            Name: '安卓桥接演示',
+                            PageName: "AndroidBridgeDemo",
+                            Path: "Home.example.android-bridge-demo"
+                        },
+                        {
+                            id: "scan-code-demo",
+                            Name: '扫码演示',
+                            PageName: "ScanCodeDemo",
+                            Path: "Home.example.scan-code-demo"
+                        },
+                    ]
+                });
+
+                // 设置模块ID
+                for (let i = 0; i < this.navigatorItems.length; i++) {
+                    const element = this.navigatorItems[i];
+                    if (!element.id) {
+                        element.id = i + 1;
+                    }
+                }
+
+                // 检测设备类型
+                this.deviceType = detectDeviceHelper.detectDeviceType();
+                this.isMobile = this.deviceType === 'mobile';
+
+                // 如果是移动设备，默认隐藏侧边栏
+                if (this.isMobile) {
+                    this.sidebarVisible = false;
+                }
+
+            } catch (err) {
+                console.error('初始化失败', err);
+            }
+        },
         toggleSidebar() {
             // 仅在移动设备上需要展开/收起侧边栏
             if (this.deviceType === 'mobile') {
@@ -442,11 +502,7 @@ export default {
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    logout();
-                    this.$message({
-                        type: 'success',
-                        message: '已安全退出登录'
-                    });
+                    this.$router.push('/logout');
                 }).catch(() => { });
             } else if (command === 'userSettings') {
                 this.$router.push('/home/user-settings');
@@ -500,6 +556,13 @@ export default {
             }
 
             return '功能页面';
+        },
+        handleUserSettings() {
+            this.$router.push('/home/user-settings');
+            this.showUserDropdown = false; // 关闭下拉菜单
+            if (this.deviceType === 'mobile') {
+                this.sidebarVisible = false;
+            }
         }
     }
 }
@@ -523,8 +586,10 @@ export default {
     position: relative;
     display: flex;
     flex-direction: column;
-    max-width: 100vw; /* 确保不超过视口宽度 */
-    box-sizing: border-box; /* 确保padding不会增加宽度 */
+    max-width: 100vw;
+    /* 确保不超过视口宽度 */
+    box-sizing: border-box;
+    /* 确保padding不会增加宽度 */
 }
 
 .navbar {
@@ -1175,6 +1240,7 @@ export default {
     background-color: #fff;
     box-shadow: vw(0.29) 0 vw(1.95) rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    top: 0%;
 }
 
 .sidebar-overlay {
@@ -1189,18 +1255,21 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2000; /* 超高层级确保在所有元素之上 */
+    z-index: 2000;
+    /* 超高层级确保在所有元素之上 */
     background-color: rgba(248, 249, 250, 0.98);
     display: flex;
     flex-direction: column;
     animation: page-wrapper-enter 0.3s ease-out;
-    overflow: hidden; /* 防止产生滚动条 */
+    overflow: hidden;
+    /* 防止产生滚动条 */
 }
 
 @keyframes page-wrapper-enter {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1208,9 +1277,11 @@ export default {
 
 /* 嵌套路由功能页面容器 */
 .function-page-container {
-    position: relative; /* 改为相对定位 */
+    position: relative;
+    /* 改为相对定位 */
     background-color: #fff;
-    z-index: 999; /* 提高z-index确保不被其他元素遮挡 */
+    z-index: 999;
+    /* 提高z-index确保不被其他元素遮挡 */
     overflow: auto;
     display: flex;
     flex-direction: column;
@@ -1220,7 +1291,8 @@ export default {
     // margin: vh(6.5) auto vh(1.3) auto; /* 顶部留出导航栏的高度 */
     // width: 95%; /* 减小宽度以避免产生滚动条 */
     // max-width: 1280px;
-    height: vh(100); /* 高度减去导航栏和边距 */
+    height: vh(100);
+    /* 高度减去导航栏和边距 */
 }
 
 @keyframes page-enter {
@@ -1228,6 +1300,7 @@ export default {
         opacity: 0;
         transform: translateY(vh(0.65));
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1244,7 +1317,8 @@ export default {
     border-radius: vh(0.52) vh(0.52) 0 0;
     max-width: 100%;
     box-sizing: border-box;
-    flex-wrap: wrap; /* 在小屏幕上允许换行 */
+    flex-wrap: wrap;
+    /* 在小屏幕上允许换行 */
 }
 
 .back-button {

@@ -12,8 +12,27 @@
                 <i class="el-icon-arrow-left"></i>
                 <span>返回</span>
               </div>
-              <!-- 工具栏插槽 -->
-              <slot name="toolbar"></slot>
+              <!-- 工具栏容器 - 包含指示器和滚动区域 -->
+              <div class="toolbar-scroll-container">
+                <!-- 左侧滚动指示器 -->
+                <div class="scroll-indicator left" 
+                     :class="{ 'active': hasScrollLeft }"
+                     @click="scrollToolbar('left')">
+                  <van-icon name="arrow-left" />
+                </div>
+                
+                <!-- 工具栏插槽 - 添加横向滚动能力 -->
+                <div class="bill-page__toolbar-scroll" ref="toolbarScroll" @scroll="handleToolbarScroll">
+                  <slot name="toolbar"></slot>
+                </div>
+                
+                <!-- 右侧滚动指示器 -->
+                <div class="scroll-indicator right" 
+                     :class="{ 'active': hasScrollRight }"
+                     @click="scrollToolbar('right')">
+                  <van-icon name="arrow" />
+                </div>
+              </div>
             </div>
           </DockItem>
         </DockPanel>
@@ -99,7 +118,39 @@ export default {
       scrollPosition: 0,
       controlPanelExpanded: false, // 默认收起控件面板
       activeCollapse: [], // 不激活,如果默认激活第一个折叠面板就写['1']
+      hasScrollLeft: false,
+      hasScrollRight: false,
     };
+  },
+  mounted() {
+    // 初始检查工具栏是否需要显示滚动指示器
+    this.$nextTick(() => {
+      this.checkToolbarScroll();
+    });
+    
+    // 监听窗口大小变化
+    window.addEventListener('resize', this.checkToolbarScroll);
+    
+    // 监听工具栏内容变化（当slot内容可能变化时）
+    const toolbarObserver = new MutationObserver(this.checkToolbarScroll);
+    const toolbarEl = this.$refs.toolbarScroll;
+    if (toolbarEl) {
+      toolbarObserver.observe(toolbarEl, {
+        childList: true,
+        subtree: true,
+        attributes: true
+      });
+    }
+    
+    // 保存observer以便在组件销毁时断开连接
+    this.toolbarObserver = toolbarObserver;
+  },
+  beforeDestroy() {
+    // 清除事件监听和observer
+    window.removeEventListener('resize', this.checkToolbarScroll);
+    if (this.toolbarObserver) {
+      this.toolbarObserver.disconnect();
+    }
   },
   methods: {
     goBack() {
@@ -143,6 +194,50 @@ export default {
         this.activeCollapse = ['1']; // 展开面板
       } else {
         this.activeCollapse = []; // 收起面板
+      }
+    },
+    handleToolbarScroll() {
+      this.checkToolbarScroll();
+    },
+    scrollToolbar(direction) {
+      const toolbarScroll = this.$refs.toolbarScroll;
+      if (toolbarScroll) {
+        const scrollLeft = toolbarScroll.scrollLeft;
+        const scrollWidth = toolbarScroll.scrollWidth;
+        const clientWidth = toolbarScroll.clientWidth;
+        const scrollStep = clientWidth / 2; // 每次滚动半个视口宽度
+
+        let newScrollLeft;
+
+        if (direction === 'left') {
+          newScrollLeft = Math.max(0, scrollLeft - scrollStep);
+        } else if (direction === 'right') {
+          newScrollLeft = Math.min(scrollWidth - clientWidth, scrollLeft + scrollStep);
+        }
+
+        toolbarScroll.scrollTo({
+          left: newScrollLeft,
+          behavior: 'smooth'
+        });
+      }
+    },
+    // 检查工具栏滚动状态并更新指示器显示
+    checkToolbarScroll() {
+      const toolbarScroll = this.$refs.toolbarScroll;
+      if (toolbarScroll) {
+        const scrollLeft = toolbarScroll.scrollLeft;
+        const scrollWidth = toolbarScroll.scrollWidth;
+        const clientWidth = toolbarScroll.clientWidth;
+        
+        // 只有在内容宽度大于容器宽度时才显示滚动指示器
+        if (scrollWidth > clientWidth) {
+          this.hasScrollLeft = scrollLeft > 5; // 有5px的容差
+          this.hasScrollRight = scrollLeft < (scrollWidth - clientWidth - 5); // 有5px的容差
+        } else {
+          // 内容没有超出容器，不需要滚动指示器
+          this.hasScrollLeft = false;
+          this.hasScrollRight = false;
+        }
       }
     }
   }
@@ -339,6 +434,100 @@ export default {
   width: 100%;
 }
 
+/* 工具栏容器包含指示器的样式 */
+.toolbar-scroll-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 滚动指示器基础样式 */
+.scroll-indicator {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: vh(3.5);
+  height: vh(3.5);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 vh(0.26) vh(0.78) rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  opacity: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(0.8);
+  pointer-events: none; /* 默认不接收任何鼠标事件 */
+  visibility: hidden; /* 隐藏时完全移出文档流 */
+  
+  &.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto; /* 激活时恢复鼠标事件响应 */
+    visibility: visible; /* 激活时显示 */
+  }
+  
+  .van-icon {
+    font-size: vh(1.56);
+    color: #1e3c72;
+  }
+
+  &:hover {
+    background: rgba(240, 245, 255, 0.95);
+    box-shadow: 0 vh(0.39) vh(1.04) rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/* 左侧指示器位置 */
+.scroll-indicator.left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+}
+
+/* 右侧指示器位置 */
+.scroll-indicator.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+}
+
+/* 工具栏滚动区域 */
+.bill-page__toolbar-scroll {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* 增强iOS滚动体验 */
+  scroll-behavior: smooth; /* 平滑滚动效果 */
+  padding: vh(0.65) vh(3);
+  
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    height: vh(0.52); /* 4px -> 0.52vh (4/768*100) */
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(240, 240, 240, 0.6);
+    border-radius: vh(0.26); /* 2px -> 0.26vh (2/768*100) */
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(180, 180, 180, 0.6);
+    border-radius: vh(0.26); /* 2px -> 0.26vh (2/768*100) */
+    transition: background 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    &:hover {
+      background: rgba(150, 150, 150, 0.8);
+    }
+  }
+}
+
 /* 返回按钮样式 */
 .back-button {
   display: flex;
@@ -363,6 +552,7 @@ export default {
     font-size: vh(1.56);
     color: #1e3c72;
     font-weight: 500;
+    white-space: nowrap; /* 防止文本换行 */
   }
 }
 
@@ -373,6 +563,24 @@ export default {
     /* 保持固定高度以支持滚动 */
     overflow-y: auto;
     /* 确保可以滚动 */
+  }
+
+  .bill-page__toolbar-scroll {
+    padding: vh(0.39) 0;
+    
+    /* 在小屏幕上隐藏滚动条但保持功能 */
+    &::-webkit-scrollbar {
+      height: vh(0.26); /* 2px -> 0.26vh (2/768*100) */
+    }
+  }
+
+  .back-button {
+    // min-width: vw(7); /* 窄屏下确保返回按钮有足够宽度 */
+    white-space: nowrap; /* 确保子元素不换行 */
+    
+    span {
+      white-space: nowrap; /* 确保"返回"两字不会上下排列 */
+    }
   }
 
   .bill-page__control-panel {

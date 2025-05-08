@@ -11,20 +11,25 @@ const viewportSize = {
   height: 0
 };
 
+// 确保数值为整数，消除抖动
+function roundToPx(value) {
+  return Math.floor(value);
+}
+
 /**
  * 在输入法收起后，重新计算视窗尺寸
  * 主要用于旋转屏幕后的更新
  */
 function recalculateViewportSize() {
-  // 获取视窗尺寸
-  const width = window.innerWidth || document.documentElement.clientWidth;
-  const height = window.innerHeight || document.documentElement.clientHeight;
+  // 获取视窗尺寸 - 使用floor保证整数像素
+  const width = roundToPx(window.innerWidth || document.documentElement.clientWidth);
+  const height = roundToPx(window.innerHeight || document.documentElement.clientHeight);
   
   // 保存尺寸
   viewportSize.width = width;
   viewportSize.height = height;
   
-  // 设置CSS变量
+  // 设置CSS变量 - 确保是整数像素值
   document.documentElement.style.setProperty('--viewport-width', `${width}px`);
   document.documentElement.style.setProperty('--viewport-height', `${height}px`);
   
@@ -41,6 +46,38 @@ function hideKeyboard() {
   // 让当前活动元素失去焦点，尝试收起键盘
   if (document.activeElement) {
     document.activeElement.blur();
+  }
+}
+
+/**
+ * 检测是否为安卓设备
+ */
+function isAndroid() {
+  return /android/i.test(navigator.userAgent);
+}
+
+/**
+ * 针对安卓设备应用额外的修复
+ */
+function applyAndroidFixes() {
+  if (isAndroid()) {
+    // 添加安卓专用类到body元素
+    document.body.classList.add('android-device');
+    
+    // 对于安卓设备，添加额外的动画优化
+    const style = document.createElement('style');
+    style.textContent = `
+      .android-device * {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+      
+      .android-device .animate-fix {
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+      }
+    `;
+    document.head.appendChild(style);
   }
 }
 
@@ -70,9 +107,9 @@ export function initViewportUnits() {
     return viewportSize;
   }
   
-  // 获取视窗尺寸
-  const width = window.innerWidth || document.documentElement.clientWidth;
-  const height = window.innerHeight || document.documentElement.clientHeight;
+  // 获取视窗尺寸 - 使用floor保证整数像素
+  const width = roundToPx(window.innerWidth || document.documentElement.clientWidth);
+  const height = roundToPx(window.innerHeight || document.documentElement.clientHeight);
   
   // 保存尺寸
   viewportSize.width = width;
@@ -84,6 +121,9 @@ export function initViewportUnits() {
   
   // 设置屏幕旋转监听
   setupOrientationListener();
+  
+  // 应用安卓设备特定修复
+  applyAndroidFixes();
   
   // 调试信息
   if (process.env.NODE_ENV !== 'production') {
@@ -101,11 +141,22 @@ export function initViewportUnits() {
  */
 export function percentToPx(percent, dimension = 'width') {
   const base = dimension === 'width' ? viewportSize.width : viewportSize.height;
-  return (percent / 100) * base;
+  // 返回整数像素
+  return roundToPx((percent / 100) * base);
+}
+
+/**
+ * 强制更新视窗尺寸
+ * 可在动画问题发生时手动调用
+ */
+export function forceUpdateViewport() {
+  recalculateViewportSize();
+  return viewportSize;
 }
 
 export default {
   initViewportUnits,
   percentToPx,
-  viewportSize
-}; 
+  viewportSize,
+  forceUpdateViewport
+};

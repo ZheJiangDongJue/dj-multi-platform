@@ -7,6 +7,9 @@ const ConvertMap = {
     ViewportDemo: "/viewport-demo",
     BillPageTemplateDemo: "/bill-template-demo",
     DeviceDetectionTest: "/device-detection-test",
+    ScreenInfoDemo: "/screen-info-demo",
+    AndroidBridgeDemo: "/android-bridge-demo",
+    ScanCodeDemo: "/scan-code-demo",
 }
 
 import { Toast } from 'vant';
@@ -59,6 +62,9 @@ const PageNameToRouterConverter = {
             'ViewportDemo': { moduleName: '示例', moduleRoute: 'example' },
             'BillPageTemplateDemo': { moduleName: '示例', moduleRoute: 'example' },
             'DeviceDetectionTest': { moduleName: '示例', moduleRoute: 'example' },
+            'ScreenInfoDemo': { moduleName: '示例', moduleRoute: 'example' },
+            'AndroidBridgeDemo': { moduleName: '示例', moduleRoute: 'example' },
+            'ScanCodeDemo': { moduleName: '示例', moduleRoute: 'example' },
             // 可以继续添加其他模块...
         };
 

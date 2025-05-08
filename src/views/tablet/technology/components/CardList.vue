@@ -16,12 +16,12 @@
 
                     <!-- 第一行：工种和计划数 -->
                     <GridItem :row="0" :column="1" :column-span="2">
-                        <van-field v-model="item.TypeofWorkName" label="工种" :label-width="getLabelWidth(2)"
-                            :readonly="isReadOnly" v-click-tooltip="item.TypeofWorkName" />
+                        <van-field :value="item.TypeofWorkName" label="工种" :label-width="getLabelWidth(2)"
+                            :readonly="isReadOnly" v-click-tooltip="item.TypeofWorkName" @input="updateField('TypeofWorkName', $event, item, index)" />
                     </GridItem>
                     <GridItem :row="0" :column="3" :column-span="1">
-                        <van-field v-model="item.BQty" label="计划数" :label-width="getLabelWidth(3)"
-                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.BQty" />
+                        <van-field :value="item.BQty" label="计划数" :label-width="getLabelWidth(3)"
+                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.BQty" @input="updateField('BQty', $event, item, index)" />
                     </GridItem>
                     <!-- 位置索引显示 -->
                     <GridItem :row="0" :column="4" :column-span="1" class="location-index-container">
@@ -30,12 +30,12 @@
 
                     <!-- 第二行：工艺内容、生产数、接收按钮 -->
                     <GridItem :row="1" :column="1" :column-span="2">
-                        <van-field v-model="item.Content" label="工艺内容" :label-width="getLabelWidth(4)"
-                            :readonly="isReadOnly" v-click-tooltip="item.Content" />
+                        <van-field :value="item.Content" label="工艺内容" :label-width="getLabelWidth(4)"
+                            :readonly="isReadOnly" v-click-tooltip="item.Content" @input="updateField('Content', $event, item, index)" />
                     </GridItem>
                     <GridItem :row="1" :column="3" :column-span="1">
-                        <van-field v-model="item.PreCmpBQty" label="生产数" :label-width="getLabelWidth(3)"
-                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.PreCmpBQty" />
+                        <van-field :value="item.PreCmpBQty" label="生产数" :label-width="getLabelWidth(3)"
+                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.PreCmpBQty" @input="updateField('PreCmpBQty', $event, item, index)" />
                     </GridItem>
                     <GridItem :row="1" :column="4" :column-span="1" class="button-cell">
                         <van-button :class="getReceiveStatusClass(item.ReceiveStatus)" class="small-button"
@@ -46,12 +46,12 @@
 
                     <!-- 第三行：工艺要求、合格数、完工按钮 -->
                     <GridItem :row="2" :column="1" :column-span="2">
-                        <van-field v-model="item.WorkRequirements" label="工艺要求" :label-width="getLabelWidth(4)"
-                            :readonly="isReadOnly" v-click-tooltip="item.WorkRequirements" />
+                        <van-field :value="item.WorkRequirements" label="工艺要求" :label-width="getLabelWidth(4)"
+                            :readonly="isReadOnly" v-click-tooltip="item.WorkRequirements" @input="updateField('WorkRequirements', $event, item, index)" />
                     </GridItem>
                     <GridItem :row="2" :column="3" :column-span="1">
-                        <van-field v-model="item.CmpBQty" label="合格数" :label-width="getLabelWidth(3)"
-                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.CmpBQty" />
+                        <van-field :value="item.CmpBQty" label="合格数" :label-width="getLabelWidth(3)"
+                            :readonly="isReadOnly" class="qty-field" v-click-tooltip="item.CmpBQty" @input="updateField('CmpBQty', $event, item, index)" />
                     </GridItem>
                     <GridItem :row="2" :column="4" :column-span="1" class="button-cell">
                         <van-button :class="getCompleteStatusClass(item.CompleteStatus)" class="small-button"
@@ -72,18 +72,18 @@
 
                             <!-- 第一行：工种和计划数 -->
                             <div class="mobile-row">
-                                <van-field v-model="item.TypeofWorkName" label="工种" :readonly="isReadOnly"
-                                    class="field-grow" v-click-tooltip="item.TypeofWorkName" />
-                                <van-field v-model="item.BQty" label="计划数" :readonly="isReadOnly" class="qty-field"
-                                    v-click-tooltip="item.BQty" />
+                                <van-field :value="item.TypeofWorkName" label="工种" :readonly="isReadOnly"
+                                    class="field-grow" v-click-tooltip="item.TypeofWorkName" @input="updateField('TypeofWorkName', $event, item, index)" />
+                                <van-field :value="item.BQty" label="计划数" :readonly="isReadOnly"
+                                    v-click-tooltip="item.BQty" @input="updateField('BQty', $event, item, index)" />
                             </div>
 
                             <!-- 第二行：工艺内容、生产数、接收按钮 -->
                             <div class="mobile-row">
-                                <van-field v-model="item.Content" label="工艺内容" :readonly="isReadOnly" class="field-grow"
-                                    v-click-tooltip="item.Content" />
-                                <van-field v-model="item.PreCmpBQty" label="生产数" :readonly="isReadOnly"
-                                    class="qty-field" v-click-tooltip="item.PreCmpBQty" />
+                                <van-field :value="item.Content" label="工艺内容" :readonly="isReadOnly" class="field-grow"
+                                    v-click-tooltip="item.Content" @input="updateField('Content', $event, item, index)" />
+                                <van-field :value="item.PreCmpBQty" label="生产数" :readonly="isReadOnly"
+                                    v-click-tooltip="item.PreCmpBQty" @input="updateField('PreCmpBQty', $event, item, index)" />
                                 <van-button :class="getReceiveStatusClass(item.ReceiveStatus)"
                                     class="small-button mobile-button" @click="handleReceive(item)"
                                     :disabled="isReceiveButtonDisabled(item)">
@@ -93,10 +93,10 @@
 
                             <!-- 第三行：工艺要求、合格数、完工按钮 -->
                             <div class="mobile-row">
-                                <van-field v-model="item.WorkRequirements" label="工艺要求" :readonly="isReadOnly"
-                                    class="field-grow" v-click-tooltip="item.WorkRequirements" />
-                                <van-field v-model="item.CmpBQty" label="合格数" :readonly="isReadOnly" class="qty-field"
-                                    v-click-tooltip="item.CmpBQty" />
+                                <van-field :value="item.WorkRequirements" label="工艺要求" :readonly="isReadOnly"
+                                    class="field-grow" v-click-tooltip="item.WorkRequirements" @input="updateField('WorkRequirements', $event, item, index)" />
+                                <van-field :value="item.CmpBQty" label="合格数" :readonly="isReadOnly"
+                                    v-click-tooltip="item.CmpBQty" @input="updateField('CmpBQty', $event, item, index)" />
                                 <van-button :class="getCompleteStatusClass(item.CompleteStatus)"
                                     class="small-button mobile-button" @click="handleComplete(item)"
                                     :disabled="isCompleteButtonDisabled(item)">
@@ -245,6 +245,10 @@ export default {
             }
             this.$emit('complete', item);
         },
+        // 更新字段值
+        updateField(field, value, item, index) {
+            this.$emit('update:field', { field, value, item, index });
+        },
         /**
          * 根据屏幕大小动态计算标签宽度
          * @param {Number} charCount - 标签内容的字符数量
@@ -338,7 +342,7 @@ export default {
     /* 防止被flex布局压缩 */
     min-width: 4.88vw;
     /* 50px -> 4.88vw (50/1024*100) - 设置最小宽度 */
-    margin-right: 0.98vw;
+    // margin-right: 0.98vw;
     /* 10px -> 0.98vw (10/1024*100) - 增加右侧间距 */
 }
 
@@ -388,7 +392,7 @@ export default {
         :deep(.van-field__label) {
             min-width: auto !important;
             /* 移动端下不设置最小宽度 */
-            margin-right: 0.49vw !important;
+            // margin-right: 0.49vw !important;
             /* 5px -> 0.49vw (5/1024*100) - 减小右侧间距 */
             font-size: vh(1.69) !important;
             /* 13px -> 1.69vh (13/768*100) - 稍微缩小字体 */

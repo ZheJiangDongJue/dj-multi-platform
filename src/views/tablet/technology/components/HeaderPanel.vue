@@ -7,9 +7,8 @@
                 <div class="field-column">
                     <van-field :value="billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码"
                         :readonly="isReadOnly" v-click-tooltip="billData.data.MaterialCode"
-                        @input="updateField('MaterialCode', $event)" 
-                        @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" 
-                        v-close-keyboard 
+                        @input="updateField('MaterialCode', $event)"
+                        @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" v-close-keyboard
                         ref="materialCodeInput" />
                 </div>
                 <div class="field-column">
@@ -21,7 +20,7 @@
                         v-click-tooltip="billData.data.MaterialTuHao" @input="updateField('MaterialTuHao', $event)" />
                 </div>
                 <div class="quantity-column">
-                    <van-field :value="billData.data.BQty" label="计划数" :readonly="isReadOnly"
+                    <van-field :value="billData.data.BQty" label="计划数" :readonly="isReadOnly" type="number"
                         v-click-tooltip="billData.data.BQty" @input="updateField('BQty', $event)" />
                 </div>
             </div>
@@ -37,7 +36,7 @@
                         @input="updateField('MaterialSpecTypeExplain', $event)" class="long-label-field" />
                 </div>
                 <div class="quantity-column">
-                    <van-field :value="billData.data.PreCmpBQty" label="生产数" :readonly="isReadOnly"
+                    <van-field :value="billData.data.PreCmpBQty" label="生产数" :readonly="isReadOnly" type="number"
                         v-click-tooltip="billData.data.PreCmpBQty" @input="updateField('PreCmpBQty', $event)" />
                 </div>
             </div>
@@ -47,19 +46,19 @@
                         v-click-tooltip="billData.data.Code" @input="updateField('Code', $event)" />
                 </div>
                 <div class="field-column">
-                    <van-field :value="formatDate(billData.data.DocumentTime)" label="单据日期" :readonly="true"
-                        v-click-tooltip="formatDate(billData.data.DocumentTime)"
-                        @input="updateField('DocumentTime', $event)" />
+                    <van-field :value="formatDate(billData.data.DocumentTime)" label="单据日期" readonly clickable 
+                        required right-icon="calendar-o" v-click-tooltip="formatDate(billData.data.DocumentTime)"
+                        @click="handleDateFieldClick" :disabled="isReadOnly" />
                 </div>
                 <div class="field-column">
                     <van-field :value="billData.data.InnerKey" label="制令单号" :readonly="isReadOnly"
-                        placeholder="请在此扫描制令单"
-                        v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" 
-                        @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" 
-                        v-close-keyboard />
+                        placeholder="请在这里扫描制令单" v-click-tooltip="billData.data.InnerKey"
+                        @input="updateField('InnerKey', $event)"
+                        @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" ref="innerKeyInput"
+                        v-close-keyboard v-focus-no-keyboard="!isReadOnly" />
                 </div>
                 <div class="quantity-column">
-                    <van-field :value="billData.data.CmpBQty" label="合格数" :readonly="isReadOnly"
+                    <van-field :value="billData.data.CmpBQty" label="合格数" :readonly="isReadOnly" type="number"
                         v-click-tooltip="billData.data.CmpBQty" @input="updateField('CmpBQty', $event)" />
                 </div>
             </div>
@@ -69,9 +68,8 @@
         <div v-else class="header-content mobile-header-content">
             <div class="mobile-header-section">
                 <van-field :value="billData.data.MaterialCode" label="物料编码" placeholder="请输入完整编码" :readonly="isReadOnly"
-                    v-click-tooltip="billData.data.MaterialCode" @input="updateField('MaterialCode', $event)" 
-                    @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" 
-                    v-close-keyboard
+                    v-click-tooltip="billData.data.MaterialCode" @input="updateField('MaterialCode', $event)"
+                    @keyup.enter.native="handleMaterialCodeEnter(billData.data.MaterialCode)" v-close-keyboard
                     ref="materialCodeInput" />
                 <van-field :value="billData.data.MaterialName" label="物料名称" :readonly="true"
                     v-click-tooltip="billData.data.MaterialName" @input="updateField('MaterialName', $event)" />
@@ -83,23 +81,25 @@
                     v-click-tooltip="billData.data.MaterialSpecTypeExplain"
                     @input="updateField('MaterialSpecTypeExplain', $event)" />
                 <van-field :value="billData.data.InnerKey" label="制令单号" :readonly="isReadOnly"
-                    v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)" 
-                    @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" 
-                    ref="innerKeyInput"
-                    v-close-keyboard />
-                <van-field :value="billData.data.BQty" label="计划数" :readonly="isReadOnly"
+                    v-click-tooltip="billData.data.InnerKey" @input="updateField('InnerKey', $event)"
+                    @keyup.enter.native="handleInnerKeyEnter(billData.data.InnerKey)" ref="innerKeyInput"
+                    v-close-keyboard v-focus-no-keyboard="!isReadOnly" />
+                <van-field :value="billData.data.BQty" label="计划数" :readonly="isReadOnly" type="number"
                     v-click-tooltip="billData.data.BQty" @input="updateField('BQty', $event)" />
-                <van-field :value="billData.data.PreCmpBQty" label="生产数" :readonly="isReadOnly"
+                <van-field :value="billData.data.PreCmpBQty" label="生产数" :readonly="isReadOnly" type="number"
                     v-click-tooltip="billData.data.PreCmpBQty" @input="updateField('PreCmpBQty', $event)" />
-                <van-field :value="billData.data.CmpBQty" label="合格数" :readonly="isReadOnly"
+                <van-field :value="billData.data.CmpBQty" label="合格数" :readonly="isReadOnly" type="number"
                     v-click-tooltip="billData.data.CmpBQty" @input="updateField('CmpBQty', $event)" />
-                <van-field :value="formatDate(billData.data.DocumentTime)" label="单据日期" :readonly="isReadOnly"
-                    v-click-tooltip="formatDate(billData.data.DocumentTime)"
-                    @input="updateField('DocumentTime', $event)" />
+                <van-field :value="formatDate(billData.data.DocumentTime)" label="单据日期" readonly clickable
+                    required right-icon="calendar-o" v-click-tooltip="formatDate(billData.data.DocumentTime)"
+                    @click="handleDateFieldClick" :disabled="isReadOnly" />
                 <van-field :value="billData.data.Code" label="单据编号" :readonly="true"
                     v-click-tooltip="billData.data.Code" @input="updateField('Code', $event)" />
             </div>
         </div>
+
+        <!-- 添加日历组件 -->
+        <van-calendar v-model="showCalendar" get-container="body" :show-confirm="false" @confirm="onSelectDate" />
     </div>
 </template>
 
@@ -122,18 +122,12 @@ export default {
             default: 0,
         },
     },
+    data() {
+        return {
+            showCalendar: false,
+        };
+    },
     mounted() {
-        /* 组件挂载后，自动聚焦制令单号输入框 */
-        this.$nextTick(() => {
-            /* 直接使用统一的引用名 */
-            console.log('this.$refs.innerKeyInput', this.$refs.innerKeyInput);
-            if (this.$refs.innerKeyInput && !this.isReadOnly) {
-                /* 使用setTimeout确保DOM完全渲染后进行聚焦 */
-                setTimeout(() => {
-                    this.$refs.innerKeyInput.focus();
-                }, 300);
-            }
-        });
     },
     computed: {
         isWideScreen() {
@@ -150,7 +144,23 @@ export default {
         },
         handleInnerKeyEnter(value) {
             this.$emit('inner-key-enter', value);
-        }
+        },
+        handleDateFieldClick() {
+            // 如果只读，不允许修改
+            if (this.isReadOnly) {
+                return;
+            }
+            this.showCalendar = true;
+        },
+        onSelectDate(date) {
+            this.showCalendar = false;
+            if (this.isReadOnly) {
+                return;
+            }
+            if (date) {
+                this.updateField('DocumentTime', formatDate(date));
+            }
+        },
     }
 }
 </script>
@@ -184,13 +194,18 @@ export default {
                 rgba(0, 0, 0, 0.1) 50%,
                 rgba(0, 0, 0, 0) 100%);
     }
+
+    /* 调整必填字段星号位置 */
+    ::v-deep .van-cell--required::before {
+        left: 0px;
+    }
 }
 
 /* 头部内容样式 */
 .header-content {
     max-width: 117.19vw;
     margin: 0 auto;
-    padding: 0 1.46vw;
+    // padding: 0 1.46vw;
 }
 
 /* 头部行样式 */
@@ -246,13 +261,15 @@ export default {
         border-radius: vh(1.04);
         transition: all 0.3s ease;
         padding: 0;
+        padding-left: vw(1);
+        padding-right: vw(0.3);
 
         /* 统一标签宽度 */
         ::v-deep .van-field__label {
             width: 8vw;
             min-width: 8vw;
             flex: 0 0 8vw;
-            justify-content: flex-end;
+            // justify-content: flex-end;
             padding-right: 1vw;
         }
 
@@ -269,6 +286,16 @@ export default {
             width: 100%;
             min-width: 0;
             text-overflow: ellipsis;
+            height: vh(3.5); /* 添加统一的高度 */
+            line-height: vh(3.5); /* 添加统一的行高 */
+        }
+
+        /* 统一图标高度 */
+        ::v-deep .van-field__right-icon {
+            height: vh(3.5);
+            line-height: vh(3.5);
+            display: flex;
+            align-items: center;
         }
 
         /* 悬停和活动状态 */
@@ -299,6 +326,20 @@ export default {
                 width: 12vw;
                 min-width: 12vw;
                 flex: 0 0 12vw;
+            }
+
+            /* 确保移动版下输入框和图标高度一致 */
+            ::v-deep .van-field__control,
+            ::v-deep .van-field__body,
+            ::v-deep .van-field__right-icon {
+                height: vh(3.5);
+                line-height: vh(3.5);
+            }
+
+            /* 确保移动版下图标垂直居中 */
+            ::v-deep .van-field__right-icon {
+                display: flex;
+                align-items: center;
             }
         }
     }

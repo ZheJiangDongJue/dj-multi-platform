@@ -59,8 +59,10 @@ export default {
     align-items: center;
     justify-content: center;
     // padding: vh(2.6);
-    width: 100px;
-    height: 100px;
+    width: vmax(11);
+    height: vmax(11);
+    min-width: 100px;
+    min-height: 100px;
     border-radius: vh(2.08);
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(vh(1.04));
@@ -72,7 +74,7 @@ export default {
                 background-color 0.3s ease;
     cursor: pointer;
     margin: vh(1.3) vw(0.98);
-    
+
     &::before {
         content: '';
         position: absolute;

@@ -60,14 +60,15 @@
                         :screenWidth="screenWidth"
                         :fontSize="fontSize"
                         @receive="handleReceive"
-                        @complete="handleComplete" />
+                        @complete="handleComplete"
+                        @update:field="handleUpdateCardField" />
                 </div>
             </template>
         </BillPageTemplateForTablet>
 
         <!-- 接收对话框 -->
         <van-dialog v-model="showReceiveDialog" title="组装工序接收" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
+            class="assembly-flow-popup" width="auto" :style="{ maxWidth: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
             @closed="handleDialogClosed">
             <template #title>
                 <div class="dialog-title">
@@ -75,13 +76,13 @@
                     <van-icon name="cross" class="close-icon" @click="showReceiveDialog = false" />
                 </div>
             </template>
-            <AssemblyProcessReceivePanel :dataContext="showReceiveDialog ? dialogDataContext : {}"
+            <AssemblyProcessReceivePanel v-if="showReceiveDialog" :dataContext="showReceiveDialog ? dialogDataContext : {}"
                 @operation-complete="handleOperationComplete" />
         </van-dialog>
 
         <!-- 完工对话框 -->
         <van-dialog v-model="showCompleteDialog" title="组装工序完工" :show-cancel-button="false" :lazy-render="false"
-            class="assembly-flow-popup" :style="{ width: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
+            class="assembly-flow-popup" width="auto" :style="{ maxWidth: isWideScreen() ? '60%' : '90%' }" :show-confirm-button="false" get-container="body"
             @closed="handleDialogClosed">
             <template #title>
                 <div class="dialog-title">
@@ -89,7 +90,7 @@
                     <van-icon name="cross" class="close-icon" @click="showCompleteDialog = false" />
                 </div>
             </template>
-            <AssemblyProcessCompletionPanel :dataContext="showCompleteDialog ? dialogDataContext : {}"
+            <AssemblyProcessCompletionPanel v-if="showCompleteDialog" :dataContext="showCompleteDialog ? dialogDataContext : {}"
                 @operation-complete="handleOperationComplete" />
         </van-dialog>
     </div>
@@ -195,6 +196,34 @@ export default {
         }
     }
 }
+
+/* 员工搜索框占位文本 */
+.van-search__field .van-field__control::placeholder {
+  font-size: vh(1.8);
+}
+
+/* 统一输入框样式 */
+.van-field__control,
+.van-field__body,
+.el-input__inner,
+.van-cell__value,
+.van-field__value {
+    height: var(--input-height) !important;
+    line-height: var(--input-line-height) !important;
+    font-size: var(--input-font-size) !important;
+}
+
+/* 统一图标样式 */
+.van-field__right-icon,
+.el-input__icon,
+.el-input__suffix {
+    height: var(--input-height) !important;
+    line-height: var(--input-line-height) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* 修复移动设备上picker框架位置偏移问题 */
 </style>
 
 <!-- 使用CSS变量管理z-index层级 -->
@@ -219,6 +248,11 @@ export default {
     --text-secondary: #666;
     --text-tertiary: #999;
     --warning-color: #f56c6c;
+
+    /* 统一尺寸变量 */
+    --input-height: vh(3.5);
+    --input-line-height: vh(3.5);
+    --input-font-size: vh(1.8);
 }
 
 /* 下拉菜单相关样式 */
@@ -252,6 +286,10 @@ export default {
     background-color: var(--card-background);
     backdrop-filter: blur(vh(0.39));
     box-shadow: 0 vh(0.78) vh(2.08) rgba(0, 0, 0, 0.15);
+    left: 50% !important;
+    right: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 /* 对话框样式 */
@@ -263,12 +301,17 @@ export default {
     backdrop-filter: blur(vh(0.39));
     box-shadow: 0 vh(0.78) vh(2.08) rgba(0, 0, 0, 0.15);
     animation: dialog-appear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
 }
 
 @keyframes dialog-appear {
     from {
         opacity: 0;
-        transform: translate(-50%, -45%) scale(0.95);
+        transform: translate(-50%, -50%) scale(0.95);
     }
     to {
         opacity: 1;
@@ -377,7 +420,8 @@ export default {
         margin: 0 !important;
         max-height: 90vh !important;
         top: 50% !important;
-        transform: translateY(-50%) !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
 
         /* 确保内容可以滚动 */
         .van-dialog__content {
@@ -413,14 +457,6 @@ export default {
         }
     }
 
-    /* 确保对话框不会超出屏幕 */
-    .van-dialog {
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        margin: 0 !important;
-        max-height: 90vh !important;
-    }
+    /* 确保对话框不会超出屏幕 - 已在全局样式中设置，此处移除重复代码 */
 }
 </style>

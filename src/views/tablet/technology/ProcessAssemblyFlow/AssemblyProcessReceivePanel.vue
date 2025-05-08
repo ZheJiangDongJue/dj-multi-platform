@@ -32,11 +32,12 @@
           <van-field v-model="data.ReceiveEmployeeName" label="计件人员" required :disabled="data?.Status > 0"
             right-icon="arrow-down" @click-right-icon="handleScanEmployee" @input="handleEmployeeInput"
             @keyup.enter.native="handleEmployeeInputEnter" @click="handleEmployeeFieldClick"
-            @focus="selectAllText($event)" v-click-tooltip="data.ReceiveEmployeeName" />
+            @focus="selectAllText($event)" v-click-tooltip="data.ReceiveEmployeeName"
+            v-close-keyboard />
           <van-popup v-model="showEmployeeSelector" position="bottom" round get-container="body">
             <div class="employee-search">
-              <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees"
-                ref="employeeSearch" :disabled="searchDisabled" />
+              <van-search v-model="employeeSearchText" placeholder="请输入或扫描员工条码" @input="filterEmployees"
+                ref="employeeSearch" :disabled="searchDisabled" v-focus-no-keyboard="showEmployeeSelector" @focus="selectAllText($event)" @click="selectAllInSearch" />
             </div>
             <van-picker show-toolbar :columns="filteredEmployeeList" @confirm="onEmployeeSelected"
               @cancel="showEmployeeSelector = false" value-key="Name" @change="handlePickerChange" />
@@ -77,6 +78,7 @@ import billapi from '@/api/bill';
 import Vue from 'vue';
 import { Query } from '@/core/query';
 import { formatDate } from '@/utils/date-utils';
+import { initScanListener, removeScanListener, onScanResult } from '@/utils/scan-code-handler';
 
 export default {
   name: "AssemblyProcessReceivePanel",
@@ -104,7 +106,27 @@ export default {
       employeeInputText: '', // 用于员工输入框
       isHandlingEmployeeInput: false, // 是否正在处理员工输入
       searchDisabled: false, // 是否禁用搜索功能
+      unsubscribe: null, // 扫码取消订阅函数
     };
+  },
+  mounted() {
+    // 为van-search添加自动选中文本的功能
+    this.setupSearchBoxSelectAll();
+    
+    // 初始化扫码监听
+    initScanListener();
+
+    // 注册扫码结果回调
+    this.unsubscribe = onScanResult(this.handleScanResult);
+  },
+  beforeDestroy() {
+    // 取消扫码结果回调
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
+
+    // 移除扫码监听
+    removeScanListener();
   },
   computed: {
     // 计算属性，返回格式化的接收日期
@@ -154,6 +176,12 @@ export default {
           const searchInput = document.querySelector('.van-popup--bottom .employee-search .van-field__control');
           if (searchInput) {
             searchInput.focus();
+            // 增加选中所有文本的功能
+            setTimeout(() => {
+              if (searchInput.select) {
+                searchInput.select();
+              }
+            }, 50);
           }
         }, 300);
       }
@@ -533,8 +561,13 @@ export default {
             message: `${action}成功`,
           });
 
-          // 触发父组件的刷新，并设置需要保持滚动位置
-          this.$emit('operation-complete', { preserveScroll: true });
+          if (isApproved) {
+            // 反审批成功后，只更新当前状态，不关闭对话框
+            this.$set(this.data, 'Status', 0);
+          } else {
+            // 审批成功后关闭对话框
+            this.$emit('operation-complete', { preserveScroll: true });
+          }
         } else {
           this.$dialog.alert({
             title: '提示',
@@ -572,6 +605,10 @@ export default {
           this.$toast('无法确定表名，删除失败');
           return;
         }
+        if(this.data.id == 0){
+          this.$emit('operation-complete', { preserveScroll: true });
+          return;
+        }
         var pack = await billapi.generalBillDelete(tableName, this.data.id);
         if (pack.IsSuccess) {
           this.$toast('删除成功');
@@ -595,7 +632,18 @@ export default {
       if (event && event.target) {
         // 选择所有文本
         setTimeout(() => {
-          event.target.select();
+          // 处理van-search组件
+          if (event.target.classList.contains('van-search__field') || 
+              event.target.classList.contains('van-search')) {
+            const inputEl = event.target.querySelector('input') || 
+                            event.target.closest('.van-search').querySelector('input');
+            if (inputEl) {
+              inputEl.select();
+            }
+          } else {
+            // 处理普通输入框
+            event.target.select();
+          }
         }, 10);
       }
     },
@@ -614,6 +662,54 @@ export default {
         // 恢复搜索功能，但不触发搜索
         this.searchDisabled = false;
       }, 100);
+    },
+    // 阻止键盘弹出 - 此方法可以移除，已被v-focus-no-keyboard指令替代
+    preventKeyboardPopup() {
+      // 已被v-focus-no-keyboard指令替代，保留此方法避免其他地方的调用报错
+      console.log('preventKeyboardPopup已被v-focus-no-keyboard指令替代');
+    },
+    // 为van-search组件设置自动选中文本的功能
+    setupSearchBoxSelectAll() {
+      this.$nextTick(() => {
+        const searchBox = this.$refs.employeeSearch;
+        if (searchBox && searchBox.$el) {
+          const inputEl = searchBox.$el.querySelector('input');
+          if (inputEl) {
+            inputEl.addEventListener('focus', function() {
+              setTimeout(() => {
+                this.select();
+              }, 10);
+            });
+          }
+        }
+      });
+    },
+    // 专门处理van-search点击时的全选
+    selectAllInSearch() {
+      this.$nextTick(() => {
+        const inputEl = this.$refs.employeeSearch?.$el.querySelector('input');
+        if (inputEl) {
+          inputEl.select();
+        }
+      });
+    },
+    // 处理扫码结果
+    handleScanResult(barcode) {
+      console.log('收到扫码结果:', barcode);
+
+      // 检查是否符合ZY-开头的格式
+      const ZY_CODE_REGEX = /^ZY-.*$/;
+      if (ZY_CODE_REGEX.test(barcode)) {
+        this.searchEmployeeByInput(barcode);
+      } else {
+        // 对于不支持的条码格式，提供友好提示
+        this.$toast({
+          message: `未识别的条码格式: ${barcode}`,
+          position: 'bottom',
+          duration: 2000
+        });
+        console.log('不支持的条码格式:', barcode);
+      }
     },
   },
 };
@@ -668,6 +764,11 @@ export default {
       height: vh(3.5);
       font-size: vh(1.8);
     }
+
+    ::v-deep .van-field__label {
+      width: 2em;
+      flex: 0 0 2em;
+    }
   }
 }
 
@@ -703,8 +804,8 @@ export default {
 
 ::v-deep .van-field__label {
   font-size: vh(1.8);
-  width: 25%;
-  margin-right: vw(0.5);
+  // width: 25%;
+  // margin-right: vw(0.5);
 }
 
 ::v-deep .van-field__control {
@@ -973,6 +1074,12 @@ export default {
   font-size: vh(1.8) !important;
 }
 
+/* 修复下拉箭头展开收起动画中心点问题 */
+.el-select__caret {
+  transform-origin: center center !important;
+  transition: transform 0.3s !important;
+}
+
 /* 统一字体大小 */
 .van-field__label,
 .van-field__control {
@@ -989,5 +1096,34 @@ export default {
 /* 员工搜索框占位文本 */
 .van-search__field .van-field__control::placeholder {
   font-size: vh(1.8);
+}
+
+/* 修复移动设备上picker框架位置偏移问题 */
+.van-hairline-unset--top-bottom.van-picker__frame {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 100%;
+}
+
+/* 调整picker在移动设备上的适配 */
+@media screen and (max-width: 480px) {
+  .van-picker {
+    height: auto;
+    max-height: 40vh;
+  }
+
+  .van-picker-column {
+    height: auto;
+  }
+
+  .van-picker__columns {
+    height: auto !important;
+    min-height: 20vh;
+  }
 }
 </style>

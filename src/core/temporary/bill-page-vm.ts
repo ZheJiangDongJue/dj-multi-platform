@@ -124,6 +124,7 @@ export class BillPageViewModel extends PageBaseViewModel {
     billRequiredFields: { [key: string]: string } = {}; // 单据头必填字段键值对
     detailRequiredFields: { [key: string]: string } = {}; // 明细必填字段键值对
     isOpeningBill: boolean = false;
+    isNewingBill: boolean = false;
 
     async init() {
         await super.init();
@@ -297,6 +298,14 @@ export class BillPageViewModel extends PageBaseViewModel {
     }
 
     async newBill() {
+        // 如果已经在新建单据或打开单据的过程中，则不允许再次新建
+        if (this.isNewingBill || this.isOpeningBill) {
+            return;
+        }
+
+        this.isNewingBill = true;
+        // 触发单据新建前事件
+        await this.triggerEvent('BeforeNewBill', this);
         //使用columns设置初始数据
         if (this.billData) {
             let uid = await generalapi.getNewUid();
@@ -312,18 +321,17 @@ export class BillPageViewModel extends PageBaseViewModel {
         if (this.detail_vm) {
             Vue.set(this.detail_vm, 'details', Vue.observable([]));
         }
+
+        // 触发单据新建后事件
+        await this.triggerEvent('AfterNewBill', this);
+        this.isNewingBill = false;
     }
 
     /**
      * 打开单据
      * @param id 单据id
      */
-    async openBill(id: number) {
-        // 设置一个标志，表示正在打开单据
-        this.isOpeningBill = true;
-        // 触发单据打开前事件
-        this.triggerEvent('BeforeOpenBill', this);
-
+    async openBillNotEvent(id: number) {
         if (this.billData) {
             await this.newBill();//清理一下因为不清理的话watch到的值如果没有变动的话不会触发一些事件
             var pack = (await generalapi.getDataUseid(this.billData.tableName, id)) as any;
@@ -339,10 +347,28 @@ export class BillPageViewModel extends PageBaseViewModel {
             let pack1 = (await generalapi.getDataUseDataView(this.detail_vm?.dataView.Uid, dgpack)) as any;
             let data1 = Vue.observable(pack1.Data);
             Vue.set(this.detail_vm as object, "details", data1);
-
-            // 触发单据打开后事件
-            this.triggerEvent('AfterOpenBill', this);
         }
+    }
+
+    /**
+     * 打开单据
+     * @param id 单据id
+     */
+    async openBill(id: number) {
+        // 如果已经在打开单据或新建单据的过程中，则不允许再次打开
+        if (this.isOpeningBill || this.isNewingBill) {
+            return;
+        }
+
+        // 设置一个标志，表示正在打开单据
+        this.isOpeningBill = true;
+        // 触发单据打开前事件
+        await this.triggerEvent('BeforeOpenBill', this);
+
+        await this.openBillNotEvent(id);
+
+        // 触发单据打开后事件
+        await this.triggerEvent('AfterOpenBill', this);
         this.isOpeningBill = false;
     }
 
@@ -371,9 +397,9 @@ export class BillPageViewModel extends PageBaseViewModel {
             if (this.billData.data.id && this.billData.data.Status && (this.billData.data.Status & 1) !== 0) {
                 context.$dialog.alert({
                     title: '保存失败',
-                    message: "已审批的单据不允许保存",
+                    message: "单据是已审批状态",
                 });
-                return { success: false, message: "已审批的单据不允许保存" };
+                return { success: false, message: "单据是已审批状态" };
             }
 
             // 验证单据头必填项

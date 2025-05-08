@@ -12,8 +12,10 @@
                 <i class="el-icon-arrow-left"></i>
                 <span>返回</span>
               </div>
-              <!-- 工具栏插槽 -->
-              <slot name="toolbar"></slot>
+              <!-- 工具栏插槽 - 添加横向滚动能力 -->
+              <div class="bill-page__toolbar-scroll">
+                <slot name="toolbar"></slot>
+              </div>
             </div>
           </DockItem>
         </DockPanel>
@@ -249,6 +251,37 @@ export default {
   width: 100%;
 }
 
+/* 工具栏滚动区域 */
+.bill-page__toolbar-scroll {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* 增强iOS滚动体验 */
+  scroll-behavior: smooth; /* 平滑滚动效果 */
+  padding: vh(0.65) 0;
+  
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    height: vh(0.52); /* 4px -> 0.52vh (4/768*100) */
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(240, 240, 240, 0.6);
+    border-radius: vh(0.26); /* 2px -> 0.26vh (2/768*100) */
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(180, 180, 180, 0.6);
+    border-radius: vh(0.26); /* 2px -> 0.26vh (2/768*100) */
+    transition: background 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    &:hover {
+      background: rgba(150, 150, 150, 0.8);
+    }
+  }
+}
+
 /* 返回按钮样式 */
 .back-button {
   display: flex;
@@ -288,6 +321,15 @@ export default {
   .bill-page__page-content {
     height: 100% !important; /* 保持固定高度以支持滚动 */
     overflow-y: auto; /* 确保可以滚动 */
+  }
+
+  .bill-page__toolbar-scroll {
+    padding: vh(0.39) 0;
+    
+    /* 在小屏幕上隐藏滚动条但保持功能 */
+    &::-webkit-scrollbar {
+      height: vh(0.26); /* 2px -> 0.26vh (2/768*100) */
+    }
   }
 
   .bill-page__control-panel {

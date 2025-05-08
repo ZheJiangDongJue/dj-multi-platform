@@ -63,7 +63,7 @@
               <div class="card__readonly-text">{{ item.workRequirements }}</div>
             </div>
             <div class="card__input-row">
-              <label class="card__label">计件人员:</label>
+              <label class="card__label"><span class="required-field">*</span>计件人员:</label>
               <div class="employee-select-wrapper">
                 <div class="card__employee-field" @click="handleEmployeeFieldClick(item)">
                   <span>{{ item.employeeName }}</span>
@@ -72,7 +72,7 @@
               </div>
             </div>
             <div class="card__input-row">
-              <label class="card__label">完工数量:</label>
+              <label class="card__label"><span class="required-field">*</span>完工数量:</label>
               <input type="number" v-model.number="item.qty" min="1" :max="item.data?.CanCompleteQty || 999999"
                 class="card__input" />
             </div>
@@ -110,7 +110,7 @@
     </div>
 
     <!-- 员工选择弹出层 -->
-    <van-popup v-model="showEmployeeSelector" position="bottom" round>
+    <van-popup v-model="showEmployeeSelector" position="bottom" round :overlay-style="{ position: 'fixed' }" :style="{ position: 'fixed' }" @closed="onPopupClosed">
       <div class="employee-search">
         <van-search v-model="employeeSearchText" placeholder="搜索员工姓名" @input="filterEmployees" />
       </div>
@@ -305,6 +305,8 @@ export default {
             let processAssemblyFlowDetail = data.ProcessAssemblyFlowDetail;
             let processAssemblyFlowDocument = data.ProcessAssemblyFlowDocument;
 
+            console.log(data);
+
             // 记录存在，添加到列表中
             // 查询TypeofWork的Name
             const typeofWorkQuery = new Query();
@@ -319,6 +321,27 @@ export default {
               typeofWorkName = typeofWorkResponse.Data[0].Name;
             }
 
+            // 如果VestInName为空但有VestInid，查询员工名称
+            let employeeName = processAssemblyFlowDetail.VestInName || '';
+            if (!employeeName && processAssemblyFlowDetail.VestInid) {
+              try {
+                const employeeQuery = new Query();
+                employeeQuery.TableName = 'Employee';
+                employeeQuery.ShortName = 'e';
+                employeeQuery.Select = 'e.Name';
+                employeeQuery.AddWhere(`e.id = '${processAssemblyFlowDetail.VestInid}'`);
+                employeeQuery.AddWhere(`e.DeletedTag = 0`);
+                
+                const employeeResponse = await generalApi.getDataEx(employeeQuery);
+                if (employeeResponse.Status === 200 && employeeResponse.Data && employeeResponse.Data.length > 0) {
+                  employeeName = employeeResponse.Data[0].Name;
+                }
+              } catch (error) {
+                console.error('查询员工名称失败:', error);
+                // 错误时不阻止继续执行，使用空字符串
+              }
+            }
+
             // 记录存在，添加到列表中
             this.itemList.push({
               content: processAssemblyFlowDetail.Content || '',
@@ -329,7 +352,7 @@ export default {
               id: id, // 保存查找到的记录ID
               selected: false, // 默认不选中
               employeeId: processAssemblyFlowDetail.VestInid || '', // 初始化计件人ID
-              employeeName: processAssemblyFlowDetail.VestInName || '', // 初始化计件人名称
+              employeeName: employeeName, // 使用查询到的或原有的员工名称
               qty: processAssemblyFlowDetail.CanCompleteQty || 1, // 初始化完工数量
               code: code, // 保存扫码值
               checkResult: 1, // 默认合格
@@ -719,6 +742,8 @@ export default {
       this.employeeSearchText = '';
       // 重置过滤的员工列表
       this.filteredEmployeeList = [...this.employeeList];
+      // 锁定背景滚动
+      document.body.style.overflow = 'hidden';
 
       // 在下一个事件循环中让搜索框获取焦点
       this.$nextTick(() => {
@@ -749,6 +774,8 @@ export default {
       this.employeeSearchText = '';
       // 重置过滤的员工列表
       this.filteredEmployeeList = [...this.employeeList];
+      // 恢复背景滚动
+      document.body.style.overflow = '';
     },
 
     /**
@@ -759,6 +786,23 @@ export default {
       this.currentSelectingItem = null;
       this.employeeSearchText = '';
       this.filteredEmployeeList = [...this.employeeList];
+      // 恢复背景滚动
+      document.body.style.overflow = '';
+    },
+
+    /**
+     * 弹窗关闭后的回调
+     * 确保任何情况下弹窗关闭都恢复页面滚动
+     */
+    onPopupClosed() {
+      // 恢复背景滚动
+      document.body.style.overflow = '';
+      // 重置相关状态
+      if (this.currentSelectingItem) {
+        this.currentSelectingItem = null;
+        this.employeeSearchText = '';
+        this.filteredEmployeeList = [...this.employeeList];
+      }
     },
   },
   /**
@@ -790,11 +834,11 @@ export default {
 @import "@/assets/style/universal/cards";
 
 .batch-complete {
-  padding: 2.08vh 1.56vw;
-  /* 16px -> 2.08vh 1.56vw (16/768*100, 16/1024*100) */
-  height: 100vh;
+  padding: vh(2.08) vw(1.56);
+  /* 16px -> vh(2.08) vw(1.56) (16/768*100, 16/1024*100) */
+  height: vh(100);
   /* 确保占满整个视口高度 */
-  max-height: 100vh;
+  max-height: vh(100);
   /* 最大高度限制为视口高度 */
   display: flex;
   flex-direction: column;
@@ -802,18 +846,18 @@ export default {
   /* 防止整体溢出 */
   box-sizing: border-box;
   /* 确保padding不会增加元素总大小 */
-  padding-bottom: calc(2.08vh + env(safe-area-inset-bottom, 0));
-  /* 支持安全区域 (16px -> 2.08vh) */
+  padding-bottom: calc(vh(2.08) + env(safe-area-inset-bottom, 0));
+  /* 支持安全区域 (16px -> vh(2.08)) */
 
   &__title {
-    margin-bottom: 2.08vh;
-    /* 16px -> 2.08vh (16/768*100) */
+    margin-bottom: vh(2.08);
+    /* 16px -> vh(2.08) (16/768*100) */
     display: flex;
     align-items: center;
 
     h2 {
-      font-size: 2.34vh;
-      /* 18px -> 2.34vh (18/768*100) */
+      font-size: vh(2.34);
+      /* 18px -> vh(2.34) (18/768*100) */
       color: #303133;
       margin: 0;
       padding: 0;
@@ -822,32 +866,32 @@ export default {
     .back-button {
       display: flex;
       align-items: center;
-      padding: 0 0.98vw;
-      /* 10px -> 0.98vw (10/1024*100) */
-      margin-right: 0.98vw;
-      /* 10px -> 0.98vw (10/1024*100) */
+      padding: 0 vw(0.98);
+      /* 10px -> vw(0.98) (10/1024*100) */
+      margin-right: vw(0.98);
+      /* 10px -> vw(0.98) (10/1024*100) */
       cursor: pointer;
-      height: 4.17vh;
-      /* 32px -> 4.17vh (32/768*100) */
+      height: vh(4.17);
+      /* 32px -> vh(4.17) (32/768*100) */
       transition: all 0.2s ease;
       user-select: none;
-      border-radius: 0.52vh;
-      /* 4px -> 0.52vh (4/768*100) */
+      border-radius: vh(0.52);
+      /* 4px -> vh(0.52) (4/768*100) */
 
       &:hover {
         background-color: rgba(0, 0, 0, 0.05);
       }
 
       .van-icon {
-        font-size: 2.08vh;
-        /* 16px -> 2.08vh (16/768*100) */
-        margin-right: 0.49vw;
-        /* 5px -> 0.49vw (5/1024*100) */
+        font-size: vh(2.08);
+        /* 16px -> vh(2.08) (16/768*100) */
+        margin-right: vw(0.49);
+        /* 5px -> vw(0.49) (5/1024*100) */
       }
 
       span {
-        font-size: 1.82vh;
-        /* 14px -> 1.82vh (14/768*100) */
+        font-size: vh(1.82);
+        /* 14px -> vh(1.82) (14/768*100) */
       }
     }
   }
@@ -855,32 +899,32 @@ export default {
   /* 新增扫码容器样式 */
   &__scan-container {
     display: flex;
-    gap: 2.08vh;
-    /* 16px -> 2.08vh (16/768*100) */
-    margin-bottom: 2.08vh;
-    /* 16px -> 2.08vh (16/768*100) */
+    gap: vh(2.08);
+    /* 16px -> vh(2.08) (16/768*100) */
+    margin-bottom: vh(2.08);
+    /* 16px -> vh(2.08) (16/768*100) */
   }
 
   &__scan-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border: 0.13vh solid #ebeef5;
-    /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh;
-    /* 4px -> 0.52vh (4/768*100) */
-    padding: 1.3vh;
-    /* 10px -> 1.3vh (10/768*100) */
+    border: vh(0.13) solid #ebeef5;
+    /* 1px -> vh(0.13) (1/768*100) */
+    border-radius: vh(0.52);
+    /* 4px -> vh(0.52) (4/768*100) */
+    padding: vh(1.3);
+    /* 10px -> vh(1.3) (10/768*100) */
     background-color: #f5f7fa;
   }
 
   &__scan-title {
-    font-size: 1.82vh;
-    /* 14px -> 1.82vh (14/768*100) */
+    font-size: vh(1.82);
+    /* 14px -> vh(1.82) (14/768*100) */
     font-weight: 600;
     color: #303133;
-    margin-bottom: 1.3vh;
-    /* 10px -> 1.3vh (10/768*100) */
+    margin-bottom: vh(1.3);
+    /* 10px -> vh(1.3) (10/768*100) */
     text-align: center;
   }
 
@@ -891,16 +935,16 @@ export default {
 
   &__scan-input {
     flex: 1;
-    height: 4.17vh;
-    /* 32px -> 4.17vh (32/768*100) */
-    padding: 0 0.98vw;
-    /* 10px -> 0.98vw (10/1024*100) */
-    border: 0.13vh solid #dcdfe6;
-    /* 1px -> 0.13vh (1/768*100) */
-    border-radius: 0.52vh;
-    /* 4px -> 0.52vh (4/768*100) */
-    font-size: 1.56vh;
-    /* 添加字体大小 12px -> 1.56vh (12/768*100) */
+    height: vh(4.17);
+    /* 32px -> vh(4.17) (32/768*100) */
+    padding: 0 vw(0.98);
+    /* 10px -> vw(0.98) (10/1024*100) */
+    border: vh(0.13) solid #dcdfe6;
+    /* 1px -> vh(0.13) (1/768*100) */
+    border-radius: vh(0.52);
+    /* 4px -> vh(0.52) (4/768*100) */
+    font-size: vh(1.56);
+    /* 添加字体大小 12px -> vh(1.56) (12/768*100) */
 
     &:focus {
       outline: none;
@@ -909,8 +953,8 @@ export default {
 
     &::placeholder {
       color: #909399;
-      font-size: 1.56vh;
-      /* 设置placeholder字体大小 12px -> 1.56vh (12/768*100) */
+      font-size: vh(1.56);
+      /* 设置placeholder字体大小 12px -> vh(1.56) (12/768*100) */
       opacity: 0.8;
     }
   }
@@ -918,30 +962,30 @@ export default {
   &__operation {
     flex-wrap: wrap;
     justify-content: center;
-    margin-bottom: 2.08vh;
-    /* 16px -> 2.08vh (16/768*100) */
+    margin-bottom: vh(2.08);
+    /* 16px -> vh(2.08) (16/768*100) */
     display: flex;
-    gap: 0.98vw;
-    /* 10px -> 0.98vw (10/1024*100) */
-    padding: 0 1.56vw;
-    /* 16px -> 1.56vw (16/1024*100) */
+    gap: vw(0.98);
+    /* 10px -> vw(0.98) (10/1024*100) */
+    padding: 0 vw(1.56);
+    /* 16px -> vw(1.56) (16/1024*100) */
 
     .operation-button {
-      min-width: 15.63vw;
-      /* 120px -> 15.63vw (120/768*100) */
+      min-width: vw(15.63);
+      /* 120px -> vw(15.63) (120/768*100) */
       flex: 0 0 auto;
-      margin-bottom: 1.04vh;
-      /* 8px -> 1.04vh (8/768*100) */
-      height: 3.65vh;
-      /* 28px -> 3.65vh (28/768*100) */
-      padding: 0 1.46vw;
-      /* 0 15px -> 0 1.46vw (15/1024*100) */
-      font-size: 1.69vh;
-      /* 13px -> 1.69vh (13/768*100) */
-      border-radius: 0.39vh;
-      /* 3px -> 0.39vh (3/768*100) */
-      line-height: 1.82vh;
-      /* 14px -> 1.82vh (14/768*100) */
+      margin-bottom: vh(1.04);
+      /* 8px -> vh(1.04) (8/768*100) */
+      height: vh(3.65);
+      /* 28px -> vh(3.65) (28/768*100) */
+      padding: 0 vw(1.46);
+      /* 0 15px -> 0 vw(1.46) (15/1024*100) */
+      font-size: vh(1.69);
+      /* 13px -> vh(1.69) (13/768*100) */
+      border-radius: vh(0.39);
+      /* 3px -> vh(0.39) (3/768*100) */
+      line-height: vh(1.82);
+      /* 14px -> vh(1.82) (14/768*100) */
       font-weight: 500;
     }
   }
@@ -955,22 +999,22 @@ export default {
     /* 增加iOS设备的滚动惯性 */
     position: relative;
     /* 添加相对定位作为子元素的定位上下文 */
-    margin-bottom: 1.3vh;
-    /* 10px -> 1.3vh (10/768*100) */
+    margin-bottom: vh(1.3);
+    /* 10px -> vh(1.3) (10/768*100) */
   }
 
   &__card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(22vw, 1fr));
     /* 减小最小宽度从27.34vw到22vw */
-    gap: 1.3vh 1.04vw;
+    gap: vh(1.3) vw(1.04);
     /* 减小间距 */
-    padding: 0 1.56vw;
+    padding: 0 vw(1.56);
   }
 
   &__empty-tip {
-    height: 13.02vh;
-    /* 100px -> 13.02vh (100/768*100) */
+    height: vh(13.02);
+    /* 100px -> vh(13.02) (100/768*100) */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -981,10 +1025,10 @@ export default {
     display: flex;
     justify-content: center;
     /* 将右对齐改为居中对齐 */
-    margin-top: 2.08vh;
-    /* 16px -> 2.08vh (16/768*100) */
-    padding: 0 1.56vw;
-    /* 16px -> 1.56vw (16/1024*100) */
+    margin-top: vh(2.08);
+    /* 16px -> vh(2.08) (16/768*100) */
+    padding: 0 vw(1.56);
+    /* 16px -> vw(1.56) (16/1024*100) */
     position: sticky;
     /* 使底部按钮区域保持可见 */
     bottom: 0;
@@ -992,36 +1036,36 @@ export default {
     /* 确保背景色与页面一致 */
     z-index: 5;
     /* 保持在一定层级上，避免被卡片遮挡 */
-    padding-bottom: max(1.3vh, env(safe-area-inset-bottom, 1.3vh));
-    /* 支持安全区域 (10px -> 1.3vh) */
-    box-shadow: 0 -0.26vh 1.3vh rgba(0, 0, 0, 0.05);
-    /* 轻微阴影区分内容区 (2px 10px -> 0.26vh 1.3vh) */
+    padding-bottom: max(vh(1.3), env(safe-area-inset-bottom, vh(1.3)));
+    /* 支持安全区域 (10px -> vh(1.3)) */
+    box-shadow: 0 -vh(0.26) vh(1.3) rgba(0, 0, 0, 0.05);
+    /* 轻微阴影区分内容区 (2px 10px -> vh(0.26) vh(1.3)) */
 
     .batch-complete__button-wrapper {
       display: flex;
       justify-content: center;
       /* 确保按钮在容器中居中 */
-      gap: 2.93vw;
-      /* 增加按钮间距为30px -> 2.93vw (30/1024*100) */
-      padding: 0.65vh 0;
-      /* 增加上下内边距，5px -> 0.65vh (5/768*100) */
+      gap: vw(2.93);
+      /* 增加按钮间距为30px -> vw(2.93) (30/1024*100) */
+      padding: vh(0.65) 0;
+      /* 增加上下内边距，5px -> vh(0.65) (5/768*100) */
     }
 
     .el-button {
-      padding: 1.3vh 1.95vw;
-      /* 10px 20px -> 1.3vh 1.95vw (10/768*100, 20/1024*100) */
-      font-size: 1.82vh;
-      /* 14px -> 1.82vh (14/768*100) */
-      border-radius: 0.52vh;
-      /* 4px -> 0.52vh (4/768*100) */
-      min-width: 9.77vw;
-      /* 设置最小宽度 100px -> 9.77vw (100/1024*100) */
+      padding: vh(1.3) vw(1.95);
+      /* 10px 20px -> vh(1.3) vw(1.95) (10/768*100, 20/1024*100) */
+      font-size: vh(1.82);
+      /* 14px -> vh(1.82) (14/768*100) */
+      border-radius: vh(0.52);
+      /* 4px -> vh(0.52) (4/768*100) */
+      min-width: vw(9.77);
+      /* 设置最小宽度 100px -> vw(9.77) (100/1024*100) */
 
       &:hover {
-        transform: translateY(-0.13vh);
-        /* -1px -> -0.13vh (1/768*100) */
-        box-shadow: 0 0.26vh 1.04vh rgba(0, 0, 0, 0.15);
-        /* 2px 8px -> 0.26vh 1.04vh (2/768*100, 8/768*100) */
+        transform: translateY(-vh(0.13));
+        /* -1px -> -vh(0.13) (1/768*100) */
+        box-shadow: 0 vh(0.26) vh(1.04) rgba(0, 0, 0, 0.15);
+        /* 2px 8px -> vh(0.26) vh(1.04) (2/768*100, 8/768*100) */
       }
     }
   }
@@ -1032,37 +1076,37 @@ export default {
   display: flex;
   flex-direction: column;
   background: linear-gradient(145deg, #ffffff, #f8f9fa);
-  border-radius: 0.78vh;
+  border-radius: vh(0.78);
   /* 减小圆角 */
-  box-shadow: 0 0.26vh 0.65vh rgba(0, 0, 0, 0.05);
+  box-shadow: 0 vh(0.26) vh(0.65) rgba(0, 0, 0, 0.05);
   /* 减小阴影 */
-  border: 0.13vh solid rgba(0, 0, 0, 0.05);
+  border: vh(0.13) solid rgba(0, 0, 0, 0.05);
   padding: 0;
   transition: all 0.3s ease;
   overflow: hidden;
   position: relative;
-  --lable-width: 6.25vw;
+  --lable-width: vw(6.25);
   /* 减小标签宽度 */
 
   &:hover {
-    box-shadow: 0 0.26vh 1.3vh rgba(0, 0, 0, 0.1);
+    box-shadow: 0 vh(0.26) vh(1.3) rgba(0, 0, 0, 0.1);
     /* 减小悬停阴影 */
-    transform: translateY(-0.13vh);
+    transform: translateY(-vh(0.13));
     /* 减小悬停上移效果 */
   }
 
   /* 选中状态样式 */
   &--selected {
     background: linear-gradient(145deg, #ecf5ff, #e1f0ff);
-    border: 0.13vh solid rgba(64, 158, 255, 0.2);
+    border: vh(0.13) solid rgba(64, 158, 255, 0.2);
     box-shadow:
-      0 0.26vh 1.3vh rgba(64, 158, 255, 0.1),
-      0 0.13vh 0.26vh rgba(64, 158, 255, 0.2),
-      inset 0 0.13vh 0.13vh rgba(255, 255, 255, 0.9);
+      0 vh(0.26) vh(1.3) rgba(64, 158, 255, 0.1),
+      0 vh(0.13) vh(0.26) rgba(64, 158, 255, 0.2),
+      inset 0 vh(0.13) vh(0.13) rgba(255, 255, 255, 0.9);
 
     .card__header {
       background: linear-gradient(145deg, #e1f0ff, #d0e8ff);
-      border-bottom: 0.13vh solid rgba(64, 158, 255, 0.2);
+      border-bottom: vh(0.13) solid rgba(64, 158, 255, 0.2);
     }
   }
 
@@ -1070,10 +1114,10 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.78vh 0.98vw;
+    padding: vh(0.78) vw(0.98);
     /* 减小内边距 */
     background: linear-gradient(145deg, #f8f9fa, #f2f3f5);
-    border-bottom: 0.13vh solid rgba(0, 0, 0, 0.05);
+    border-bottom: vh(0.13) solid rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: all 0.2s ease;
 
@@ -1088,7 +1132,7 @@ export default {
 
   &__title {
     font-weight: 600;
-    font-size: 1.69vh;
+    font-size: vh(1.69);
     /* 减小字体大小 */
     color: #303133;
     overflow: hidden;
@@ -1102,7 +1146,7 @@ export default {
   }
 
   &__content {
-    padding: 1.04vh 0.98vw;
+    padding: vh(1.04) vw(0.98);
     /* 减小内边距 */
     flex: 1;
   }
@@ -1110,7 +1154,7 @@ export default {
   &__input-row {
     display: flex;
     align-items: center;
-    margin-bottom: 0.78vh;
+    margin-bottom: vh(0.78);
     /* 减小间距 */
     width: 100%;
 
@@ -1121,7 +1165,7 @@ export default {
 
   &__info-row {
     display: flex;
-    margin-bottom: 0.78vh;
+    margin-bottom: vh(0.78);
     /* 减小间距 */
     align-items: center;
     width: 100%;
@@ -1133,7 +1177,7 @@ export default {
 
   &__label {
     width: var(--lable-width);
-    font-size: 1.56vh;
+    font-size: vh(1.56);
     /* 减小字体大小 */
     color: #606266;
     font-weight: 500;
@@ -1143,19 +1187,19 @@ export default {
 
   &__readonly-text {
     flex: 1;
-    font-size: 1.56vh;
+    font-size: vh(1.56);
     /* 减小字体大小 */
     color: #606266;
     line-height: 1.3;
     /* 减小行高 */
     background-color: #f5f7fa;
-    border-radius: 0.26vh;
+    border-radius: vh(0.26);
     /* 减小圆角 */
-    border: 0.13vh solid #e4e7ed;
-    min-height: 3.52vh;
+    border: vh(0.13) solid #e4e7ed;
+    min-height: vh(3.52);
     /* 减小高度 */
     word-break: break-all;
-    padding: 0 0.65vw;
+    padding: 0 vw(0.65);
     /* 减小内边距 */
     display: flex;
     align-items: center;
@@ -1165,24 +1209,24 @@ export default {
 
   &__input {
     flex: 1;
-    height: 3.52vh;
+    height: vh(3.52);
     /* 减小高度 */
-    line-height: 3.52vh;
+    line-height: vh(3.52);
     /* 减小行高 */
-    padding: 0 0.65vw;
+    padding: 0 vw(0.65);
     /* 减小内边距 */
-    border: 0.13vh solid #dcdfe6;
-    border-radius: 0.26vh;
+    border: vh(0.13) solid #dcdfe6;
+    border-radius: vh(0.26);
     /* 减小圆角 */
     background-color: #fff;
     width: calc(100% - var(--lable-width));
-    font-size: 1.56vh;
+    font-size: vh(1.56);
     /* 减小字体大小 */
 
     &:focus {
       outline: none;
       border-color: #409eff;
-      box-shadow: 0 0 0 0.13vh rgba(64, 158, 255, 0.2);
+      box-shadow: 0 0 0 vh(0.13) rgba(64, 158, 255, 0.2);
       /* 减小阴影 */
     }
   }
@@ -1190,17 +1234,17 @@ export default {
   &__radio-group {
     flex: 1;
     display: flex;
-    gap: 1.17vw;
+    gap: vw(1.17);
     /* 减小间距 */
   }
 
   &__footer {
-    height: 1.82vh;
+    height: vh(3.82);
     /* 减小高度 */
-    padding: 0.78vh 0.98vw;
+    padding: vh(0.78) vw(0.98);
     /* 减小内边距 */
     background-color: rgba(0, 0, 0, 0.02);
-    border-top: 0.13vh solid rgba(0, 0, 0, 0.05);
+    border-top: vh(0.13) solid rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
     position: relative;
@@ -1212,15 +1256,15 @@ export default {
   }
 
   &__info-label {
-    font-size: 1.43vh;
+    font-size: vh(1.43);
     /* 减小字体大小 */
     color: #909399;
-    margin-right: 0.39vw;
+    margin-right: vw(0.39);
     /* 减小间距 */
   }
 
   &__info-value {
-    font-size: 1.43vh;
+    font-size: vh(1.43);
     /* 减小字体大小 */
     color: #303133;
     font-weight: 500;
@@ -1230,23 +1274,23 @@ export default {
     display: flex;
     align-items: center;
     position: absolute;
-    top: 0.26vh;
+    top: vh(0.26);
     /* 减小位置 */
-    right: 0.98vw;
+    right: vw(0.98);
     /* 减小右侧距离 */
-    width: 8.79vw;
+    width: vw(8.79);
     /* 减小宽度 */
   }
 
   /* 员工选择器样式 */
   &__employee-field {
     flex: 1;
-    height: 3.52vh;
+    height: vh(3.52);
     /* 减小高度 */
-    line-height: 3.52vh;
+    line-height: vh(3.52);
     /* 减小行高 */
-    border: 0.13vh solid #dcdfe6;
-    border-radius: 0.26vh;
+    border: vh(0.13) solid #dcdfe6;
+    border-radius: vh(0.26);
     /* 减小圆角 */
     background-color: #fff;
     width: 100%;
@@ -1266,30 +1310,30 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      padding: 0 0.65vw;
+      padding: 0 vw(0.65);
       /* 减小内边距 */
       text-align: left;
-      font-size: 1.56vh;
+      font-size: vh(1.56);
       /* 减小字体大小 */
     }
 
     .employee-field-icon {
       color: #909399;
-      font-size: 1.69vh;
+      font-size: vh(1.69);
       /* 减小图标大小 */
       transition: transform 0.3s;
-      margin-right: 0.65vw;
+      margin-right: vw(0.65);
       /* 减小右侧距离 */
     }
   }
 
   &__selection-icon {
-    font-size: 2.08vh;
+    font-size: vh(2.08);
     /* 减小图标大小 */
     color: #909399;
     transition: all 0.3s ease;
     border-radius: 50%;
-    padding: 0.26vh;
+    padding: vh(0.26);
     /* 减小内边距 */
 
     &--selected {
@@ -1302,19 +1346,19 @@ export default {
 /* 添加合格性下拉框样式 */
 .qualification-dropdown {
   ::v-deep .el-input__inner {
-    border-radius: 1.69vh;
+    border-radius: vh(1.69);
     /* 减小圆角 */
-    height: 3.13vh;
+    height: vh(3.13);
     /* 减小高度 */
-    line-height: 3.13vh;
+    line-height: vh(3.13);
     /* 减小行高 */
-    border: 0.13vh solid #ebedf0;
+    border: vh(0.13) solid #ebedf0;
     background: #f7f8fa;
     color: #323233;
     transition: all 0.3s ease;
-    padding: 0 0.98vw;
+    padding: 0 vw(0.98);
     /* 减小内边距 */
-    font-size: 1.3vh;
+    font-size: vh(1.3);
     /* 减小字体大小 */
   }
 
@@ -1324,13 +1368,13 @@ export default {
   }
 
   ::v-deep .el-input__suffix {
-    right: 0.49vw;
+    right: vw(0.49);
     /* 减小右侧距离 */
   }
 
   ::v-deep .el-select__caret {
     color: #969799;
-    line-height: 3.13vh;
+    line-height: vh(3.13);
     /* 减小行高 */
   }
 }
@@ -1346,13 +1390,13 @@ export default {
 /* 媒体查询 - 小屏幕适配 */
 @media screen and (max-width: 768px) {
   .batch-complete {
-    padding: 1.3vh;
-    /* 10px -> 1.3vh (10/768*100) */
+    padding: vh(1.3);
+    /* 10px -> vh(1.3) (10/768*100) */
 
     /* 窄屏下扫码区域改为上下布局 */
     &__scan-container {
       flex-direction: column;
-      gap: 1.3vh;
+      gap: vh(1.3);
       /* 减小垂直间距 */
     }
 
@@ -1360,7 +1404,7 @@ export default {
       width: 100%;
       box-sizing: border-box;
       /* 确保宽度包含padding和border */
-      padding: 1.3vh;
+      padding: vh(1.3);
       /* 增加内边距 */
     }
 
@@ -1378,35 +1422,35 @@ export default {
 
     &__card-grid {
       grid-template-columns: 1fr;
-      padding: 0 1.04vh;
-      /* 8px -> 1.04vh (8/768*100) */
+      padding: 0 vh(1.04);
+      /* 8px -> vh(1.04) (8/768*100) */
     }
 
     &__operation {
       flex-wrap: wrap;
       justify-content: center;
-      padding: 0 1.04vh;
-      /* 8px -> 1.04vh (8/768*100) */
+      padding: 0 vh(1.04);
+      /* 8px -> vh(1.04) (8/768*100) */
 
       .operation-button {
         min-width: 20vw;
         /* 小屏幕下设置更合适的宽度 */
-        margin: 0 0.65vh 1.04vh;
-        /* 增加水平间距，0 5px 8px -> 0 0.65vh 1.04vh (5/768*100, 8/768*100) */
+        margin: 0 vh(0.65) vh(1.04);
+        /* 增加水平间距，0 5px 8px -> 0 vh(0.65) vh(1.04) (5/768*100, 8/768*100) */
       }
     }
 
     &__submit {
-      padding: 0 1.04vh 1.04vh;
-      /* 8px 8px -> 1.04vh 1.04vh (8/768*100, 8/768*100) */
-      padding-bottom: max(1.04vh, env(safe-area-inset-bottom, 1.04vh));
-      /* 支持安全区域 (8px -> 1.04vh) */
+      padding: 0 vh(1.04) vh(1.04);
+      /* 8px 8px -> vh(1.04) vh(1.04) (8/768*100, 8/768*100) */
+      padding-bottom: max(vh(1.04), env(safe-area-inset-bottom, vh(1.04)));
+      /* 支持安全区域 (8px -> vh(1.04)) */
 
       .batch-complete__button-wrapper {
         width: 100%;
         /* 在小屏幕上占满宽度 */
-        gap: 1.95vw;
-        /* 减小间距以适应小屏幕，20px -> 1.95vw (20/1024*100) */
+        gap: vw(1.95);
+        /* 减小间距以适应小屏幕，20px -> vw(1.95) (20/1024*100) */
       }
 
       .el-button {
@@ -1416,8 +1460,8 @@ export default {
         /* 取消最小宽度限制 */
         white-space: nowrap;
         /* 防止文本换行 */
-        padding: 1.3vh 1.17vw;
-        /* 调整内边距 10px 12px -> 1.3vh 1.17vw (10/768*100, 12/1024*100) */
+        padding: vh(1.3) vw(1.17);
+        /* 调整内边距 10px 12px -> vh(1.3) vw(1.17) (10/768*100, 12/1024*100) */
       }
     }
   }
@@ -1427,6 +1471,34 @@ export default {
 ::v-deep .van-popup {
   max-height: 60%;
   overflow-y: auto;
+  position: fixed !important;
+  z-index: 2001 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+::v-deep .van-popup--bottom {
+  bottom: 0 !important;
+  top: auto !important;
+}
+
+::v-deep .van-popup--round {
+  border-radius: vh(1.56) vh(1.56) 0 0 !important;
+}
+
+::v-deep .van-overlay {
+  position: fixed !important;
+  z-index: 2000 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 ::v-deep .van-picker {
@@ -1434,21 +1506,21 @@ export default {
 }
 
 ::v-deep .van-picker-column {
-  font-size: 2.08vh;
-  /* 16px -> 2.08vh (16/768*100) */
+  font-size: vh(2.08);
+  /* 16px -> vh(2.08) (16/768*100) */
 }
 
 ::v-deep .van-picker__toolbar {
-  border-bottom: 0.13vh solid #ebedf0;
-  /* 1px -> 0.13vh (1/768*100) */
+  border-bottom: vh(0.13) solid #ebedf0;
+  /* 1px -> vh(0.13) (1/768*100) */
 }
 
 /* 员工搜索框样式 */
 .employee-search {
-  padding: 1.04vh 1.56vw;
-  /* 8px 16px -> 1.04vh 1.56vw (8/768*100, 16/1024*100) */
-  border-bottom: 0.13vh solid #ebedf0;
-  /* 1px -> 0.13vh (1/768*100) */
+  padding: vh(1.04) vw(1.56);
+  /* 8px 16px -> vh(1.04) vw(1.56) (8/768*100, 16/1024*100) */
+  border-bottom: vh(0.13) solid #ebedf0;
+  /* 1px -> vh(0.13) (1/768*100) */
 }
 
 .employee-select-wrapper {
@@ -1457,14 +1529,20 @@ export default {
 
 /* 添加van-search的placeholder样式 */
 ::v-deep .van-search .van-field__control {
-  font-size: 1.56vh;
-  /* 添加字体大小 12px -> 1.56vh (12/768*100) */
+  font-size: vh(1.56);
+  /* 添加字体大小 12px -> vh(1.56) (12/768*100) */
 }
 
 ::v-deep .van-search .van-field__control::placeholder {
   color: #909399;
-  font-size: 1.56vh;
-  /* 设置placeholder字体大小 12px -> 1.56vh (12/768*100) */
+  font-size: vh(1.56);
+  /* 设置placeholder字体大小 12px -> vh(1.56) (12/768*100) */
   opacity: 0.8;
+}
+
+/* 必填字段样式 */
+.required-field {
+  color: #f56c6c;
+  margin-right: vh(0.26);
 }
 </style>

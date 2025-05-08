@@ -107,16 +107,25 @@ export class PageBaseViewModel {
     }
 
     // 触发事件
-    triggerEvent(eventName: string, ...args: any[]) {
+    // 如果事件处理器返回Promise，则会等待所有的Promise完成
+    // @returns 如果有异步事件处理器，则返回Promise，否则返回undefined
+    triggerEvent(eventName: string, ...args: any[]): Promise<void> | void {
         const callbacks = this.events.get(eventName);
-        if (callbacks) {
-            callbacks.forEach(callback => {
+        if (callbacks && callbacks.length > 0) {
+            // 收集所有的调用结果，可能包含Promise
+            const results = callbacks.map(callback => {
                 try {
-                    callback(...args);
+                    return callback(...args);
                 } catch (e) {
                     console.error(`Event ${eventName} handler error:`, e);
+                    return null;
                 }
-            });
+            }).filter(result => result instanceof Promise);
+
+            // 如果有异步回调，等待所有的异步回调完成
+            if (results.length > 0) {
+                return Promise.all(results).then(() => { });
+            }
         }
     }
 

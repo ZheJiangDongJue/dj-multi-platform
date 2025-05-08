@@ -61,8 +61,6 @@ export default {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
     padding: vh(0.65) 0;
     /* 5px 0 -> 0.65vh 0 (5/768*100, 0) */
     align-items: center;
@@ -71,12 +69,13 @@ export default {
         margin-right: 0.49vw;
         /* 5px -> 0.49vw (5/1024*100) */
         white-space: nowrap;
+        flex-shrink: 0; /* 防止按钮被压缩 */
     }
 
     &__menu-item {
         padding: vh(1.56) 1.46vw;
         /* 12px 15px -> 1.56vh 1.46vw (12/768*100, 15/1024*100) */
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
         &:hover {
             background-color: #f5f7fa;
@@ -87,10 +86,7 @@ export default {
 
 /* 媒体查询 - 小屏幕样式调整 */
 @include ps {
-    .toolbar {
-        padding: vh(0.39) 0;
-        /* 3px 0 -> 0.39vh 0 (3/768*100, 0) */
-
+    .toolbar-panel {
         &__btn {
             font-size: vh(1.56);
             /* 12px -> 1.56vh (12/768*100) */

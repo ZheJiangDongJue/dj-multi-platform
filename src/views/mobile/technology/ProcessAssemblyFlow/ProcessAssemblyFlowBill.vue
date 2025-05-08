@@ -60,7 +60,8 @@
                         :screenWidth="screenWidth"
                         :fontSize="fontSize"
                         @receive="handleReceive"
-                        @complete="handleComplete" />
+                        @complete="handleComplete"
+                        @update:field="handleUpdateCardField" />
                 </div>
             </template>
         </BillPageTemplateForMobile>

@@ -6,9 +6,45 @@
 
 /* 核心函数：将百分比转换为固定viewport单位 */
 @function vw($percent) {
-  @return calc(($percent / 100) * var(--viewport-width, 100vw));
+  /* 使用floor值确保整数像素值，防止安卓设备的亚像素渲染问题 */
+  @return calc(var(--viewport-width, 100vw) * #{$percent} / 100);
 }
 
 @function vh($percent) {
-  @return calc(($percent / 100) * var(--viewport-height, 100vh));
+  /* 使用floor值确保整数像素值，防止安卓设备的亚像素渲染问题 */
+  @return calc(var(--viewport-height, 100vh) * #{$percent} / 100);
+}
+
+/* vh和vw两者的最大值 */
+@function vmax($percent) {
+  @return max(vh($percent), vw($percent));
+}
+
+/* 安卓设备特定优化 */
+.android-device {
+  /* 确保所有变换都在整数像素上进行，避免抖动 */
+  * {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+  
+  /* 确保过渡动画平滑 */
+  * {
+    transition-timing-function: ease-out;
+    -webkit-transition-timing-function: ease-out;
+  }
+}
+
+/* 主要组件中使用的动画相关类 */
+.animate-fix-parent {
+  /* 确保子元素的3D效果正确渲染 */
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  
+  /* 强制硬件加速 */
+  will-change: transform;
+  
+  /* 防止文本模糊 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 } 
